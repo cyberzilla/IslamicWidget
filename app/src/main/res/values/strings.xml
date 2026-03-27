@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Widget Sholat</string>
+
+    <string name="fajr">Subuh</string>
+    <string name="dhuhr">Dzuhur</string>
+    <string name="asr">Ashar</string>
+    <string name="maghrib">Maghrib</string>
+    <string name="isha">Isya</string>
+
+    <string name="silent_mode_active">Mode Hening Aktif</string>
+</resources>

@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Prayer Widget</string>
+
+    <string name="fajr">Fajr</string>
+    <string name="dhuhr">Dhuhr</string>
+    <string name="asr">Asr</string>
+    <string name="maghrib">Maghrib</string>
+    <string name="isha">Isha</string>
+
+    <string name="silent_mode_active">Silent Mode Active</string>
+</resources>

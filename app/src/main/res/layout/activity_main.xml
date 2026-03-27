@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FA"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pengaturan Widget"
+            android:textColor="#1F2937"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:layout_marginBottom="16dp" android:background="@drawable/widget_bg_shape" android:elevation="2dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1. Bahasa / Language" android:textColor="#3B82F6" android:textStyle="bold" android:layout_marginBottom="8dp" />
+            <Spinner android:id="@+id/spinner_language" android:layout_width="match_parent" android:layout_height="48dp" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:layout_marginBottom="16dp" android:background="@drawable/widget_bg_shape" android:elevation="2dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2. Tampilan Visual" android:textColor="#3B82F6" android:textStyle="bold" android:layout_marginBottom="12dp" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_label_font" android:layout_width="120dp" android:layout_height="wrap_content" android:text="Ukuran Font: 14sp" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sb_font_size" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp">
+                <TextView android:id="@+id/tv_label_radius" android:layout_width="120dp" android:layout_height="wrap_content" android:text="Radius: 16dp" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sb_radius" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" />
+            </LinearLayout>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp" android:weightSum="2">
+                <Button android:id="@+id/btn_pick_text_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Warna Teks" android:textSize="12sp" android:layout_marginEnd="4dp" android:textColor="#FFFFFF" android:backgroundTint="#4B5563"/>
+                <Button android:id="@+id/btn_pick_bg_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Warna Background" android:textSize="12sp" android:layout_marginStart="4dp" android:textColor="#FFFFFF" android:backgroundTint="#4B5563"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:layout_marginBottom="16dp" android:background="@drawable/widget_bg_shape" android:elevation="2dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3. Kalkulasi Waktu" android:textColor="#3B82F6" android:textStyle="bold" android:layout_marginBottom="12dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Metode Kalkulasi Adzan:" android:textSize="12sp" />
+            <Spinner android:id="@+id/spinner_calc_method" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginBottom="8dp"/>
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_label_hijri" android:layout_width="140dp" android:layout_height="wrap_content" android:text="Koreksi Hijriyah: 0" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sb_hijri_offset" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="10" />
+            </LinearLayout>
+
+            <CheckBox android:id="@+id/cb_day_start" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ganti Hijriyah di waktu Maghrib" android:layout_marginTop="4dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Format Tanggal Masehi" android:textSize="12sp" android:layout_marginTop="8dp"/>
+            <EditText android:id="@+id/et_date_format" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:layout_marginBottom="24dp" android:background="@drawable/widget_bg_shape" android:elevation="2dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="4. Auto-Silent (DND)" android:textColor="#3B82F6" android:textStyle="bold" />
+                <Switch android:id="@+id/switch_auto_silent" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Subuh" android:textStyle="bold" android:textColor="#4B5563"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_fajr_bef" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Sblm: 0m" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sb_fajr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" />
+                <TextView android:id="@+id/tv_fajr_aft" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Ssdh: 15m" android:textSize="12sp" android:textAlignment="viewEnd"/>
+                <SeekBar android:id="@+id/sb_fajr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" />
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Dzuhur" android:textStyle="bold" android:textColor="#4B5563" android:layout_marginTop="12dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_dhuhr_bef" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Sblm: 0m" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sb_dhuhr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" />
+                <TextView android:id="@+id/tv_dhuhr_aft" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Ssdh: 20m" android:textSize="12sp" android:textAlignment="viewEnd"/>
+                <SeekBar android:id="@+id/sb_dhuhr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="4dp">
+                <TextView android:id="@+id/tv_dhuhr_fri" android:layout_width="140dp" android:layout_height="wrap_content" android:text="Khusus Jumat: 60m" android:textSize="12sp" android:textColor="#059669" android:textStyle="bold"/>
+                <SeekBar android:id="@+id/sb_dhuhr_fri" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="180" android:progressTint="#059669" android:thumbTint="#059669"/>
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Ashar" android:textStyle="bold" android:textColor="#4B5563" android:layout_marginTop="12dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_asr_bef" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Sblm: 0m" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sb_asr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" />
+                <TextView android:id="@+id/tv_asr_aft" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Ssdh: 20m" android:textSize="12sp" android:textAlignment="viewEnd"/>
+                <SeekBar android:id="@+id/sb_asr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" />
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Maghrib" android:textStyle="bold" android:textColor="#4B5563" android:layout_marginTop="12dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_maghrib_bef" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Sblm: 0m" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sb_maghrib_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" />
+                <TextView android:id="@+id/tv_maghrib_aft" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Ssdh: 15m" android:textSize="12sp" android:textAlignment="viewEnd"/>
+                <SeekBar android:id="@+id/sb_maghrib_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" />
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Isya" android:textStyle="bold" android:textColor="#4B5563" android:layout_marginTop="12dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_isha_bef" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Sblm: 0m" android:textSize="12sp"/>
+                <SeekBar android:id="@+id/sb_isha_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" />
+                <TextView android:id="@+id/tv_isha_aft" android:layout_width="80dp" android:layout_height="wrap_content" android:text="Ssdh: 20m" android:textSize="12sp" android:textAlignment="viewEnd"/>
+                <SeekBar android:id="@+id/sb_isha_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_save_settings"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Simpan &amp; Terapkan Widget"
+            android:backgroundTint="#10B981"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp" android:layout_marginBottom="16dp">
+            <Button android:id="@+id/btn_req_location" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginEnd="4dp" android:text="Update GPS" style="?android:attr/borderlessButtonStyle" android:textColor="#3B82F6"/>
+            <Button android:id="@+id/btn_req_dnd" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="4dp" android:text="Izin DND" style="?android:attr/borderlessButtonStyle" android:textColor="#3B82F6"/>
+        </LinearLayout>
+
+        <Button android:id="@+id/btn_restore" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Kembalikan ke Awal" style="?android:attr/borderlessButtonStyle" android:textColor="#EF4444" />
+        <Button android:id="@+id/btn_about" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Tentang Developer" style="?android:attr/borderlessButtonStyle" android:textColor="#6B7280" android:layout_marginBottom="32dp"/>
+
+    </LinearLayout>
+</ScrollView>

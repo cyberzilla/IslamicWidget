@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">أداة الصلاة</string>
+
+    <string name="fajr">الفجر</string>
+    <string name="dhuhr">الظهر</string>
+    <string name="asr">العصر</string>
+    <string name="maghrib">المغرب</string>
+    <string name="isha">العشاء</string>
+
+    <string name="silent_mode_active">الوضع الصامت نشط</string>
+</resources>
