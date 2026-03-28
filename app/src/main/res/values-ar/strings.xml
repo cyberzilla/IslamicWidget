@@ -38,6 +38,10 @@
     <string name="asr">العصر</string>
     <string name="maghrib">المغرب</string>
     <string name="isha">العشاء</string>
+    <string name="sunrise">الشروق</string>
+    <string name="last_third">الثلث الأخير</string>
+    <string name="qibla">القبلة</string>
+    <string name="prayer">الصلاة</string>
     <string name="before">قبل</string>
     <string name="after">بعد</string>
 
@@ -77,4 +81,27 @@
     <string name="location_not_found">لا يوجد موقع</string>
 
     <string name="btn_stop">إيقاف</string>
+
+    <string name="toast_notification_granted">تم منح إذن الإشعارات</string>
+    <string name="toast_notification_needed">إذن الإشعارات مطلوب للتحكم في الأذان</string>
+    <string name="dialog_permission_title">تحذير النظام!</string>
+    <string name="dialog_disable_pause_activity">لمنع النظام من إخفاء إشعارات الأذان تلقائيًا في المستقبل، يرجى تعطيل "إيقاف نشاط التطبيق إذا لم يكن مستخدمًا" (Pause app activity if unused) في صفحة إعدادات التطبيق.</string>
+    <string name="dialog_settings">افتح الإعدادات</string>
+
+    <string name="notif_title_adzan">حان وقت %1$s</string>
+    <string name="notif_desc_adzan">اسحب أو اضغط على الزر للإيقاف.</string>
+    <string name="notif_action_stop">إيقاف الأذان</string>
+    <string name="notif_channel_name">مواقيت الصلاة والأذان</string>
+    <string name="notif_channel_desc">إشعار عند تشغيل الأذان</string>
+
+    <string name="log_error_play_adzan">فشل تشغيل الأذان: %1$s</string>
+    <string name="log_error_mute">فشل كتم الصوت: %1$s</string>
+    <string name="log_error_unmute">فشل استعادة مستوى الصوت: %1$s</string>
+
+    <string name="color_alpha">ألفا</string>
+    <string name="color_red">أحمر</string>
+    <string name="color_green">أخضر</string>
+    <string name="color_blue">أزرق</string>
+    <string name="color_hex">سداسي عشري: %1$s</string>
+    <string name="format_lat_lon">خط العرض: %1$s، خط الطول: %2$s</string>
 </resources>

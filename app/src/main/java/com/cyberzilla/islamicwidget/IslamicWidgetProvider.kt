@@ -141,9 +141,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.label_maghrib, localizedContext.getString(R.string.maghrib))
         views.setTextViewText(R.id.label_isha, localizedContext.getString(R.string.isha))
 
-        val txtSunrise = when(settings.languageCode) { "en" -> "Sunrise"; "ar" -> "الشروق"; else -> "Terbit" }
-        val txtLastThird = when(settings.languageCode) { "en" -> "Last 1/3"; "ar" -> "الثلث الأخير"; else -> "1/3 Malam" }
-        val txtQibla = when(settings.languageCode) { "en" -> "Qibla"; "ar" -> "القبلة"; else -> "Kiblat" }
+        val txtSunrise = localizedContext.getString(R.string.sunrise)
+        val txtLastThird = localizedContext.getString(R.string.last_third)
+        val txtQibla = localizedContext.getString(R.string.qibla)
 
         val fsClock = settings.fontSizeClock.toFloat()
         val fsDate = settings.fontSizeDate.toFloat()
@@ -229,6 +229,27 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val is24Hour = DateFormat.is24HourFormat(context)
         val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
 
+        if (is24Hour) {
+            views.setCharSequence(R.id.clock_widget, "setFormat24Hour", "HH:mm")
+            views.setCharSequence(R.id.clock_widget, "setFormat12Hour", "HH:mm")
+        } else {
+            if (settings.languageCode == "ar") {
+                val isAm = java.util.Calendar.getInstance().get(java.util.Calendar.AM_PM) == java.util.Calendar.AM
+                val amPmStr = if (isAm) "ص" else "م"
+
+                // Gunakan tanda kutip tunggal '' agar Android menganggapnya sebagai Text statis (Literal)
+                views.setCharSequence(R.id.clock_widget, "setFormat12Hour", "hh:mm '$amPmStr'")
+                views.setCharSequence(R.id.clock_widget, "setFormat24Hour", "hh:mm '$amPmStr'")
+
+                // Jadwalkan refresh akurat di jam 12:00 Siang/Malam untuk membalik ص/م
+                scheduleAmPmUpdate(context, appWidgetId)
+            } else {
+                views.setCharSequence(R.id.clock_widget, "setFormat12Hour", "hh:mm a")
+                views.setCharSequence(R.id.clock_widget, "setFormat24Hour", "hh:mm a")
+            }
+        }
+        // =======================================================
+
         if (latString != null && lonString != null) {
             try {
                 val latitude = latString.toDouble()
@@ -272,11 +293,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.tv_last_third, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                 views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
-                scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
-                scheduleSilentMode(context, prayerTimes.dhuhr.asDate(), 2, settings)
-                scheduleSilentMode(context, prayerTimes.asr.asDate(), 3, settings)
-                scheduleSilentMode(context, prayerTimes.maghrib.asDate(), 4, settings)
-                scheduleSilentMode(context, prayerTimes.isha.asDate(), 5, settings)
+                scheduleSilentMode(context, localizedContext, prayerTimes.fajr.asDate(), 1, settings)
+                scheduleSilentMode(context, localizedContext, prayerTimes.dhuhr.asDate(), 2, settings)
+                scheduleSilentMode(context, localizedContext, prayerTimes.asr.asDate(), 3, settings)
+                scheduleSilentMode(context, localizedContext, prayerTimes.maghrib.asDate(), 4, settings)
+                scheduleSilentMode(context, localizedContext, prayerTimes.isha.asDate(), 5, settings)
 
             } catch (e: Exception) {
                 // Biarkan jika gagal
@@ -285,14 +306,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
-        // =======================================================
-        // EKSEKUSI PERGANTIAN ICON OTOMATIS BERDASARKAN TANGGAL
-        // =======================================================
         try {
             val hijriDayOfMonth = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
             IconHelper.updateLauncherIcon(context, hijriDayOfMonth)
         } catch (e: Exception) {}
-        // =======================================================
 
         val masehiFormatted = formatCustomDate(settings.dateFormat, today, selectedLocale)
         val hijriFormatted = formatCustomDate(settings.hijriFormat, hijriDate, selectedLocale)
@@ -304,14 +321,52 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     }
 
     @SuppressLint("ScheduleExactAlarm")
-    private fun scheduleSilentMode(context: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
+    private fun scheduleAmPmUpdate(context: Context, appWidgetId: Int) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, IslamicWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            appWidgetId + 1000, // Supaya ID unik
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val calendar = java.util.Calendar.getInstance()
+        if (calendar.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM) {
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 12) // Ke Jam 12 Siang
+        } else {
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)  // Ke Hari Esok
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)  // Jam 00:00 Tengah Malam
+        }
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+
+        try {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, calendar.timeInMillis, pendingIntent)
+        } catch (e: SecurityException) {
+            // Biarkan jika permission gagal
+        }
+    }
+
+    @SuppressLint("ScheduleExactAlarm")
+    private fun scheduleSilentMode(context: Context, localizedContext: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
 
         if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time) {
             val prayerName = when(requestCodeId) {
-                1 -> "Subuh"; 2 -> "Dzuhur"; 3 -> "Ashar"; 4 -> "Maghrib"; 5 -> "Isya"; else -> "Sholat"
+                1 -> localizedContext.getString(R.string.fajr)
+                2 -> localizedContext.getString(R.string.dhuhr)
+                3 -> localizedContext.getString(R.string.asr)
+                4 -> localizedContext.getString(R.string.maghrib)
+                5 -> localizedContext.getString(R.string.isha)
+                else -> localizedContext.getString(R.string.prayer)
             }
+
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)

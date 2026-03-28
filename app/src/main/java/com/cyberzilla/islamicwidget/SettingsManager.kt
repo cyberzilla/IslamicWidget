@@ -28,15 +28,11 @@ class SettingsManager(context: Context) {
     var calculationMethod: String get() = prefs.getString("PREF_CALC_METHOD", "MUSLIM_WORLD_LEAGUE") ?: "MUSLIM_WORLD_LEAGUE"; set(value) = prefs.edit().putString("PREF_CALC_METHOD", value).apply()
     var hijriOffset: Int get() = prefs.getInt("PREF_HIJRI_OFFSET", 0); set(value) = prefs.edit().putInt("PREF_HIJRI_OFFSET", value).apply()
     var isDayStartAtMaghrib: Boolean get() = prefs.getBoolean("PREF_DAY_START_MAGHRIB", true); set(value) = prefs.edit().putBoolean("PREF_DAY_START_MAGHRIB", value).apply()
-
-    // =======================================================
-    // FIX: DEFAULT FORMAT TANGGAL JUGA MENYESUAIKAN INGGRIS
-    // =======================================================
     var dateFormat: String get() = prefs.getString("PREF_DATE_FORMAT", "en-US{EEEE, dd MMMM yyyy}") ?: "en-US{EEEE, dd MMMM yyyy}"; set(value) = prefs.edit().putString("PREF_DATE_FORMAT", value).apply()
     var hijriFormat: String get() = prefs.getString("PREF_HIJRI_FORMAT", "en-US{dd MMMM yyyy} AH") ?: "en-US{dd MMMM yyyy} AH"; set(value) = prefs.edit().putString("PREF_HIJRI_FORMAT", value).apply()
 
     var isAutoSilentEnabled: Boolean get() = prefs.getBoolean("PREF_AUTO_SILENT", false); set(value) = prefs.edit().putBoolean("PREF_AUTO_SILENT", value).apply()
-    var isAdzanAudioEnabled: Boolean get() = prefs.getBoolean("PREF_ADZAN_AUDIO", true); set(value) = prefs.edit().putBoolean("PREF_ADZAN_AUDIO", value).apply()
+    var isAdzanAudioEnabled: Boolean get() = prefs.getBoolean("PREF_ADZAN_AUDIO", false); set(value) = prefs.edit().putBoolean("PREF_ADZAN_AUDIO", value).apply()
     var adzanVolume: Int get() = prefs.getInt("PREF_ADZAN_VOL", 100); set(value) = prefs.edit().putInt("PREF_ADZAN_VOL", value).apply()
 
     var customAdzanRegularUri: String? get() = prefs.getString("PREF_ADZAN_REGULAR_URI", null); set(value) = prefs.edit().putString("PREF_ADZAN_REGULAR_URI", value).apply()

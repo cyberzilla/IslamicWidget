@@ -38,6 +38,10 @@
     <string name="asr">Ashar</string>
     <string name="maghrib">Maghrib</string>
     <string name="isha">Isya</string>
+    <string name="sunrise">Terbit</string>
+    <string name="last_third">1/3 Malam</string>
+    <string name="qibla">Kiblat</string>
+    <string name="prayer">Sholat</string>
     <string name="before">Sebelum</string>
     <string name="after">Sesudah</string>
 
@@ -77,4 +81,27 @@
     <string name="location_not_found">Belum Ada Lokasi</string>
 
     <string name="btn_stop">Stop</string>
+
+    <string name="toast_notification_granted">Izin notifikasi diberikan</string>
+    <string name="toast_notification_needed">Izin notifikasi diperlukan untuk kontrol Adzan</string>
+    <string name="dialog_permission_title">Peringatan Sistem!</string>
+    <string name="dialog_disable_pause_activity">Agar Notifikasi Adzan tidak disembunyikan otomatis oleh sistem di masa depan, mohon nonaktifkan "Pause app activity if unused" pada halaman pengaturan aplikasi ini.</string>
+    <string name="dialog_settings">Buka Pengaturan</string>
+
+    <string name="notif_title_adzan">Waktu %1$s Telah Tiba</string>
+    <string name="notif_desc_adzan">Geser atau ketuk tombol untuk mematikan.</string>
+    <string name="notif_action_stop">Matikan Adzan</string>
+    <string name="notif_channel_name">Jadwal &amp; Adzan</string>
+    <string name="notif_channel_desc">Notifikasi saat Adzan berkumandang</string>
+
+    <string name="log_error_play_adzan">Gagal memutar Adzan: %1$s</string>
+    <string name="log_error_mute">Gagal melakukan mute: %1$s</string>
+    <string name="log_error_unmute">Gagal mengembalikan volume: %1$s</string>
+
+    <string name="color_alpha">Alpha</string>
+    <string name="color_red">Merah</string>
+    <string name="color_green">Hijau</string>
+    <string name="color_blue">Biru</string>
+    <string name="color_hex">Hex: %1$s</string>
+    <string name="format_lat_lon">Lat: %1$s, Lon: %2$s</string>
 </resources>

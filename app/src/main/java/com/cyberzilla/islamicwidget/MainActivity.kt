@@ -108,6 +108,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val requestNotificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            findViewById<SwitchCompat>(R.id.switch_audio_adzan).isChecked = true
+            settingsManager.isAdzanAudioEnabled = true
+            Toast.makeText(this, getString(R.string.toast_notification_granted), Toast.LENGTH_SHORT).show()
+            showPauseActivityWarningDialog()
+        } else {
+            findViewById<SwitchCompat>(R.id.switch_audio_adzan).isChecked = false
+            settingsManager.isAdzanAudioEnabled = false
+            Toast.makeText(this, getString(R.string.toast_notification_needed), Toast.LENGTH_LONG).show()
+        }
+    }
+
     @OptIn(ExperimentalTime::class)
     private fun Instant.asDate() = Date(toEpochMilliseconds())
 
@@ -198,10 +211,10 @@ class MainActivity : AppCompatActivity() {
         val tvLatLon = findViewById<TextView>(R.id.tv_lat_lon)
         if (settingsManager.latitude != null && settingsManager.longitude != null) {
             tvLocName.text = settingsManager.locationName
-            tvLatLon.text = "Lat: ${settingsManager.latitude}, Lon: ${settingsManager.longitude}"
+            tvLatLon.text = getString(R.string.format_lat_lon, settingsManager.latitude, settingsManager.longitude)
         } else {
             tvLocName.text = getString(R.string.location_not_found)
-            tvLatLon.text = "Lat: -, Lon: -"
+            tvLatLon.text = getString(R.string.format_lat_lon, "-", "-")
         }
     }
 
@@ -252,20 +265,20 @@ class MainActivity : AppCompatActivity() {
             val currentLocales = AppCompatDelegate.getApplicationLocales()
             val activeLangCode = if (!currentLocales.isEmpty) currentLocales[0]!!.language else settingsManager.languageCode
 
-            val txtSunrise = when(activeLangCode) { "en" -> "Sunrise"; "ar" -> "الشروق"; else -> "Terbit" }
-            val txtLastThird = when(activeLangCode) { "en" -> "Last 1/3"; "ar" -> "الثلث الأخير"; else -> "1/3 Malam" }
-            val txtQibla = when(activeLangCode) { "en" -> "Qibla"; "ar" -> "القبلة"; else -> "Kiblat" }
+            val selectedLocale = Locale.forLanguageTag(activeLangCode)
+            val config = Configuration(resources.configuration)
+            config.setLocale(selectedLocale)
+            val localizedContext = createConfigurationContext(config)
+
+            val txtSunrise = localizedContext.getString(R.string.sunrise)
+            val txtLastThird = localizedContext.getString(R.string.last_third)
+            val txtQibla = localizedContext.getString(R.string.qibla)
 
             val selectedCalcStr = findViewById<AutoCompleteTextView>(R.id.spinner_calc_method).text.toString()
             val calcIdx = calcEntries.indexOf(selectedCalcStr).takeIf { it >= 0 } ?: 0
 
             val masehiPattern = findViewById<EditText>(R.id.et_date_format).text.toString().ifEmpty { "en-US{EEEE, dd MMMM yyyy}" }
             val hijriPattern = findViewById<EditText>(R.id.et_hijri_format).text.toString().ifEmpty { "en-US{dd MMMM yyyy} AH" }
-
-            val selectedLocale = Locale.forLanguageTag(activeLangCode)
-            val config = Configuration(resources.configuration)
-            config.setLocale(selectedLocale)
-            val localizedContext = createConfigurationContext(config)
 
             findViewById<View>(R.id.container_clock)?.visibility = if (isShowClock) View.VISIBLE else View.GONE
             findViewById<View>(R.id.container_date)?.visibility = if (isShowDate) View.VISIBLE else View.GONE
@@ -419,6 +432,23 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_play_adzan_subuh)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
     }
 
+    private fun showPauseActivityWarningDialog() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.dialog_permission_title))
+                .setMessage(getString(R.string.dialog_disable_pause_activity))
+                .setPositiveButton(getString(R.string.dialog_settings)) { _, _ ->
+                    try {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        intent.data = Uri.parse("package:$packageName")
+                        startActivity(intent)
+                    } catch (e: Exception) {}
+                }
+                .setNegativeButton(getString(R.string.dialog_cancel), null)
+                .show()
+        }
+    }
+
     private fun loadSettingsToUI() {
         themeEntries = arrayOf(getString(R.string.theme_system), getString(R.string.theme_light), getString(R.string.theme_dark))
 
@@ -523,7 +553,24 @@ class MainActivity : AppCompatActivity() {
         setupSlider(R.id.sb_isha_bef, R.id.tv_isha_bef, 0, 60, settingsManager.ishaBefore, false, "m")
         setupSlider(R.id.sb_isha_aft, R.id.tv_isha_aft, 0, 120, settingsManager.ishaAfter, false, "m")
 
-        findViewById<SwitchCompat>(R.id.switch_audio_adzan).isChecked = settingsManager.isAdzanAudioEnabled
+        findViewById<SwitchCompat>(R.id.switch_audio_adzan).apply {
+            isChecked = settingsManager.isAdzanAudioEnabled
+            setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            this.isChecked = false
+                            requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            return@setOnCheckedChangeListener
+                        }
+                    }
+                    settingsManager.isAdzanAudioEnabled = true
+                    showPauseActivityWarningDialog()
+                } else {
+                    settingsManager.isAdzanAudioEnabled = false
+                }
+            }
+        }
         setupSlider(R.id.sb_adzan_vol, R.id.tv_adzan_vol, 0, 100, settingsManager.adzanVolume, false, "%")
 
         tempRegularUri = settingsManager.customAdzanRegularUri
@@ -555,17 +602,17 @@ class MainActivity : AppCompatActivity() {
         val layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(50, 50, 50, 50) }
         var currentColor = try { Color.parseColor(initialColorHex) } catch (e: Exception) { Color.BLACK }
         val colorPreview = View(this).apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200); setBackgroundColor(currentColor) }
-        val tvHex = TextView(this).apply { text = "Hex: $initialColorHex"; textSize = 16f; textAlignment = android.view.View.TEXT_ALIGNMENT_CENTER; setPadding(0, 20, 0, 20) }
+        val tvHex = TextView(this).apply { text = getString(R.string.color_hex, initialColorHex); textSize = 16f; textAlignment = android.view.View.TEXT_ALIGNMENT_CENTER; setPadding(0, 20, 0, 20) }
 
         fun createColorSlider(label: String, initVal: Int, onValChange: (Int) -> Unit): LinearLayout {
             val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
-            val tv = TextView(this).apply { text = label; layoutParams = LinearLayout.LayoutParams(120, ViewGroup.LayoutParams.WRAP_CONTENT) }
-            val sb = SeekBar(this).apply { max = 255; progress = initVal; layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            val tv = TextView(this@MainActivity).apply { text = label; layoutParams = LinearLayout.LayoutParams(120, ViewGroup.LayoutParams.WRAP_CONTENT) }
+            val sb = SeekBar(this@MainActivity).apply { max = 255; progress = initVal; layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                 setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                         onValChange(progress)
                         val hex = String.format("#%02X%02X%02X%02X", Color.alpha(currentColor), Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor))
-                        colorPreview.setBackgroundColor(currentColor); tvHex.text = "Hex: $hex"
+                        colorPreview.setBackgroundColor(currentColor); tvHex.text = getString(R.string.color_hex, hex)
                     }
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -575,14 +622,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         layout.addView(colorPreview); layout.addView(tvHex)
-        layout.addView(createColorSlider("Alpha", Color.alpha(currentColor)) { currentColor = Color.argb(it, Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor)) })
-        layout.addView(createColorSlider("Merah", Color.red(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), it, Color.green(currentColor), Color.blue(currentColor)) })
-        layout.addView(createColorSlider("Hijau", Color.green(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), Color.red(currentColor), it, Color.blue(currentColor)) })
-        layout.addView(createColorSlider("Biru", Color.blue(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), Color.red(currentColor), Color.green(currentColor), it) })
+        layout.addView(createColorSlider(getString(R.string.color_alpha), Color.alpha(currentColor)) { currentColor = Color.argb(it, Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor)) })
+        layout.addView(createColorSlider(getString(R.string.color_red), Color.red(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), it, Color.green(currentColor), Color.blue(currentColor)) })
+        layout.addView(createColorSlider(getString(R.string.color_green), Color.green(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), Color.red(currentColor), it, Color.blue(currentColor)) })
+        layout.addView(createColorSlider(getString(R.string.color_blue), Color.blue(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), Color.red(currentColor), Color.green(currentColor), it) })
 
-        // =======================================================
-        // FIX: MENGGUNAKAN MATERIAL DIALOG AGAR PREMIUM
-        // =======================================================
         MaterialAlertDialogBuilder(this)
             .setTitle(title)
             .setView(layout)
@@ -645,9 +689,6 @@ class MainActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.btn_save_settings).setOnClickListener { saveSettingsFromUI() }
 
-        // =======================================================
-        // FIX: MENGGUNAKAN MATERIAL DIALOG AGAR PREMIUM
-        // =======================================================
         findViewById<Button>(R.id.btn_restore).setOnClickListener {
             MaterialAlertDialogBuilder(this)
                 .setTitle(getString(R.string.dialog_reset_title))
@@ -657,9 +698,6 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        // =======================================================
-        // FIX: DIALOG ABOUT CUSTOM (MEMANGGIL LAYOUT RATA TENGAH & TOMBOL GITHUB)
-        // =======================================================
         findViewById<Button>(R.id.btn_about).setOnClickListener {
             val dialogView = layoutInflater.inflate(R.layout.dialog_about, null)
             val dialog = MaterialAlertDialogBuilder(this)

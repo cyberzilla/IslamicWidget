@@ -41,11 +41,11 @@ class AdzanService : Service() {
         val deletePendingIntent = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
-            .setContentTitle("Waktu $prayerName Telah Tiba")
-            .setContentText("Geser atau ketuk tombol untuk mematikan.")
+            .setContentTitle(getString(R.string.notif_title_adzan, prayerName))
+            .setContentText(getString(R.string.notif_desc_adzan))
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentIntent(contentPendingIntent)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Matikan Adzan", stopPendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.notif_action_stop), stopPendingIntent)
             .setDeleteIntent(deletePendingIntent)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
@@ -71,9 +71,6 @@ class AdzanService : Service() {
                 originalAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
             }
 
-            // =========================================================
-            // FIX: KALKULASI VOLUME ADZAN BERDASARKAN PERSENTASE SLIDER
-            // =========================================================
             val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
             val targetVolume = (maxVolume * settings.adzanVolume) / 100
 
@@ -148,10 +145,10 @@ class AdzanService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "ADZAN_CHANNEL_V2",
-                "Jadwal & Adzan",
+                getString(R.string.notif_channel_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifikasi saat Adzan berkumandang"
+                description = getString(R.string.notif_channel_desc)
                 setSound(null, null)
                 setBypassDnd(true)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC

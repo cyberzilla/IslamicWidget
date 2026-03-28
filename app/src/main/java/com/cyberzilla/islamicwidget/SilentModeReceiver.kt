@@ -28,7 +28,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                         context.startService(serviceIntent)
                     }
                 } catch (e: Exception) {
-                    Log.e("SilentModeReceiver", "Gagal memutar Adzan: ${e.message}")
+                    Log.e("SilentModeReceiver", context.getString(R.string.log_error_play_adzan, e.message))
                 }
             }
 
@@ -47,7 +47,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
 
                 } catch (e: SecurityException) {
-                    Log.e("SilentModeReceiver", "Gagal melakukan mute: ${e.message}")
+                    Log.e("SilentModeReceiver", context.getString(R.string.log_error_mute, e.message))
                 }
             }
 
@@ -64,7 +64,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                     }
 
                 } catch (e: SecurityException) {
-                    Log.e("SilentModeReceiver", "Gagal mengembalikan volume: ${e.message}")
+                    Log.e("SilentModeReceiver", context.getString(R.string.log_error_unmute, e.message))
                 }
             }
         }
