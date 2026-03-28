@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="12.90912mm"
+   height="12.909112mm"
+   viewBox="0 0 12.90912 12.909112"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs1" /><g
+     id="layer1"
+     transform="translate(-98.545433,-142.04545)"><g
+       id="g1"
+       transform="matrix(0.26458333,0,0,0.26458333,98.385417,141.88542)"><rect
+         x="9"
+         y="9"
+         width="32"
+         height="32"
+         fill="none"
+         stroke="#e1c158"
+         stroke-width="2.5"
+         id="rect1" /><rect
+         x="9"
+         y="9"
+         width="32"
+         height="32"
+         fill="none"
+         stroke="#e1c158"
+         stroke-width="2.5"
+         transform="rotate(45,25,25)"
+         id="rect2" /><circle
+         cx="25"
+         cy="25"
+         r="13"
+         fill="#e1c158"
+         id="circle2" /><path
+         style="font-size:18px;font-family:'Geometr415 Blk BT';-inkscape-font-specification:'Geometr415 Blk BT';text-anchor:middle;fill:#0b4629"
+         d="M 23.910156,31.5 V 21.076172 h -2.232422 l 0.413086,-2.320313 h 4.649414 V 31.5 Z"
+         id="text2"
+         aria-label="1" /></g></g></svg>

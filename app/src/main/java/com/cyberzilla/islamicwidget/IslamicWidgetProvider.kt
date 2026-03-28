@@ -285,6 +285,15 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
+        // =======================================================
+        // EKSEKUSI PERGANTIAN ICON OTOMATIS BERDASARKAN TANGGAL
+        // =======================================================
+        try {
+            val hijriDayOfMonth = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
+            IconHelper.updateLauncherIcon(context, hijriDayOfMonth)
+        } catch (e: Exception) {}
+        // =======================================================
+
         val masehiFormatted = formatCustomDate(settings.dateFormat, today, selectedLocale)
         val hijriFormatted = formatCustomDate(settings.hijriFormat, hijriDate, selectedLocale)
 
@@ -299,7 +308,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
 
-        // 1. PENJADWALAN ADZAN AUDIO
         if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time) {
             val prayerName = when(requestCodeId) {
                 1 -> "Subuh"; 2 -> "Dzuhur"; 3 -> "Ashar"; 4 -> "Maghrib"; 5 -> "Isya"; else -> "Sholat"
@@ -316,7 +324,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             } catch (e: SecurityException) {}
         }
 
-        // 2. PENJADWALAN MODE DND (MUTE/UNMUTE)
         if (!settings.isAutoSilentEnabled) return
 
         val silentBeforeMillis: Long
