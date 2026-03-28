@@ -44,4 +44,5 @@ dependencies {
     implementation("com.batoulapps.adhan:adhan2:0.0.6")
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+    implementation("com.google.android.material:material:1.11.0")
 }

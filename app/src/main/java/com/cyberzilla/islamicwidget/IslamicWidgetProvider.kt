@@ -7,8 +7,16 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.os.Bundle
+import android.text.format.DateFormat
 import android.util.TypedValue
+import android.view.View
 import android.widget.RemoteViews
 import com.batoulapps.adhan2.CalculationMethod
 import com.batoulapps.adhan2.Coordinates
@@ -24,6 +32,7 @@ import java.time.LocalDate
 import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAccessor
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -32,6 +41,16 @@ import java.util.TimeZone
 class IslamicWidgetProvider : AppWidgetProvider() {
 
     private fun Instant.asDate() = Date(toEpochMilliseconds())
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        updateAppWidget(context, appWidgetManager, appWidgetId)
+    }
 
     override fun onUpdate(
         context: Context,
@@ -43,19 +62,82 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    private fun formatCustomDate(inputStr: String, dateObj: TemporalAccessor, defaultLocale: Locale): String {
+        val regex = Regex("([a-zA-Z0-9-]+)\\{([^}]+)\\}")
+
+        return try {
+            if (regex.containsMatchIn(inputStr)) {
+                regex.replace(inputStr) { matchResult ->
+                    val localeTag = matchResult.groupValues[1]
+                    val pattern = matchResult.groupValues[2]
+
+                    val locale = try { Locale.forLanguageTag(localeTag) } catch (e: Exception) { defaultLocale }
+                    val formatter = DateTimeFormatter.ofPattern(pattern, locale)
+                    var formattedText = formatter.format(dateObj)
+
+                    if (localeTag.lowercase().startsWith("ar")) {
+                        val arabicDigits = arrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
+                        val builder = StringBuilder()
+                        for (char in formattedText) {
+                            if (char in '0'..'9') {
+                                builder.append(arabicDigits[char - '0'])
+                            } else {
+                                builder.append(char)
+                            }
+                        }
+                        formattedText = builder.toString()
+                    }
+                    formattedText
+                }
+            } else {
+                val formatter = DateTimeFormatter.ofPattern(inputStr, defaultLocale)
+                formatter.format(dateObj)
+            }
+        } catch (e: Exception) {
+            val fallbackFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", defaultLocale)
+            fallbackFormatter.format(dateObj)
+        }
+    }
+
     private fun updateAppWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        val views = RemoteViews(context.packageName, R.layout.widget_islamic)
         val settings = SettingsManager(context)
+        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
 
-        val selectedLocale = Locale(settings.languageCode)
-        Locale.setDefault(selectedLocale)
-        val config = context.resources.configuration
+        val isPortrait = context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+
+        var currentHeightDp = if (isPortrait) {
+            options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
+        } else {
+            options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+        }
+
+        if (currentHeightDp == 0) {
+            currentHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+        }
+
+        if (currentHeightDp == 0) currentHeightDp = 200
+
+        val layoutId = if (currentHeightDp < 165) {
+            R.layout.widget_islamic_horizontal
+        } else {
+            R.layout.widget_islamic
+        }
+
+        val views = RemoteViews(context.packageName, layoutId)
+
+        val selectedLocale = Locale.forLanguageTag(settings.languageCode)
+        val config = Configuration(context.resources.configuration)
         config.setLocale(selectedLocale)
         val localizedContext = context.createConfigurationContext(config)
+
+        views.setViewVisibility(R.id.container_clock, if (settings.showClock) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.container_date, if (settings.showDate) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.container_prayer, if (settings.showPrayer) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.container_additional, if (settings.showAdditional) View.VISIBLE else View.GONE)
 
         views.setTextViewText(R.id.label_fajr, localizedContext.getString(R.string.fajr))
         views.setTextViewText(R.id.label_dhuhr, localizedContext.getString(R.string.dhuhr))
@@ -63,18 +145,24 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.label_maghrib, localizedContext.getString(R.string.maghrib))
         views.setTextViewText(R.id.label_isha, localizedContext.getString(R.string.isha))
 
-        val baseFontSize = settings.widgetFontSize.toFloat()
+        val txtSunrise = when(settings.languageCode) { "en" -> "Sunrise"; "ar" -> "الشروق"; else -> "Terbit" }
+        val txtLastThird = when(settings.languageCode) { "en" -> "Last 1/3"; "ar" -> "الثلث الأخير"; else -> "1/3 Malam" }
+        val txtQibla = when(settings.languageCode) { "en" -> "Qibla"; "ar" -> "القبلة"; else -> "Kiblat" }
 
-        // Ukuran Dinamis (Responsive Scaling Control)
-        views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_SP, baseFontSize + 22f)
-        views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_SP, baseFontSize - 2f)
-        views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_SP, baseFontSize)
+        val fsClock = settings.fontSizeClock.toFloat()
+        val fsDate = settings.fontSizeDate.toFloat()
+        val fsPrayer = settings.fontSizePrayer.toFloat()
+        val fsAdd = settings.fontSizeAdditional.toFloat()
+
+        views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_SP, fsClock)
+        views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_SP, fsDate - 2f)
+        views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_SP, fsDate)
 
         val textViewsToResize = listOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
-        for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, baseFontSize - 3f) }
+        for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, fsPrayer - 2f) }
 
         val timeViewsToResize = listOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
-        for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, baseFontSize - 1f) }
+        for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, fsPrayer) }
 
         val textColor = try { Color.parseColor(settings.widgetTextColor) } catch (e: Exception) { Color.WHITE }
         views.setTextColor(R.id.clock_widget, textColor)
@@ -84,14 +172,63 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         for (id in timeViewsToResize) { views.setTextColor(id, textColor) }
 
         val opacityTextColor = try { Color.argb(200, Color.red(textColor), Color.green(textColor), Color.blue(textColor)) } catch (e: Exception) { Color.LTGRAY }
-        views.setTextColor(R.id.tv_sunrise, opacityTextColor)
-        views.setTextColor(R.id.tv_last_third, opacityTextColor)
-        views.setTextColor(R.id.tv_qibla, textColor)
-        views.setTextColor(R.id.tv_divider_1, opacityTextColor)
-        views.setTextColor(R.id.tv_divider_2, opacityTextColor)
 
-        val bgColor = try { Color.parseColor(settings.widgetBgColor) } catch (e: Exception) { Color.parseColor("#B3000000") }
-        views.setInt(R.id.widget_bg, "setColorFilter", bgColor)
+        views.setTextColor(R.id.tv_sunrise, opacityTextColor)
+        views.setTextViewTextSize(R.id.tv_sunrise, TypedValue.COMPLEX_UNIT_SP, fsAdd)
+
+        views.setTextColor(R.id.tv_last_third, opacityTextColor)
+        views.setTextViewTextSize(R.id.tv_last_third, TypedValue.COMPLEX_UNIT_SP, fsAdd)
+
+        views.setTextColor(R.id.tv_qibla, textColor)
+        views.setTextViewTextSize(R.id.tv_qibla, TypedValue.COMPLEX_UNIT_SP, fsAdd)
+
+        views.setTextColor(R.id.tv_divider_1, opacityTextColor)
+        views.setTextViewTextSize(R.id.tv_divider_1, TypedValue.COMPLEX_UNIT_SP, fsAdd)
+
+        views.setTextColor(R.id.tv_divider_2, opacityTextColor)
+        views.setTextViewTextSize(R.id.tv_divider_2, TypedValue.COMPLEX_UNIT_SP, fsAdd)
+
+        // =========================================================
+        // FIX: PELUKIS RADIUS BITMAP DINAMIS
+        // =========================================================
+        var widthDp = if (isPortrait) options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH) else options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
+        var heightDp = if (isPortrait) options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT) else options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+
+        if (widthDp <= 0) widthDp = 300
+        if (heightDp <= 0) heightDp = 200
+
+        val density = context.resources.displayMetrics.density
+        var widthPx = (widthDp * density).toInt()
+        var heightPx = (heightDp * density).toInt()
+        var radiusPx = settings.widgetBgRadius * density
+
+        // Amankan Widget dari "TransactionTooLargeException" (Limit RAM Widget 1MB)
+        val maxDimen = 600f
+        if (widthPx > maxDimen || heightPx > maxDimen) {
+            val scale = maxDimen / maxOf(widthPx, heightPx).toFloat()
+            widthPx = (widthPx * scale).toInt()
+            heightPx = (heightPx * scale).toInt()
+            radiusPx *= scale
+        }
+
+        if (widthPx <= 0) widthPx = 1
+        if (heightPx <= 0) heightPx = 1
+
+        val bgColor = try { Color.parseColor(settings.widgetBgColor) } catch (e: Exception) { Color.parseColor("#00000000") }
+
+        // MENGGAMBAR KOTAK SESUAI RADIUS
+        val bgBitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bgBitmap)
+        val paint = Paint().apply {
+            isAntiAlias = true
+            color = bgColor
+        }
+        val rectF = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
+        canvas.drawRoundRect(rectF, radiusPx, radiusPx, paint)
+
+        // TEMPELKAN KE WIDGET
+        views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
+        // =========================================================
 
         val today = LocalDate.now()
         var hijriDate = HijrahDate.from(today)
@@ -99,6 +236,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         val latString = settings.latitude
         val lonString = settings.longitude
+
+        val is24Hour = DateFormat.is24HourFormat(context)
+        val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
 
         if (latString != null && lonString != null) {
             try {
@@ -130,7 +270,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     if (currentTime.after(maghribTime)) totalHijriOffset += 1L
                 }
 
-                val timeFormatter = SimpleDateFormat("HH:mm", selectedLocale)
+                val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
                 timeFormatter.timeZone = TimeZone.getDefault()
 
                 views.setTextViewText(R.id.tv_fajr_time, timeFormatter.format(prayerTimes.fajr.asDate()))
@@ -139,13 +279,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.tv_maghrib_time, timeFormatter.format(prayerTimes.maghrib.asDate()))
                 views.setTextViewText(R.id.tv_isha_time, timeFormatter.format(prayerTimes.isha.asDate()))
 
-                val sunriseStr = timeFormatter.format(prayerTimes.sunrise.asDate())
-                val lastThirdStr = timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())
-                val qiblaStr = String.format(selectedLocale, "%.1f°", qibla.direction)
-
-                views.setTextViewText(R.id.tv_sunrise, "Terbit: $sunriseStr")
-                views.setTextViewText(R.id.tv_last_third, "1/3 Malam: $lastThirdStr")
-                views.setTextViewText(R.id.tv_qibla, "Kiblat: $qiblaStr")
+                views.setTextViewText(R.id.tv_sunrise, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
+                views.setTextViewText(R.id.tv_last_third, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
+                views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
                 scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
                 scheduleSilentMode(context, prayerTimes.dhuhr.asDate(), 2, settings)
@@ -160,12 +296,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
-        val customPattern = settings.dateFormat
-        val gregorianFormatter = try { DateTimeFormatter.ofPattern(customPattern, selectedLocale) } catch (e: Exception) { DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy", selectedLocale) }
-        val hijriFormatter = try { DateTimeFormatter.ofPattern(customPattern, selectedLocale) } catch (e: Exception) { DateTimeFormatter.ofPattern("dd MMMM yyyy", selectedLocale) }
+        val masehiFormatted = formatCustomDate(settings.dateFormat, today, selectedLocale)
+        val hijriFormatted = formatCustomDate(settings.hijriFormat, hijriDate, selectedLocale)
 
-        views.setTextViewText(R.id.tv_gregorian_date, today.format(gregorianFormatter))
-        views.setTextViewText(R.id.tv_hijri_date, hijriDate.format(hijriFormatter) + " H")
+        views.setTextViewText(R.id.tv_gregorian_date, masehiFormatted)
+        views.setTextViewText(R.id.tv_hijri_date, hijriFormatted)
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
@@ -186,8 +321,13 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 silentAfterMillis = settings.fajrAfter * 60 * 1000L
             }
             2 -> {
-                silentBeforeMillis = settings.dhuhrBefore * 60 * 1000L
-                silentAfterMillis = if (isFriday) settings.dhuhrFriday * 60 * 1000L else settings.dhuhrAfter * 60 * 1000L
+                if (isFriday) {
+                    silentBeforeMillis = settings.fridayBefore * 60 * 1000L
+                    silentAfterMillis = settings.fridayAfter * 60 * 1000L
+                } else {
+                    silentBeforeMillis = settings.dhuhrBefore * 60 * 1000L
+                    silentAfterMillis = settings.dhuhrAfter * 60 * 1000L
+                }
             }
             3 -> {
                 silentBeforeMillis = settings.asrBefore * 60 * 1000L

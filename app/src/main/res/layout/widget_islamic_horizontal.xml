@@ -20,59 +20,70 @@
         android:layoutDirection="ltr">
 
         <LinearLayout
-            android:id="@+id/container_clock"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <TextClock
-                android:id="@+id/clock_widget"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:format12Hour="hh:mm a"
-                android:format24Hour="HH:mm"
-                android:textColor="#FFFFFF"
-                android:textSize="36sp"
-                android:textStyle="bold"
-                android:shadowColor="#B3000000"
-                android:shadowRadius="5"
-                android:shadowDx="1.5"
-                android:shadowDy="1.5" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/container_date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:layout_height="0dp"
+            android:layout_weight="1.2"
+            android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginTop="2dp">
+            android:layoutDirection="ltr">
 
-            <TextView
-                android:id="@+id/tv_gregorian_date"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/container_clock"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textColor="#E0E0E0"
-                android:textSize="12sp"
-                android:text="Memuat tanggal..."
-                android:shadowColor="#B3000000"
-                android:shadowRadius="3"
-                android:shadowDx="1"
-                android:shadowDy="1" />
+                android:layout_weight="1"
+                android:gravity="center">
 
-            <TextView
-                android:id="@+id/tv_hijri_date"
-                android:layout_width="wrap_content"
+                <TextClock
+                    android:id="@+id/clock_widget"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:format12Hour="hh:mm a"
+                    android:format24Hour="HH:mm"
+                    android:textColor="#FFFFFF"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="5"
+                    android:shadowDx="1.5"
+                    android:shadowDy="1.5" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_date"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textColor="#FFC107"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:text="Memuat hijriyah..."
-                android:shadowColor="#B3000000"
-                android:shadowRadius="3"
-                android:shadowDx="1"
-                android:shadowDy="1" />
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tv_gregorian_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#E0E0E0"
+                    android:textSize="12sp"
+                    android:text="Memuat tanggal..."
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="3"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:layout_marginBottom="2dp"/>
+
+                <TextView
+                    android:id="@+id/tv_hijri_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFC107"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:text="Memuat hijriyah..."
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="3"
+                    android:shadowDx="1"
+                    android:shadowDy="1" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout
@@ -109,7 +120,6 @@
                 <TextView android:id="@+id/label_isha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/isha" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
                 <TextView android:id="@+id/tv_isha_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
             </LinearLayout>
-
         </LinearLayout>
 
         <LinearLayout

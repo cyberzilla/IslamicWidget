@@ -11,21 +11,31 @@ class SettingsManager(context: Context) {
         get() = prefs.getString("PREF_LANGUAGE", "id") ?: "id"
         set(value) = prefs.edit().putString("PREF_LANGUAGE", value).apply()
 
-    var widgetFontSize: Int
-        get() = prefs.getInt("PREF_FONT_SIZE", 14)
-        set(value) = prefs.edit().putInt("PREF_FONT_SIZE", value).apply()
-
     var widgetTextColor: String
         get() = prefs.getString("PREF_TEXT_COLOR", "#FFFFFF") ?: "#FFFFFF"
         set(value) = prefs.edit().putString("PREF_TEXT_COLOR", value).apply()
 
     var widgetBgColor: String
-        get() = prefs.getString("PREF_BG_COLOR", "#B3000000") ?: "#B3000000"
+        get() = prefs.getString("PREF_BG_COLOR", "#00000000") ?: "#00000000"
         set(value) = prefs.edit().putString("PREF_BG_COLOR", value).apply()
 
     var widgetBgRadius: Int
         get() = prefs.getInt("PREF_BG_RADIUS", 16)
         set(value) = prefs.edit().putInt("PREF_BG_RADIUS", value).apply()
+
+    // ==========================================
+    // PENGATURAN TAMPILAN ELEMEN INDEPENDEN
+    // ==========================================
+    var showClock: Boolean get() = prefs.getBoolean("PREF_SHOW_CLOCK", true); set(value) = prefs.edit().putBoolean("PREF_SHOW_CLOCK", value).apply()
+    var showDate: Boolean get() = prefs.getBoolean("PREF_SHOW_DATE", true); set(value) = prefs.edit().putBoolean("PREF_SHOW_DATE", value).apply()
+    var showPrayer: Boolean get() = prefs.getBoolean("PREF_SHOW_PRAYER", true); set(value) = prefs.edit().putBoolean("PREF_SHOW_PRAYER", value).apply()
+    var showAdditional: Boolean get() = prefs.getBoolean("PREF_SHOW_ADDITIONAL", true); set(value) = prefs.edit().putBoolean("PREF_SHOW_ADDITIONAL", value).apply()
+
+    var fontSizeClock: Int get() = prefs.getInt("PREF_FS_CLOCK", 36); set(value) = prefs.edit().putInt("PREF_FS_CLOCK", value).apply()
+    var fontSizeDate: Int get() = prefs.getInt("PREF_FS_DATE", 12); set(value) = prefs.edit().putInt("PREF_FS_DATE", value).apply()
+    var fontSizePrayer: Int get() = prefs.getInt("PREF_FS_PRAYER", 13); set(value) = prefs.edit().putInt("PREF_FS_PRAYER", value).apply()
+    var fontSizeAdditional: Int get() = prefs.getInt("PREF_FS_ADDITIONAL", 11); set(value) = prefs.edit().putInt("PREF_FS_ADDITIONAL", value).apply()
+    // ==========================================
 
     var calculationMethod: String
         get() = prefs.getString("PREF_CALC_METHOD", "MUSLIM_WORLD_LEAGUE") ?: "MUSLIM_WORLD_LEAGUE"
@@ -40,20 +50,30 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit().putBoolean("PREF_DAY_START_MAGHRIB", value).apply()
 
     var dateFormat: String
-        get() = prefs.getString("PREF_DATE_FORMAT", "EEEE, dd MMMM yyyy") ?: "EEEE, dd MMMM yyyy"
+        get() = prefs.getString("PREF_DATE_FORMAT", "id-ID{EEEE, dd MMMM yyyy}") ?: "id-ID{EEEE, dd MMMM yyyy}"
         set(value) = prefs.edit().putString("PREF_DATE_FORMAT", value).apply()
 
+    var hijriFormat: String
+        get() = prefs.getString("PREF_HIJRI_FORMAT", "ar-SA{dd MMMM yyyy} هـ") ?: "ar-SA{dd MMMM yyyy} هـ"
+        set(value) = prefs.edit().putString("PREF_HIJRI_FORMAT", value).apply()
+
+    // FIX: DEFAULT DND SEKARANG ADALAH FALSE (MATI)
     var isAutoSilentEnabled: Boolean
-        get() = prefs.getBoolean("PREF_AUTO_SILENT", true)
+        get() = prefs.getBoolean("PREF_AUTO_SILENT", false)
         set(value) = prefs.edit().putBoolean("PREF_AUTO_SILENT", value).apply()
 
-    // --- DURASI SILENT PER SHOLAT (BARU) ---
+    var previewScale: Int
+        get() = prefs.getInt("PREF_PREVIEW_SCALE", 100)
+        set(value) = prefs.edit().putInt("PREF_PREVIEW_SCALE", value).apply()
+
     var fajrBefore: Int get() = prefs.getInt("fajrBefore", 0); set(value) = prefs.edit().putInt("fajrBefore", value).apply()
     var fajrAfter: Int get() = prefs.getInt("fajrAfter", 15); set(value) = prefs.edit().putInt("fajrAfter", value).apply()
 
     var dhuhrBefore: Int get() = prefs.getInt("dhuhrBefore", 0); set(value) = prefs.edit().putInt("dhuhrBefore", value).apply()
     var dhuhrAfter: Int get() = prefs.getInt("dhuhrAfter", 20); set(value) = prefs.edit().putInt("dhuhrAfter", value).apply()
-    var dhuhrFriday: Int get() = prefs.getInt("dhuhrFriday", 60); set(value) = prefs.edit().putInt("dhuhrFriday", value).apply()
+
+    var fridayBefore: Int get() = prefs.getInt("fridayBefore", 0); set(value) = prefs.edit().putInt("fridayBefore", value).apply()
+    var fridayAfter: Int get() = prefs.getInt("fridayAfter", 60); set(value) = prefs.edit().putInt("fridayAfter", value).apply()
 
     var asrBefore: Int get() = prefs.getInt("asrBefore", 0); set(value) = prefs.edit().putInt("asrBefore", value).apply()
     var asrAfter: Int get() = prefs.getInt("asrAfter", 20); set(value) = prefs.edit().putInt("asrAfter", value).apply()
@@ -66,12 +86,15 @@ class SettingsManager(context: Context) {
 
     var latitude: String? get() = prefs.getString("LATITUDE", null); set(value) = prefs.edit().putString("LATITUDE", value).apply()
     var longitude: String? get() = prefs.getString("LONGITUDE", null); set(value) = prefs.edit().putString("LONGITUDE", value).apply()
+    var locationName: String get() = prefs.getString("LOCATION_NAME", "Belum ada lokasi") ?: "Belum ada lokasi"; set(value) = prefs.edit().putString("LOCATION_NAME", value).apply()
 
     fun restoreDefaults() {
         val currentLat = latitude
         val currentLon = longitude
+        val currentLocName = locationName
         prefs.edit().clear().apply()
         latitude = currentLat
         longitude = currentLon
+        locationName = currentLocName
     }
 }
