@@ -1,36 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="language_entries">
-        <item>Indonesia</item>
-        <item>English</item>
-        <item>العربية (Arabic)</item>
-    </string-array>
-    <string-array name="language_values">
-        <item>id</item>
-        <item>en</item>
-        <item>ar</item>
-    </string-array>
 
-    <string-array name="calc_method_entries">
-        <item>Muslim World League</item>
-        <item>Egyptian General Authority</item>
-        <item>Karachi</item>
-        <item>Umm Al-Qura (Makkah)</item>
-        <item>Dubai</item>
-        <item>Qatar</item>
-        <item>Kuwait</item>
-        <item>Moonsighting Committee</item>
-        <item>Singapore</item>
-    </string-array>
-    <string-array name="calc_method_values">
-        <item>MUSLIM_WORLD_LEAGUE</item>
-        <item>EGYPTIAN</item>
-        <item>KARACHI</item>
-        <item>UMM_AL_QURA</item>
-        <item>DUBAI</item>
-        <item>QATAR</item>
-        <item>KUWAIT</item>
-        <item>MOONSIGHTING_COMMITTEE</item>
-        <item>SINGAPORE</item>
-    </string-array>
 </resources>

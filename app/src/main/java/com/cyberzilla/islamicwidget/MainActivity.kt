@@ -14,9 +14,12 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.location.Address
 import android.location.Geocoder
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
@@ -25,6 +28,7 @@ import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.OnBackPressedCallback // IMPORT BARU
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -70,11 +74,19 @@ class MainActivity : AppCompatActivity() {
     private var tempRegularUri: String? = null
     private var tempSubuhUri: String? = null
 
+    private var testMediaPlayer: MediaPlayer? = null
+    private var isTestingRegular = false
+    private var isTestingSubuh = false
+
+    // VARIABEL DOUBLE SWIPE TO EXIT
+    private var doubleBackToExitPressedOnce = false
+
     private val pickRegularAdzanLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) {}
             tempRegularUri = uri.toString()
             findViewById<TextView>(R.id.tv_adzan_regular_status).text = "Status: File Custom Terpilih"
+            stopTestAdzan()
         }
     }
 
@@ -83,6 +95,7 @@ class MainActivity : AppCompatActivity() {
             try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) {}
             tempSubuhUri = uri.toString()
             findViewById<TextView>(R.id.tv_adzan_subuh_status).text = "Status: File Custom Terpilih"
+            stopTestAdzan()
         }
     }
 
@@ -107,6 +120,26 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         settingsManager = SettingsManager(this)
 
+        // =========================================================
+        // FIX: CEGAT GESTUR BACK / SWIPE UNTUK DOUBLE EXIT
+        // =========================================================
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (doubleBackToExitPressedOnce) {
+                    finish() // Keluar aplikasi jika sudah swipe 2x
+                    return
+                }
+
+                doubleBackToExitPressedOnce = true
+                Toast.makeText(this@MainActivity, "Swipe/Tekan kembali sekali lagi untuk keluar", Toast.LENGTH_SHORT).show()
+
+                // Kembalikan ke false jika pengguna tidak melakukan swipe kedua dalam 2 detik
+                Handler(Looper.getMainLooper()).postDelayed({
+                    doubleBackToExitPressedOnce = false
+                }, 2000)
+            }
+        })
+
         loadSettingsToUI()
         setupButtons()
     }
@@ -123,6 +156,16 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Izin DND berhasil diberikan!", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopTestAdzan()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopTestAdzan()
     }
 
     private fun setupSlider(seekBarId: Int, textViewId: Int, min: Int, max: Int, initialValue: Int, labelPrefix: String, labelSuffix: String) {
@@ -251,13 +294,9 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.label_isha)?.text = localizedContext.getString(R.string.isha)
 
             val today = LocalDate.now()
-            val masehiFormatted = formatCustomDate(masehiPattern, today, selectedLocale)
 
-            val hijriDate = HijrahDate.from(today).plus(offsetHijri.toLong(), ChronoUnit.DAYS)
-            val hijriFormatted = formatCustomDate(hijriPattern, hijriDate, selectedLocale)
-
-            findViewById<TextView>(R.id.tv_gregorian_date)?.text = masehiFormatted
-            findViewById<TextView>(R.id.tv_hijri_date)?.text = hijriFormatted
+            var hijriDate = HijrahDate.from(today)
+            var totalHijriOffset = offsetHijri.toLong()
 
             val latString = settingsManager.latitude
             val lonString = settingsManager.longitude
@@ -288,6 +327,14 @@ class MainActivity : AppCompatActivity() {
                     val sunnahTimes = SunnahTimes(prayerTimes)
                     val qibla = Qibla(coordinates)
 
+                    if (findViewById<CheckBox>(R.id.cb_day_start).isChecked) {
+                        val currentTime = Date()
+                        val maghribTime = prayerTimes.maghrib.asDate()
+                        if (currentTime.after(maghribTime)) {
+                            totalHijriOffset += 1L
+                        }
+                    }
+
                     val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
                     timeFormatter.timeZone = TimeZone.getDefault()
 
@@ -307,6 +354,16 @@ class MainActivity : AppCompatActivity() {
             } else {
                 setDummyPreviewTimes(previewLangCode)
             }
+
+            if (totalHijriOffset != 0L) {
+                hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
+            }
+
+            val masehiFormatted = formatCustomDate(masehiPattern, today, selectedLocale)
+            val hijriFormatted = formatCustomDate(hijriPattern, hijriDate, selectedLocale)
+
+            findViewById<TextView>(R.id.tv_gregorian_date)?.text = masehiFormatted
+            findViewById<TextView>(R.id.tv_hijri_date)?.text = hijriFormatted
 
             val textColor = try { Color.parseColor(currentTextColor) } catch(e: Exception) { Color.WHITE }
             val opacityTextColor = Color.argb(200, Color.red(textColor), Color.green(textColor), Color.blue(textColor))
@@ -374,6 +431,87 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tv_sunrise)?.text = "$txtSunrise: --:--"
         findViewById<TextView>(R.id.tv_last_third)?.text = "$txtLastThird: --:--"
         findViewById<TextView>(R.id.tv_qibla)?.text = "$txtQibla: --°"
+    }
+
+    private fun toggleTestAdzan(isSubuh: Boolean, btnPlay: Button) {
+        if ((isSubuh && isTestingSubuh) || (!isSubuh && isTestingRegular)) {
+            stopTestAdzan()
+            return
+        }
+
+        stopTestAdzan()
+
+        val uriString = if (isSubuh) tempSubuhUri else tempRegularUri
+
+        try {
+            testMediaPlayer = MediaPlayer().apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    setAudioAttributes(
+                        android.media.AudioAttributes.Builder()
+                            .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build()
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    setAudioStreamType(android.media.AudioManager.STREAM_ALARM)
+                }
+
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                val maxVolume = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_ALARM)
+                val targetVolume = (maxVolume * findViewById<SeekBar>(R.id.sb_adzan_vol).progress) / 100
+                audioManager.setStreamVolume(android.media.AudioManager.STREAM_ALARM, targetVolume, 0)
+
+                if (!uriString.isNullOrEmpty()) {
+                    setDataSource(this@MainActivity, Uri.parse(uriString))
+                } else {
+                    val rawResId = if (isSubuh) R.raw.adzan_subuh else R.raw.adzan_regular
+                    val afd = resources.openRawResourceFd(rawResId)
+                    setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                    afd.close()
+                }
+
+                prepare()
+                start()
+
+                if (isSubuh) {
+                    isTestingSubuh = true
+                    btnPlay.text = "Stop"
+                    btnPlay.setTextColor(Color.RED)
+                } else {
+                    isTestingRegular = true
+                    btnPlay.text = "Stop"
+                    btnPlay.setTextColor(Color.RED)
+                }
+
+                setOnCompletionListener {
+                    stopTestAdzan()
+                }
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this@MainActivity, "Gagal memutar audio kustom. Format mungkin tidak didukung.", Toast.LENGTH_SHORT).show()
+            stopTestAdzan()
+        }
+    }
+
+    private fun stopTestAdzan() {
+        try {
+            testMediaPlayer?.stop()
+            testMediaPlayer?.release()
+        } catch (e: Exception) {}
+
+        testMediaPlayer = null
+        isTestingRegular = false
+        isTestingSubuh = false
+
+        findViewById<Button>(R.id.btn_play_adzan_regular)?.apply {
+            text = "Tes"
+            setTextColor(Color.parseColor("#10B981"))
+        }
+        findViewById<Button>(R.id.btn_play_adzan_subuh)?.apply {
+            text = "Tes"
+            setTextColor(Color.parseColor("#10B981"))
+        }
     }
 
     private fun loadSettingsToUI() {
@@ -454,6 +592,8 @@ class MainActivity : AppCompatActivity() {
         etDateFormat.addTextChangedListener(textWatcher)
         etHijriFormat.addTextChangedListener(textWatcher)
 
+        findViewById<CheckBox>(R.id.cb_day_start).setOnCheckedChangeListener { _, _ -> updatePreview() }
+
         val switchDnd = findViewById<SwitchCompat>(R.id.switch_auto_silent)
         switchDnd.setOnCheckedChangeListener(null)
         switchDnd.isChecked = settingsManager.isAutoSilentEnabled
@@ -483,9 +623,10 @@ class MainActivity : AppCompatActivity() {
         setupSlider(R.id.sb_isha_bef, R.id.tv_isha_bef, 0, 60, settingsManager.ishaBefore, "", "m")
         setupSlider(R.id.sb_isha_aft, R.id.tv_isha_aft, 0, 120, settingsManager.ishaAfter, "", "m")
 
-        // SETUP UI AUDIO ADZAN
         val switchAdzan = findViewById<SwitchCompat>(R.id.switch_audio_adzan)
         switchAdzan.isChecked = settingsManager.isAdzanAudioEnabled
+
+        setupSlider(R.id.sb_adzan_vol, R.id.tv_adzan_vol, 0, 100, settingsManager.adzanVolume, "", "%")
 
         tempRegularUri = settingsManager.customAdzanRegularUri
         tempSubuhUri = settingsManager.customAdzanSubuhUri
@@ -493,17 +634,24 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tv_adzan_regular_status).text = if (tempRegularUri.isNullOrEmpty()) "Status: Bawaan Aplikasi" else "Status: File Custom Aktif"
         findViewById<TextView>(R.id.tv_adzan_subuh_status).text = if (tempSubuhUri.isNullOrEmpty()) "Status: Bawaan Aplikasi" else "Status: File Custom Aktif"
 
+        val btnPlayRegular = findViewById<Button>(R.id.btn_play_adzan_regular)
+        val btnPlaySubuh = findViewById<Button>(R.id.btn_play_adzan_subuh)
+
         findViewById<Button>(R.id.btn_pick_adzan_regular).setOnClickListener { pickRegularAdzanLauncher.launch("audio/*") }
         findViewById<Button>(R.id.btn_clear_adzan_regular).setOnClickListener {
             tempRegularUri = null
             findViewById<TextView>(R.id.tv_adzan_regular_status).text = "Status: Bawaan Aplikasi"
+            stopTestAdzan()
         }
+        btnPlayRegular.setOnClickListener { toggleTestAdzan(false, btnPlayRegular) }
 
         findViewById<Button>(R.id.btn_pick_adzan_subuh).setOnClickListener { pickSubuhAdzanLauncher.launch("audio/*") }
         findViewById<Button>(R.id.btn_clear_adzan_subuh).setOnClickListener {
             tempSubuhUri = null
             findViewById<TextView>(R.id.tv_adzan_subuh_status).text = "Status: Bawaan Aplikasi"
+            stopTestAdzan()
         }
+        btnPlaySubuh.setOnClickListener { toggleTestAdzan(true, btnPlaySubuh) }
 
         updatePreview()
     }
@@ -623,8 +771,9 @@ class MainActivity : AppCompatActivity() {
             settingsManager.ishaBefore = findViewById<SeekBar>(R.id.sb_isha_bef).progress
             settingsManager.ishaAfter = findViewById<SeekBar>(R.id.sb_isha_aft).progress
 
-            // SIMPAN AUDIO ADZAN
             settingsManager.isAdzanAudioEnabled = findViewById<SwitchCompat>(R.id.switch_audio_adzan).isChecked
+            settingsManager.adzanVolume = findViewById<SeekBar>(R.id.sb_adzan_vol).progress
+
             settingsManager.customAdzanRegularUri = tempRegularUri
             settingsManager.customAdzanSubuhUri = tempSubuhUri
 

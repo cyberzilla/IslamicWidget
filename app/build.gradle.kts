@@ -22,7 +22,12 @@ android {
 
     buildTypes {
         release {
+            // Mengaktifkan R8 untuk membuang kode Kotlin/Java yang tidak terpakai
             isMinifyEnabled = true
+
+            // Membuang file XML, Layout, atau Drawable yang tidak terpakai
+            isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -41,8 +46,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
+    // Mesin Utama Widget Kita
     implementation("com.batoulapps.adhan:adhan2:0.0.6")
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
-    implementation("com.google.android.material:material:1.11.0")
 }

@@ -62,6 +62,11 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("PREF_ADZAN_AUDIO", true)
         set(value) = prefs.edit().putBoolean("PREF_ADZAN_AUDIO", value).apply()
 
+    // NEW: VARIABEL VOLUME ADZAN (0-100%)
+    var adzanVolume: Int
+        get() = prefs.getInt("PREF_ADZAN_VOL", 100)
+        set(value) = prefs.edit().putInt("PREF_ADZAN_VOL", value).apply()
+
     var customAdzanRegularUri: String?
         get() = prefs.getString("PREF_ADZAN_REGULAR_URI", null)
         set(value) = prefs.edit().putString("PREF_ADZAN_REGULAR_URI", value).apply()

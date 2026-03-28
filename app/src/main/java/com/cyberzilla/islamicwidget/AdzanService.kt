@@ -1,5 +1,6 @@
 package com.cyberzilla.islamicwidget
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -16,8 +17,6 @@ import androidx.core.app.NotificationCompat
 class AdzanService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
-
-    // Variabel untuk menyimpan volume asli sebelum adzan berbunyi
     private var originalAlarmVolume: Int = -1
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -36,13 +35,23 @@ class AdzanService : Service() {
         val stopIntent = Intent(this, AdzanService::class.java).apply { action = "ACTION_STOP_ADZAN" }
         val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL")
+        val contentIntent = Intent(this, MainActivity::class.java)
+        val contentPendingIntent = PendingIntent.getActivity(this, 0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        val deletePendingIntent = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
             .setContentTitle("Waktu $prayerName Telah Tiba")
-            .setContentText("Adzan sedang berkumandang...")
+            .setContentText("Geser atau ketuk tombol untuk mematikan.")
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentIntent(contentPendingIntent)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Matikan Adzan", stopPendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDeleteIntent(deletePendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
+            .setAutoCancel(false)
             .build()
 
         startForeground(1122, notification)
@@ -57,29 +66,24 @@ class AdzanService : Service() {
 
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        // ========================================================
-        // 1. TINGKATKAN VOLUME SEMENTARA (BOOST VOLUME)
-        // ========================================================
         try {
-            // Simpan volume alarm saat ini (jika belum tersimpan)
             if (originalAlarmVolume == -1) {
                 originalAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
             }
 
-            // Ambil batas volume maksimal di HP pengguna
+            // =========================================================
+            // FIX: KALKULASI VOLUME ADZAN BERDASARKAN PERSENTASE SLIDER
+            // =========================================================
             val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+            val targetVolume = (maxVolume * settings.adzanVolume) / 100
 
-            // Paksa set volume alarm ke maksimal agar adzan pasti terdengar
-            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVolume, 0)
-        } catch (e: SecurityException) {
-            // Abaikan jika sistem DND HP sangat ketat menolak perubahan volume
-        }
+            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, targetVolume, 0)
+        } catch (e: SecurityException) {}
 
         mediaPlayer?.release()
 
         try {
             mediaPlayer = MediaPlayer().apply {
-                // Pastikan suaranya lewat jalur Alarm, bukan jalur Media
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     setAudioAttributes(
                         android.media.AudioAttributes.Builder()
@@ -92,7 +96,6 @@ class AdzanService : Service() {
                     setAudioStreamType(AudioManager.STREAM_ALARM)
                 }
 
-                // Cek sumber suara
                 if (!customUriString.isNullOrEmpty()) {
                     setDataSource(this@AdzanService, Uri.parse(customUriString))
                 } else {
@@ -106,7 +109,6 @@ class AdzanService : Service() {
                 start()
             }
 
-            // Jika lagu/adzan selesai dengan sendirinya
             mediaPlayer?.setOnCompletionListener {
                 stopAdzan()
             }
@@ -120,7 +122,6 @@ class AdzanService : Service() {
         mediaPlayer?.release()
         mediaPlayer = null
 
-        // 2. KEMBALIKAN VOLUME KE AWAL SEBELUM SERVICE MATI
         restoreOriginalVolume()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -133,28 +134,27 @@ class AdzanService : Service() {
         stopSelf()
     }
 
-    // Fungsi khusus untuk mengembalikan volume yang disimpan
     private fun restoreOriginalVolume() {
         if (originalAlarmVolume != -1) {
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
             try {
                 audioManager.setStreamVolume(AudioManager.STREAM_ALARM, originalAlarmVolume, 0)
-                originalAlarmVolume = -1 // Reset memori
-            } catch (e: SecurityException) {
-                // Abaikan
-            }
+                originalAlarmVolume = -1
+            } catch (e: SecurityException) {}
         }
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "ADZAN_CHANNEL",
-                "Adzan Playback",
+                "ADZAN_CHANNEL_V2",
+                "Jadwal & Adzan",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifikasi saat Adzan berkumandang"
                 setSound(null, null)
+                setBypassDnd(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
@@ -165,8 +165,6 @@ class AdzanService : Service() {
         super.onDestroy()
         mediaPlayer?.release()
         mediaPlayer = null
-
-        // Jaga-jaga: Kembalikan volume jika Service tiba-tiba di-kill oleh Android
         restoreOriginalVolume()
     }
 }

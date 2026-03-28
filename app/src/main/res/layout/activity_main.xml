@@ -29,7 +29,6 @@
             android:layout_marginBottom="12dp"/>
 
         <FrameLayout
-            android:id="@+id/preview_container"
             android:layout_width="match_parent"
             android:layout_height="130dp"
             android:background="#9CA3AF"
@@ -66,7 +65,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="*Gunakan skala untuk mencocokkan preview dengan homescreen (Misal: 5x9)"
+            android:text="*Gunakan skala untuk mencocokkan preview dengan homescreen"
             android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:textAlignment="center"/>
@@ -126,6 +125,7 @@
                 app:contentPadding="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3. Tampilan Visual Elemen" android:textColor="@color/text_accent" android:textStyle="bold" android:layout_marginBottom="16dp" />
+
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                         <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="1. Elemen Jam" android:textStyle="bold" android:textColor="@color/primary_color"/>
                         <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_clock" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tampil " app:thumbTint="@color/primary_color"/>
@@ -136,6 +136,7 @@
                         <TextView android:id="@+id/tv_fs_clock" android:layout_width="45dp" android:layout_height="wrap_content" android:text="36sp" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F3F4F6" android:layout_marginBottom="12dp"/>
+
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                         <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="2. Elemen Kalender" android:textStyle="bold" android:textColor="@color/primary_color"/>
                         <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tampil " app:thumbTint="@color/primary_color"/>
@@ -146,6 +147,7 @@
                         <TextView android:id="@+id/tv_fs_date" android:layout_width="45dp" android:layout_height="wrap_content" android:text="12sp" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F3F4F6" android:layout_marginBottom="12dp"/>
+
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                         <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="3. Waktu Sholat" android:textStyle="bold" android:textColor="@color/primary_color"/>
                         <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_prayer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tampil " app:thumbTint="@color/primary_color"/>
@@ -156,6 +158,7 @@
                         <TextView android:id="@+id/tv_fs_prayer" android:layout_width="45dp" android:layout_height="wrap_content" android:text="13sp" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F3F4F6" android:layout_marginBottom="12dp"/>
+
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                         <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="4. Info Tambahan (Terbit, dsb)" android:textStyle="bold" android:textColor="@color/primary_color"/>
                         <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_additional" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tampil " app:thumbTint="@color/primary_color"/>
@@ -166,6 +169,7 @@
                         <TextView android:id="@+id/tv_fs_additional" android:layout_width="45dp" android:layout_height="wrap_content" android:text="11sp" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
                     <View android:layout_width="match_parent" android:layout_height="2dp" android:background="#E5E7EB" android:layout_marginBottom="16dp"/>
+
                     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="5. Bingkai &amp; Warna Latar" android:textColor="@color/primary_color" android:textStyle="bold" android:layout_marginBottom="12dp"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                         <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="Radius:" android:textColor="@color/text_primary" android:textSize="12sp"/>
@@ -306,17 +310,25 @@
                         <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_audio_adzan" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="@color/primary_color" app:trackTint="#A7F3D0"/>
                     </LinearLayout>
 
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
+                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="Volume:" android:textSize="12sp"/>
+                        <SeekBar android:id="@+id/sb_adzan_vol" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="100" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_adzan_vol" android:layout_width="45dp" android:layout_height="wrap_content" android:text="100%" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
+                    </LinearLayout>
+
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pilih audio MP3 kustom dari HP Anda (Biarkan kosong untuk suara bawaan)." android:textColor="@color/text_secondary" android:textSize="11sp" android:layout_marginBottom="12dp"/>
 
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_regular" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Pilih Adzan Reguler" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/primary_color" android:textColor="@color/primary_color" android:layout_marginEnd="4dp"/>
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_regular" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reset" style="@style/Widget.MaterialComponents.Button.TextButton" android:textColor="@color/danger_color"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="2dp" android:weightSum="10">
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_regular" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="Adzan Reguler" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/primary_color" android:textColor="@color/primary_color" android:layout_marginEnd="4dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="Tes" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="Reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/danger_color" android:textColor="@color/danger_color"/>
                     </LinearLayout>
                     <TextView android:id="@+id/tv_adzan_regular_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Status: Bawaan Aplikasi" android:textSize="11sp" android:textColor="@color/text_secondary" android:layout_marginBottom="16dp"/>
 
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="8dp">
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_subuh" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Pilih Adzan Subuh" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/primary_color" android:textColor="@color/primary_color" android:layout_marginEnd="4dp"/>
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_subuh" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reset" style="@style/Widget.MaterialComponents.Button.TextButton" android:textColor="@color/danger_color"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="2dp" android:weightSum="10">
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_subuh" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="Adzan Subuh" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/primary_color" android:textColor="@color/primary_color" android:layout_marginEnd="4dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="Tes" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="Reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/danger_color" android:textColor="@color/danger_color"/>
                     </LinearLayout>
                     <TextView android:id="@+id/tv_adzan_subuh_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Status: Bawaan Aplikasi" android:textSize="11sp" android:textColor="@color/text_secondary"/>
                 </LinearLayout>
@@ -336,19 +348,24 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_restore"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:layout_marginTop="16dp"
-                android:text="Kembalikan ke Awal"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:textColor="@color/danger_color" />
+                android:text="Kembalikan ke Awal (Reset All)"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="@color/danger_color"
+                android:textColor="@color/danger_color"
+                app:cornerRadius="12dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_about"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginTop="8dp"
                 android:text="Tentang Developer"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeColor="@color/text_secondary"
                 android:textColor="@color/text_secondary"
+                app:cornerRadius="12dp"
                 android:layout_marginBottom="32dp"/>
 
         </LinearLayout>
