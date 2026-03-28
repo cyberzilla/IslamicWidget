@@ -1,10 +1,80 @@
 <resources>
-    <string name="app_name">أداة الصلاة</string>
+    <string name="app_name">الويدجت الإسلامي</string>
+    <string name="settings_title">إعدادات الويدجت</string>
+    <string name="preview_hint">* استخدم المقياس لمطابقة المعاينة مع شاشتك الرئيسية</string>
+    <string name="preview_scale">المقياس: %1$d%%</string>
 
+    <string name="sec_lang_theme">اللغة والمظهر</string>
+    <string name="theme_label">مظهر التطبيق</string>
+
+    <string name="sec_gps">موقع GPS</string>
+    <string name="memuat">جاري التحميل...</string>
+    <string name="btn_update_gps">تحديث موقع GPS</string>
+
+    <string name="sec_visual">العناصر المرئية</string>
+    <string name="el_clock">عنصر الساعة</string>
+    <string name="el_date">عنصر التقويم</string>
+    <string name="el_prayer">أوقات الصلاة</string>
+    <string name="el_add">معلومات إضافية (الشروق، إلخ)</string>
+    <string name="tampil">إظهار </string>
+    <string name="font_label">الخط:</string>
+    <string name="visual_bg">لون الإطار والخلفية</string>
+    <string name="radius">نصف القطر:</string>
+    <string name="btn_text_color">لون النص</string>
+    <string name="btn_bg_color">لون الخلفية</string>
+
+    <string name="sec_calc">الحساب والتنسيق</string>
+    <string name="calc_method">طريقة حساب الأذان:</string>
+    <string name="hijri_offset">تصحيح التاريخ الهجري:</string>
+    <string name="day_start_maghrib">تغيير التاريخ الهجري عند المغرب</string>
+    <string name="format_hint">استخدم التنسيق: ar-SA{EEEE, dd MMMM yyyy}</string>
+    <string name="hint_masehi">التنسيق الميلادي</string>
+    <string name="hint_hijri">التنسيق الهجري</string>
+
+    <string name="sec_dnd">الوضع الصامت (DND)</string>
     <string name="fajr">الفجر</string>
     <string name="dhuhr">الظهر</string>
+    <string name="friday">الجمعة</string>
     <string name="asr">العصر</string>
     <string name="maghrib">المغرب</string>
     <string name="isha">العشاء</string>
+    <string name="before">قبل</string>
+    <string name="after">بعد</string>
 
+    <string name="sec_audio">صوت الأذان</string>
+    <string name="volume">مستوى الصوت:</string>
+    <string name="custom_audio_hint">اختر ملف MP3 مخصص من جهازك (اتركه فارغًا للصوت الافتراضي).</string>
+    <string name="btn_adzan_regular">الأذان العادي</string>
+    <string name="btn_adzan_subuh">أذان الفجر</string>
+    <string name="btn_test">اختبار</string>
+    <string name="btn_reset">مسح</string>
+    <string name="status_default">الحالة: الافتراضي للتطبيق</string>
+    <string name="status_custom">الحالة: تم تحديد ملف مخصص</string>
+
+    <string name="btn_save">حفظ وتطبيق الويدجت</string>
+    <string name="btn_restore">استعادة الإعدادات الافتراضية</string>
+    <string name="btn_about">حول المطور</string>
+
+    <string name="theme_system">النظام</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+
+    <string name="toast_exit_warning">اضغط مرة أخرى للخروج</string>
+    <string name="toast_dnd_granted">تم منح إذن عدم الإزعاج!</string>
+    <string name="toast_location_needed">إذن الموقع مطلوب</string>
+    <string name="toast_saved">تم حفظ الإعدادات بنجاح!</string>
+    <string name="toast_searching_location">جاري البحث عن الموقع...</string>
+    <string name="toast_audio_error">فشل تشغيل الصوت المخصص. قد يكون التنسيق غير مدعوم.</string>
+
+    <string name="dialog_reset_title">إعادة تعيين للافتراضي؟</string>
+    <string name="dialog_reset_message">سيتم استعادة جميع الإعدادات إلى قيمها الافتراضية الأصلية.</string>
+    <string name="dialog_yes">نعم</string>
+    <string name="dialog_cancel">إلغاء</string>
+    <string name="dialog_close">إغلاق</string>
+    <string name="dialog_about_message">الويدجت الإسلامي\nالإصدار 1.0\n\nتطوير cyberzilla</string>
+
+    <string name="location_found">تم العثور على الموقع</string>
+    <string name="location_not_found">لا يوجد موقع</string>
+
+    <string name="btn_stop">إيقاف</string>
 </resources>

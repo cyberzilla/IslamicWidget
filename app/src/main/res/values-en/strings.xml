@@ -1,10 +1,80 @@
 <resources>
-    <string name="app_name">Prayer Widget</string>
+    <string name="app_name">Islamic Widget</string>
+    <string name="settings_title">Widget Settings</string>
+    <string name="preview_hint">*Use scale to match the preview with your homescreen</string>
+    <string name="preview_scale">Scale: %1$d%%</string>
 
+    <string name="sec_lang_theme">Language &amp; Theme</string>
+    <string name="theme_label">App Theme</string>
+
+    <string name="sec_gps">GPS Location</string>
+    <string name="memuat">Loading...</string>
+    <string name="btn_update_gps">Update GPS Location</string>
+
+    <string name="sec_visual">Visual Elements</string>
+    <string name="el_clock">Clock Element</string>
+    <string name="el_date">Calendar Element</string>
+    <string name="el_prayer">Prayer Times</string>
+    <string name="el_add">Additional Info (Sunrise, etc)</string>
+    <string name="tampil">Show </string>
+    <string name="font_label">Font:</string>
+    <string name="visual_bg">Frame &amp; Background Color</string>
+    <string name="radius">Radius:</string>
+    <string name="btn_text_color">Text Color</string>
+    <string name="btn_bg_color">Background Color</string>
+
+    <string name="sec_calc">Calculation &amp; Format</string>
+    <string name="calc_method">Adhan Calculation Method:</string>
+    <string name="hijri_offset">Hijri Correction:</string>
+    <string name="day_start_maghrib">Change Hijri date at Maghrib</string>
+    <string name="format_hint">Use format: en-US{EEEE, dd MMMM yyyy}</string>
+    <string name="hint_masehi">Gregorian Format</string>
+    <string name="hint_hijri">Hijri Format</string>
+
+    <string name="sec_dnd">Auto-Silent (DND)</string>
     <string name="fajr">Fajr</string>
     <string name="dhuhr">Dhuhr</string>
+    <string name="friday">Friday</string>
     <string name="asr">Asr</string>
     <string name="maghrib">Maghrib</string>
     <string name="isha">Isha</string>
+    <string name="before">Before</string>
+    <string name="after">After</string>
 
+    <string name="sec_audio">Adhan Audio</string>
+    <string name="volume">Volume:</string>
+    <string name="custom_audio_hint">Choose custom MP3 audio from your device (Leave blank for default).</string>
+    <string name="btn_adzan_regular">Regular Adhan</string>
+    <string name="btn_adzan_subuh">Fajr Adhan</string>
+    <string name="btn_test">Test</string>
+    <string name="btn_reset">Reset</string>
+    <string name="status_default">Status: App Default</string>
+    <string name="status_custom">Status: Custom File Selected</string>
+
+    <string name="btn_save">Save &amp; Apply Widget</string>
+    <string name="btn_restore">Restore to Default (Reset All)</string>
+    <string name="btn_about">About Developer</string>
+
+    <string name="theme_system">System Default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+
+    <string name="toast_exit_warning">Press back again to exit</string>
+    <string name="toast_dnd_granted">DND permission granted!</string>
+    <string name="toast_location_needed">Location permission required</string>
+    <string name="toast_saved">Settings Saved Successfully!</string>
+    <string name="toast_searching_location">Searching for location...</string>
+    <string name="toast_audio_error">Failed to play custom audio. Format might not be supported.</string>
+
+    <string name="dialog_reset_title">Reset to Default?</string>
+    <string name="dialog_reset_message">All settings will be restored to their original default values.</string>
+    <string name="dialog_yes">Yes</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_close">Close</string>
+    <string name="dialog_about_message">Islamic Widget\nVersion 1.0\n\nDeveloped by cyberzilla</string>
+
+    <string name="location_found">Location Found</string>
+    <string name="location_not_found">No Location</string>
+
+    <string name="btn_stop">Stop</string>
 </resources>

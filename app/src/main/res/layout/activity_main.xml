@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_color"
+    android:background="?android:attr/colorBackground"
     android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@color/surface_color"
+        android:background="?attr/colorSurface"
         android:paddingTop="16dp"
         android:paddingBottom="12dp"
         android:paddingStart="16dp"
@@ -22,13 +22,14 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pengaturan Widget"
-            android:textColor="@color/text_primary"
+            android:text="@string/settings_title"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginBottom="12dp"/>
 
         <FrameLayout
+            android:id="@+id/preview_container"
             android:layout_width="match_parent"
             android:layout_height="130dp"
             android:background="#9CA3AF"
@@ -48,8 +49,7 @@
                 android:id="@+id/tv_preview_scale_label"
                 android:layout_width="85dp"
                 android:layout_height="wrap_content"
-                android:text="Skala: 100%"
-                android:textColor="@color/text_secondary"
+                android:textColor="?android:attr/textColorSecondary"
                 android:textSize="12sp"
                 android:textStyle="bold"/>
             <SeekBar
@@ -58,15 +58,15 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:max="100"
-                android:progressTint="@color/primary_color"
-                android:thumbTint="@color/primary_color"
+                android:progressTint="?attr/colorPrimary"
+                android:thumbTint="?attr/colorPrimary"
                 android:progressBackgroundTint="#D1D5DB"/>
         </LinearLayout>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="*Gunakan skala untuk mencocokkan preview dengan homescreen"
-            android:textColor="@color/text_secondary"
+            android:text="@string/preview_hint"
+            android:textColor="?android:attr/textColorSecondary"
             android:textSize="11sp"
             android:textAlignment="center"/>
     </LinearLayout>
@@ -87,15 +87,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/surface_color"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:contentPadding="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1. Bahasa / Language" android:textColor="@color/text_accent" android:textStyle="bold" android:layout_marginBottom="12dp" />
-                    <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxStrokeColor="@color/primary_color">
-                        <AutoCompleteTextView android:id="@+id/spinner_language" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_lang_theme" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp" />
+
+                    <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxStrokeColor="?attr/colorPrimary">
+                        <AutoCompleteTextView android:id="@+id/spinner_language" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" />
                     </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/theme_label" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginTop="12dp" android:layout_marginBottom="4dp"/>
+                    <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxStrokeColor="?attr/colorPrimary">
+                        <AutoCompleteTextView android:id="@+id/spinner_theme" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -103,15 +110,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/surface_color"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:contentPadding="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2. Lokasi GPS" android:textColor="@color/text_accent" android:textStyle="bold" android:layout_marginBottom="12dp" />
-                    <TextView android:id="@+id/tv_location_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Memuat..." android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
-                    <TextView android:id="@+id/tv_lat_lon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Lat: -, Lon: -" android:textColor="@color/text_secondary" android:textSize="14sp" android:layout_marginBottom="16dp"/>
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btn_update_gps" android:layout_width="match_parent" android:layout_height="50dp" android:text="Perbarui Lokasi GPS" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/primary_color" android:textColor="@color/primary_color"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_gps" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp" />
+                    <TextView android:id="@+id/tv_location_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/memuat" android:textColor="?android:attr/textColorPrimary" android:textSize="18sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tv_lat_lon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Lat: -, Lon: -" android:textColor="?android:attr/textColorSecondary" android:textSize="14sp" android:layout_marginBottom="16dp"/>
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btn_update_gps" android:layout_width="match_parent" android:layout_height="50dp" android:text="@string/btn_update_gps" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -119,66 +126,66 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/surface_color"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:contentPadding="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3. Tampilan Visual Elemen" android:textColor="@color/text_accent" android:textStyle="bold" android:layout_marginBottom="16dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_visual" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="16dp" />
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="1. Elemen Jam" android:textStyle="bold" android:textColor="@color/primary_color"/>
-                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_clock" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tampil " app:thumbTint="@color/primary_color"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/el_clock" android:textStyle="bold" android:textColor="?attr/colorPrimary"/>
+                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_clock" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tampil" app:thumbTint="?attr/colorPrimary"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="Font:" android:textSize="12sp"/>
-                        <SeekBar android:id="@+id/sb_fs_clock" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="80" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_fs_clock" android:layout_width="45dp" android:layout_height="wrap_content" android:text="36sp" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
+                        <SeekBar android:id="@+id/sb_fs_clock" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="80" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_fs_clock" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F3F4F6" android:layout_marginBottom="12dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="2. Elemen Kalender" android:textStyle="bold" android:textColor="@color/primary_color"/>
-                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tampil " app:thumbTint="@color/primary_color"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/el_date" android:textStyle="bold" android:textColor="?attr/colorPrimary"/>
+                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tampil" app:thumbTint="?attr/colorPrimary"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="Font:" android:textSize="12sp"/>
-                        <SeekBar android:id="@+id/sb_fs_date" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_fs_date" android:layout_width="45dp" android:layout_height="wrap_content" android:text="12sp" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
+                        <SeekBar android:id="@+id/sb_fs_date" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_fs_date" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F3F4F6" android:layout_marginBottom="12dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="3. Waktu Sholat" android:textStyle="bold" android:textColor="@color/primary_color"/>
-                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_prayer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tampil " app:thumbTint="@color/primary_color"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/el_prayer" android:textStyle="bold" android:textColor="?attr/colorPrimary"/>
+                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_prayer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tampil" app:thumbTint="?attr/colorPrimary"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="Font:" android:textSize="12sp"/>
-                        <SeekBar android:id="@+id/sb_fs_prayer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_fs_prayer" android:layout_width="45dp" android:layout_height="wrap_content" android:text="13sp" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
+                        <SeekBar android:id="@+id/sb_fs_prayer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_fs_prayer" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F3F4F6" android:layout_marginBottom="12dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="4. Info Tambahan (Terbit, dsb)" android:textStyle="bold" android:textColor="@color/primary_color"/>
-                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_additional" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tampil " app:thumbTint="@color/primary_color"/>
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/el_add" android:textStyle="bold" android:textColor="?attr/colorPrimary"/>
+                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_show_additional" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/tampil" app:thumbTint="?attr/colorPrimary"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="24dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="Font:" android:textSize="12sp"/>
-                        <SeekBar android:id="@+id/sb_fs_additional" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_fs_additional" android:layout_width="45dp" android:layout_height="wrap_content" android:text="11sp" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
+                        <SeekBar android:id="@+id/sb_fs_additional" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_fs_additional" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                     </LinearLayout>
-                    <View android:layout_width="match_parent" android:layout_height="2dp" android:background="#E5E7EB" android:layout_marginBottom="16dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="2dp" android:background="?android:attr/textColorSecondary" android:alpha="0.3" android:layout_marginBottom="16dp"/>
 
-                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="5. Bingkai &amp; Warna Latar" android:textColor="@color/primary_color" android:textStyle="bold" android:layout_marginBottom="12dp"/>
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/visual_bg" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="Radius:" android:textColor="@color/text_primary" android:textSize="12sp"/>
-                        <SeekBar android:id="@+id/sb_radius" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_label_radius" android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="16dp" android:textSize="12sp" android:gravity="end"/>
+                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="@string/radius" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp"/>
+                        <SeekBar android:id="@+id/sb_radius" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_label_radius" android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="12sp" android:gravity="end"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp" android:weightSum="2">
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_text_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="Warna Teks" android:textSize="13sp" android:layout_marginEnd="6dp" app:cornerRadius="8dp" app:strokeColor="@color/text_secondary" app:strokeWidth="1dp" />
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_bg_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="Warna Latar" android:textSize="13sp" android:layout_marginStart="6dp" app:cornerRadius="8dp" app:strokeColor="@color/text_secondary" app:strokeWidth="1dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_text_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="@string/btn_text_color" android:textSize="13sp" android:layout_marginEnd="6dp" app:cornerRadius="8dp" app:strokeColor="?android:attr/textColorSecondary" app:strokeWidth="1dp" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_bg_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="@string/btn_bg_color" android:textSize="13sp" android:layout_marginStart="6dp" app:cornerRadius="8dp" app:strokeColor="?android:attr/textColorSecondary" app:strokeWidth="1dp"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -187,28 +194,28 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/surface_color"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:contentPadding="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4. Kalkulasi &amp; Format" android:textColor="@color/text_accent" android:textStyle="bold" android:layout_marginBottom="16dp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Metode Kalkulasi Adzan:" android:textColor="@color/text_secondary" android:textSize="12sp" android:layout_marginBottom="4dp"/>
-                    <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" app:boxStrokeColor="@color/primary_color">
-                        <AutoCompleteTextView android:id="@+id/spinner_calc_method" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="@color/text_primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_calc" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="16dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/calc_method" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginBottom="4dp"/>
+                    <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" app:boxStrokeColor="?attr/colorPrimary">
+                        <AutoCompleteTextView android:id="@+id/spinner_calc_method" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" />
                     </com.google.android.material.textfield.TextInputLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
-                        <TextView android:layout_width="140dp" android:layout_height="wrap_content" android:text="Koreksi Hijriyah:" android:textColor="@color/text_primary" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_hijri_offset" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="10" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_label_hijri" android:layout_width="50dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="0 Hari" android:textSize="12sp" android:gravity="end"/>
+                        <TextView android:layout_width="140dp" android:layout_height="wrap_content" android:text="@string/hijri_offset" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_hijri_offset" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="10" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_label_hijri" android:layout_width="50dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="12sp" android:gravity="end"/>
                     </LinearLayout>
-                    <CheckBox android:id="@+id/cb_day_start" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ganti Hijriyah di waktu Maghrib" android:textColor="@color/text_primary" android:buttonTint="@color/primary_color"/>
-                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Gunakan format: id-ID{EEEE, dd MMMM yyyy}" android:textColor="@color/text_secondary" android:textSize="12sp" android:layout_marginTop="16dp"/>
+                    <CheckBox android:id="@+id/cb_day_start" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/day_start_maghrib" android:textColor="?android:attr/textColorPrimary" android:buttonTint="?attr/colorPrimary"/>
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/format_hint" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginTop="16dp"/>
                     <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_date_format" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Format Masehi" android:inputType="text" android:textColor="@color/text_primary"/>
+                        <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_date_format" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/hint_masehi" android:inputType="text" android:textColor="?android:attr/textColorPrimary"/>
                     </com.google.android.material.textfield.TextInputLayout>
                     <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                        <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_hijri_format" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Format Hijriyah" android:inputType="text" android:textColor="@color/text_primary"/>
+                        <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_hijri_format" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/hint_hijri" android:inputType="text" android:textColor="?android:attr/textColorPrimary"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -217,80 +224,80 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/surface_color"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:contentPadding="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="5. Auto-Silent (DND)" android:textColor="@color/text_accent" android:textSize="16sp" android:textStyle="bold" />
-                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_auto_silent" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="@color/primary_color" app:trackTint="#A7F3D0"/>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sec_dnd" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" />
+                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_auto_silent" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
                     </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Subuh" android:textStyle="bold" android:textColor="@color/text_secondary"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fajr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Sblm" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_fajr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="@color/text_secondary" android:thumbTint="@color/text_secondary" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_fajr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="0m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_fajr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_fajr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Ssdh" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_fajr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_fajr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="15m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_fajr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_fajr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Dzuhur" android:textStyle="bold" android:textColor="@color/text_secondary"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/dhuhr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Sblm" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_dhuhr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="@color/text_secondary" android:thumbTint="@color/text_secondary" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_dhuhr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="0m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_dhuhr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_dhuhr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Ssdh" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_dhuhr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_dhuhr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="20m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_dhuhr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_dhuhr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Jumat" android:textStyle="bold" android:textColor="@color/primary_color"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/friday" android:textStyle="bold" android:textColor="?attr/colorPrimary"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Sblm" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_fri_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="@color/text_secondary" android:thumbTint="@color/text_secondary" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_fri_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="0m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_fri_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_fri_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Ssdh" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_fri_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="180" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_fri_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="60m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_fri_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="180" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_fri_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Ashar" android:textStyle="bold" android:textColor="@color/text_secondary"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/asr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Sblm" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_asr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="@color/text_secondary" android:thumbTint="@color/text_secondary" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_asr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="0m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_asr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_asr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Ssdh" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_asr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_asr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="20m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_asr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_asr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Maghrib" android:textStyle="bold" android:textColor="@color/text_secondary"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/maghrib" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Sblm" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_maghrib_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="@color/text_secondary" android:thumbTint="@color/text_secondary" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_maghrib_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="0m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_maghrib_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_maghrib_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Ssdh" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_maghrib_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_maghrib_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="15m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_maghrib_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_maghrib_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Waktu Isya" android:textStyle="bold" android:textColor="@color/text_secondary"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/isha" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Sblm" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_isha_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="@color/text_secondary" android:thumbTint="@color/text_secondary" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_isha_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="0m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_isha_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_isha_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:text="Ssdh" android:textSize="13sp"/>
-                        <SeekBar android:id="@+id/sb_isha_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_isha_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="@color/text_primary" android:textStyle="bold" android:text="20m" android:textSize="13sp" android:gravity="end"/>
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
+                        <SeekBar android:id="@+id/sb_isha_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_isha_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -299,38 +306,38 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/surface_color"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:contentPadding="16dp">
 
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="6. Audio Adzan" android:textColor="@color/text_accent" android:textSize="16sp" android:textStyle="bold" />
-                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_audio_adzan" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="@color/primary_color" app:trackTint="#A7F3D0"/>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sec_audio" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" />
+                        <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_audio_adzan" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
                     </LinearLayout>
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="Volume:" android:textSize="12sp"/>
-                        <SeekBar android:id="@+id/sb_adzan_vol" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="100" android:progressTint="@color/primary_color" android:thumbTint="@color/primary_color" android:progressBackgroundTint="#D1D5DB"/>
-                        <TextView android:id="@+id/tv_adzan_vol" android:layout_width="45dp" android:layout_height="wrap_content" android:text="100%" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
+                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="@string/volume" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp"/>
+                        <SeekBar android:id="@+id/sb_adzan_vol" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="100" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_adzan_vol" android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pilih audio MP3 kustom dari HP Anda (Biarkan kosong untuk suara bawaan)." android:textColor="@color/text_secondary" android:textSize="11sp" android:layout_marginBottom="12dp"/>
-
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="2dp" android:weightSum="10">
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_regular" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="Adzan Reguler" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/primary_color" android:textColor="@color/primary_color" android:layout_marginEnd="4dp"/>
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="Tes" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="Reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/danger_color" android:textColor="@color/danger_color"/>
-                    </LinearLayout>
-                    <TextView android:id="@+id/tv_adzan_regular_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Status: Bawaan Aplikasi" android:textSize="11sp" android:textColor="@color/text_secondary" android:layout_marginBottom="16dp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/custom_audio_hint" android:textColor="?android:attr/textColorSecondary" android:textSize="11sp" android:layout_marginBottom="12dp"/>
 
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="2dp" android:weightSum="10">
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_subuh" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="Adzan Subuh" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/primary_color" android:textColor="@color/primary_color" android:layout_marginEnd="4dp"/>
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="Tes" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="Reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="@color/danger_color" android:textColor="@color/danger_color"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_regular" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="@string/btn_adzan_regular" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary" android:layout_marginEnd="4dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_test" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorError" android:textColor="?attr/colorError"/>
                     </LinearLayout>
-                    <TextView android:id="@+id/tv_adzan_subuh_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Status: Bawaan Aplikasi" android:textSize="11sp" android:textColor="@color/text_secondary"/>
+                    <TextView android:id="@+id/tv_adzan_regular_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/status_default" android:textSize="11sp" android:textColor="?android:attr/textColorSecondary" android:layout_marginBottom="16dp"/>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="2dp" android:weightSum="10">
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_subuh" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="@string/btn_adzan_subuh" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary" android:layout_marginEnd="4dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_test" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorError" android:textColor="?attr/colorError"/>
+                    </LinearLayout>
+                    <TextView android:id="@+id/tv_adzan_subuh_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/status_default" android:textSize="11sp" android:textColor="?android:attr/textColorSecondary"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -338,10 +345,10 @@
                 android:id="@+id/btn_save_settings"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="Simpan &amp; Terapkan Widget"
+                android:text="@string/btn_save"
                 android:textSize="16sp"
                 app:cornerRadius="12dp"
-                app:backgroundTint="@color/primary_color"
+                app:backgroundTint="?attr/colorPrimary"
                 android:textColor="@color/white"
                 android:textStyle="bold" />
 
@@ -350,10 +357,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginTop="16dp"
-                android:text="Kembalikan ke Awal (Reset All)"
+                android:text="@string/btn_restore"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                app:strokeColor="@color/danger_color"
-                android:textColor="@color/danger_color"
+                app:strokeColor="?attr/colorError"
+                android:textColor="?attr/colorError"
                 app:cornerRadius="12dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -361,10 +368,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginTop="8dp"
-                android:text="Tentang Developer"
+                android:text="@string/btn_about"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                app:strokeColor="@color/text_secondary"
-                android:textColor="@color/text_secondary"
+                app:strokeColor="?android:attr/textColorSecondary"
+                android:textColor="?android:attr/textColorSecondary"
                 app:cornerRadius="12dp"
                 android:layout_marginBottom="32dp"/>
 

@@ -1,10 +1,80 @@
 <resources>
-    <string name="app_name">Widget Sholat</string>
+    <string name="app_name">Islamic Widget</string>
+    <string name="settings_title">Pengaturan Widget</string>
+    <string name="preview_hint">*Gunakan skala untuk mencocokkan preview dengan homescreen</string>
+    <string name="preview_scale">Skala: %1$d%%</string>
 
+    <string name="sec_lang_theme">Bahasa &amp; Tema</string>
+    <string name="theme_label">Tema Aplikasi</string>
+
+    <string name="sec_gps">Lokasi GPS</string>
+    <string name="memuat">Memuat...</string>
+    <string name="btn_update_gps">Perbarui Lokasi GPS</string>
+
+    <string name="sec_visual">Tampilan Visual Elemen</string>
+    <string name="el_clock">Elemen Jam</string>
+    <string name="el_date">Elemen Kalender</string>
+    <string name="el_prayer">Waktu Sholat</string>
+    <string name="el_add">Info Tambahan (Terbit, dsb)</string>
+    <string name="tampil">Tampil </string>
+    <string name="font_label">Font:</string>
+    <string name="visual_bg">Bingkai &amp; Warna Latar</string>
+    <string name="radius">Radius:</string>
+    <string name="btn_text_color">Warna Teks</string>
+    <string name="btn_bg_color">Warna Latar</string>
+
+    <string name="sec_calc">Kalkulasi &amp; Format</string>
+    <string name="calc_method">Metode Kalkulasi Adzan:</string>
+    <string name="hijri_offset">Koreksi Hijriyah:</string>
+    <string name="day_start_maghrib">Ganti Hijriyah di waktu Maghrib</string>
+    <string name="format_hint">Gunakan format: id-ID{EEEE, dd MMMM yyyy}</string>
+    <string name="hint_masehi">Format Masehi</string>
+    <string name="hint_hijri">Format Hijriyah</string>
+
+    <string name="sec_dnd">Auto-Silent (DND)</string>
     <string name="fajr">Subuh</string>
     <string name="dhuhr">Dzuhur</string>
+    <string name="friday">Jumat</string>
     <string name="asr">Ashar</string>
     <string name="maghrib">Maghrib</string>
     <string name="isha">Isya</string>
+    <string name="before">Sebelum</string>
+    <string name="after">Sesudah</string>
 
+    <string name="sec_audio">Audio Adzan</string>
+    <string name="volume">Volume:</string>
+    <string name="custom_audio_hint">Pilih audio MP3 kustom dari HP Anda (Biarkan kosong untuk suara bawaan).</string>
+    <string name="btn_adzan_regular">Adzan Reguler</string>
+    <string name="btn_adzan_subuh">Adzan Subuh</string>
+    <string name="btn_test">Tes</string>
+    <string name="btn_reset">Reset</string>
+    <string name="status_default">Status: Bawaan Aplikasi</string>
+    <string name="status_custom">Status: File Custom Terpilih</string>
+
+    <string name="btn_save">Simpan &amp; Terapkan Widget</string>
+    <string name="btn_restore">Kembalikan ke Awal (Reset All)</string>
+    <string name="btn_about">Tentang Developer</string>
+
+    <string name="theme_system">Sistem</string>
+    <string name="theme_light">Terang (Light)</string>
+    <string name="theme_dark">Gelap (Dark)</string>
+
+    <string name="toast_exit_warning">Tekan sekali lagi untuk keluar</string>
+    <string name="toast_dnd_granted">Izin DND berhasil diberikan!</string>
+    <string name="toast_location_needed">Izin lokasi dibutuhkan</string>
+    <string name="toast_saved">Pengaturan Berhasil Disimpan!</string>
+    <string name="toast_searching_location">Mencari lokasi...</string>
+    <string name="toast_audio_error">Gagal memutar audio kustom. Format mungkin tidak didukung.</string>
+
+    <string name="dialog_reset_title">Kembalikan ke Awal?</string>
+    <string name="dialog_reset_message">Semua pengaturan akan dikembalikan ke nilai awal aplikasi.</string>
+    <string name="dialog_yes">Ya</string>
+    <string name="dialog_cancel">Batal</string>
+    <string name="dialog_close">Tutup</string>
+    <string name="dialog_about_message">Islamic Widget\nVersi 1.0\n\nDikembangkan oleh cyberzilla</string>
+
+    <string name="location_found">Lokasi Ditemukan</string>
+    <string name="location_not_found">Belum Ada Lokasi</string>
+
+    <string name="btn_stop">Stop</string>
 </resources>
