@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -15,6 +16,9 @@ import androidx.core.app.NotificationCompat
 class AdzanService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
+
+    // Variabel untuk menyimpan volume asli sebelum adzan berbunyi
+    private var originalAlarmVolume: Int = -1
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -51,29 +55,63 @@ class AdzanService : Service() {
         val settings = SettingsManager(this)
         val customUriString = if (isSubuh) settings.customAdzanSubuhUri else settings.customAdzanRegularUri
 
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+        // ========================================================
+        // 1. TINGKATKAN VOLUME SEMENTARA (BOOST VOLUME)
+        // ========================================================
+        try {
+            // Simpan volume alarm saat ini (jika belum tersimpan)
+            if (originalAlarmVolume == -1) {
+                originalAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+            }
+
+            // Ambil batas volume maksimal di HP pengguna
+            val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+
+            // Paksa set volume alarm ke maksimal agar adzan pasti terdengar
+            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVolume, 0)
+        } catch (e: SecurityException) {
+            // Abaikan jika sistem DND HP sangat ketat menolak perubahan volume
+        }
+
         mediaPlayer?.release()
 
         try {
-            if (!customUriString.isNullOrEmpty()) {
-                mediaPlayer = MediaPlayer().apply {
-                    setDataSource(this@AdzanService, Uri.parse(customUriString))
-                    prepare()
-                    start()
+            mediaPlayer = MediaPlayer().apply {
+                // Pastikan suaranya lewat jalur Alarm, bukan jalur Media
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    setAudioAttributes(
+                        android.media.AudioAttributes.Builder()
+                            .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build()
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    setAudioStreamType(AudioManager.STREAM_ALARM)
                 }
-            } else {
-                val rawResId = if (isSubuh) R.raw.adzan_subuh else R.raw.adzan_regular
-                mediaPlayer = MediaPlayer.create(this, rawResId)
-                mediaPlayer?.start()
+
+                // Cek sumber suara
+                if (!customUriString.isNullOrEmpty()) {
+                    setDataSource(this@AdzanService, Uri.parse(customUriString))
+                } else {
+                    val rawResId = if (isSubuh) R.raw.adzan_subuh else R.raw.adzan_regular
+                    val afd = resources.openRawResourceFd(rawResId)
+                    setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                    afd.close()
+                }
+
+                prepare()
+                start()
             }
 
+            // Jika lagu/adzan selesai dengan sendirinya
             mediaPlayer?.setOnCompletionListener {
                 stopAdzan()
             }
         } catch (e: Exception) {
-            val fallbackResId = if (isSubuh) R.raw.adzan_subuh else R.raw.adzan_regular
-            mediaPlayer = MediaPlayer.create(this, fallbackResId)
-            mediaPlayer?.start()
-            mediaPlayer?.setOnCompletionListener { stopAdzan() }
+            stopAdzan()
         }
     }
 
@@ -81,6 +119,9 @@ class AdzanService : Service() {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
+
+        // 2. KEMBALIKAN VOLUME KE AWAL SEBELUM SERVICE MATI
+        restoreOriginalVolume()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -90,6 +131,19 @@ class AdzanService : Service() {
         }
 
         stopSelf()
+    }
+
+    // Fungsi khusus untuk mengembalikan volume yang disimpan
+    private fun restoreOriginalVolume() {
+        if (originalAlarmVolume != -1) {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            try {
+                audioManager.setStreamVolume(AudioManager.STREAM_ALARM, originalAlarmVolume, 0)
+                originalAlarmVolume = -1 // Reset memori
+            } catch (e: SecurityException) {
+                // Abaikan
+            }
+        }
     }
 
     private fun createNotificationChannel() {
@@ -111,5 +165,8 @@ class AdzanService : Service() {
         super.onDestroy()
         mediaPlayer?.release()
         mediaPlayer = null
+
+        // Jaga-jaga: Kembalikan volume jika Service tiba-tiba di-kill oleh Android
+        restoreOriginalVolume()
     }
 }
