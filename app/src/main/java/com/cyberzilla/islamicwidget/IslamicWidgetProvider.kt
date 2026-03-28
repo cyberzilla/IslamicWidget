@@ -115,11 +115,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
         }
 
-        if (currentHeightDp == 0) {
-            currentHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-        }
-
-        if (currentHeightDp == 0) currentHeightDp = 200
+        if (currentHeightDp <= 0) currentHeightDp = 200
 
         val layoutId = if (currentHeightDp < 165) {
             R.layout.widget_islamic_horizontal
@@ -188,9 +184,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         views.setTextColor(R.id.tv_divider_2, opacityTextColor)
         views.setTextViewTextSize(R.id.tv_divider_2, TypedValue.COMPLEX_UNIT_SP, fsAdd)
 
-        // =========================================================
-        // FIX: PELUKIS RADIUS BITMAP DINAMIS
-        // =========================================================
         var widthDp = if (isPortrait) options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH) else options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH)
         var heightDp = if (isPortrait) options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT) else options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
 
@@ -202,7 +195,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         var heightPx = (heightDp * density).toInt()
         var radiusPx = settings.widgetBgRadius * density
 
-        // Amankan Widget dari "TransactionTooLargeException" (Limit RAM Widget 1MB)
         val maxDimen = 600f
         if (widthPx > maxDimen || heightPx > maxDimen) {
             val scale = maxDimen / maxOf(widthPx, heightPx).toFloat()
@@ -216,7 +208,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         val bgColor = try { Color.parseColor(settings.widgetBgColor) } catch (e: Exception) { Color.parseColor("#00000000") }
 
-        // MENGGAMBAR KOTAK SESUAI RADIUS
         val bgBitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bgBitmap)
         val paint = Paint().apply {
@@ -226,9 +217,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val rectF = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
         canvas.drawRoundRect(rectF, radiusPx, radiusPx, paint)
 
-        // TEMPELKAN KE WIDGET
         views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
-        // =========================================================
 
         val today = LocalDate.now()
         var hijriDate = HijrahDate.from(today)
@@ -307,10 +296,28 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleSilentMode(context: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
-        if (!settings.isAutoSilentEnabled) return
-
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
+
+        // 1. PENJADWALAN ADZAN AUDIO
+        if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time) {
+            val prayerName = when(requestCodeId) {
+                1 -> "Subuh"; 2 -> "Dzuhur"; 3 -> "Ashar"; 4 -> "Maghrib"; 5 -> "Isya"; else -> "Sholat"
+            }
+            val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
+                action = "ACTION_PLAY_ADZAN"
+                putExtra("IS_SUBUH", requestCodeId == 1)
+                putExtra("PRAYER_NAME", prayerName)
+            }
+            val adzanPendingIntent = PendingIntent.getBroadcast(context, requestCodeId + 200, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+            try {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, prayerTime.time, adzanPendingIntent)
+            } catch (e: SecurityException) {}
+        }
+
+        // 2. PENJADWALAN MODE DND (MUTE/UNMUTE)
+        if (!settings.isAutoSilentEnabled) return
 
         val silentBeforeMillis: Long
         val silentAfterMillis: Long
@@ -360,8 +367,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteTimeMillis, mutePendingIntent)
             }
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
-        } catch (e: SecurityException) {
-            // Abaikan jika izin ditolak
-        }
+        } catch (e: SecurityException) {}
     }
 }

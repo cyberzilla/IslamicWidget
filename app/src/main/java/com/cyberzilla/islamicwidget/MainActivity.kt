@@ -50,7 +50,6 @@ import java.time.temporal.TemporalAccessor
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import android.app.PendingIntent
 
 class MainActivity : AppCompatActivity() {
 
@@ -66,8 +65,26 @@ class MainActivity : AppCompatActivity() {
     private var currentTextColor = "#FFFFFF"
     private var currentBgColor = "#00000000"
 
-    // Variabel pintar untuk Auto-On Switch DND
     private var pendingDndPermission = false
+
+    private var tempRegularUri: String? = null
+    private var tempSubuhUri: String? = null
+
+    private val pickRegularAdzanLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) {}
+            tempRegularUri = uri.toString()
+            findViewById<TextView>(R.id.tv_adzan_regular_status).text = "Status: File Custom Terpilih"
+        }
+    }
+
+    private val pickSubuhAdzanLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) {}
+            tempSubuhUri = uri.toString()
+            findViewById<TextView>(R.id.tv_adzan_subuh_status).text = "Status: File Custom Terpilih"
+        }
+    }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -94,7 +111,6 @@ class MainActivity : AppCompatActivity() {
         setupButtons()
     }
 
-    // FUNGSI PINTAR DND AUTO-ON: Mengecek izin setelah kembali dari menu sistem
     override fun onResume() {
         super.onResume()
         if (pendingDndPermission) {
@@ -109,7 +125,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Perhatikan: Setup Slider kini tanpa prefiks "Sblm: " karena label sudah independen di layout
     private fun setupSlider(seekBarId: Int, textViewId: Int, min: Int, max: Int, initialValue: Int, labelPrefix: String, labelSuffix: String) {
         val seekBar = findViewById<SeekBar>(seekBarId)
         val textView = findViewById<TextView>(textViewId)
@@ -396,7 +411,6 @@ class MainActivity : AppCompatActivity() {
 
         calcSpinner.setOnItemClickListener { _, _, _, _ -> updatePreview() }
 
-        // SETUP SWITCH ELEMEN VISUAL
         val swClock = findViewById<SwitchCompat>(R.id.sw_show_clock)
         val swDate = findViewById<SwitchCompat>(R.id.sw_show_date)
         val swPrayer = findViewById<SwitchCompat>(R.id.sw_show_prayer)
@@ -412,7 +426,6 @@ class MainActivity : AppCompatActivity() {
         swPrayer.setOnCheckedChangeListener { _, _ -> updatePreview() }
         swAdd.setOnCheckedChangeListener { _, _ -> updatePreview() }
 
-        // SETUP SLIDER TANPA PREFIKS
         setupSlider(R.id.sb_fs_clock, R.id.tv_fs_clock, 20, 80, settingsManager.fontSizeClock, "Font: ", "sp")
         setupSlider(R.id.sb_fs_date, R.id.tv_fs_date, 8, 30, settingsManager.fontSizeDate, "Font: ", "sp")
         setupSlider(R.id.sb_fs_prayer, R.id.tv_fs_prayer, 8, 30, settingsManager.fontSizePrayer, "Font: ", "sp")
@@ -469,6 +482,28 @@ class MainActivity : AppCompatActivity() {
         setupSlider(R.id.sb_maghrib_aft, R.id.tv_maghrib_aft, 0, 120, settingsManager.maghribAfter, "", "m")
         setupSlider(R.id.sb_isha_bef, R.id.tv_isha_bef, 0, 60, settingsManager.ishaBefore, "", "m")
         setupSlider(R.id.sb_isha_aft, R.id.tv_isha_aft, 0, 120, settingsManager.ishaAfter, "", "m")
+
+        // SETUP UI AUDIO ADZAN
+        val switchAdzan = findViewById<SwitchCompat>(R.id.switch_audio_adzan)
+        switchAdzan.isChecked = settingsManager.isAdzanAudioEnabled
+
+        tempRegularUri = settingsManager.customAdzanRegularUri
+        tempSubuhUri = settingsManager.customAdzanSubuhUri
+
+        findViewById<TextView>(R.id.tv_adzan_regular_status).text = if (tempRegularUri.isNullOrEmpty()) "Status: Bawaan Aplikasi" else "Status: File Custom Aktif"
+        findViewById<TextView>(R.id.tv_adzan_subuh_status).text = if (tempSubuhUri.isNullOrEmpty()) "Status: Bawaan Aplikasi" else "Status: File Custom Aktif"
+
+        findViewById<Button>(R.id.btn_pick_adzan_regular).setOnClickListener { pickRegularAdzanLauncher.launch("audio/*") }
+        findViewById<Button>(R.id.btn_clear_adzan_regular).setOnClickListener {
+            tempRegularUri = null
+            findViewById<TextView>(R.id.tv_adzan_regular_status).text = "Status: Bawaan Aplikasi"
+        }
+
+        findViewById<Button>(R.id.btn_pick_adzan_subuh).setOnClickListener { pickSubuhAdzanLauncher.launch("audio/*") }
+        findViewById<Button>(R.id.btn_clear_adzan_subuh).setOnClickListener {
+            tempSubuhUri = null
+            findViewById<TextView>(R.id.tv_adzan_subuh_status).text = "Status: Bawaan Aplikasi"
+        }
 
         updatePreview()
     }
@@ -588,6 +623,11 @@ class MainActivity : AppCompatActivity() {
             settingsManager.ishaBefore = findViewById<SeekBar>(R.id.sb_isha_bef).progress
             settingsManager.ishaAfter = findViewById<SeekBar>(R.id.sb_isha_aft).progress
 
+            // SIMPAN AUDIO ADZAN
+            settingsManager.isAdzanAudioEnabled = findViewById<SwitchCompat>(R.id.switch_audio_adzan).isChecked
+            settingsManager.customAdzanRegularUri = tempRegularUri
+            settingsManager.customAdzanSubuhUri = tempSubuhUri
+
             Toast.makeText(this, "Pengaturan Disimpan!", Toast.LENGTH_SHORT).show()
             triggerWidgetUpdate()
 
@@ -633,7 +673,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_about).setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Tentang Developer")
-                .setMessage("Islamic Widget\nVersi 1.0\n\nDikembangkan oleh:\nCyberzilla (Abu Dzakiyyah)")
+                .setMessage("Islamic Widget\nVersi 1.0\n\nDikembangkan oleh:\ncyberzilla (Dedy)\n\nFitur Khusus:\n• Pemutar Adzan (Latar Depan)\n• Auto-Mute Volume Media\n• Custom Layout \n• KMP Engine")
                 .setPositiveButton("Tutup", null)
                 .setNeutralButton("GitHub") { _, _ -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/cyberzilla"))) }
                 .show()
@@ -647,7 +687,7 @@ class MainActivity : AppCompatActivity() {
             settingsManager.locationName = "Lokasi Tidak Diketahui"
         }
         updateLocationUI()
-        updatePreview() // OTOMATIS UPDATE PREVIEW SAAT GPS SELESAI
+        updatePreview()
         triggerWidgetUpdate()
         Toast.makeText(this@MainActivity, "Lokasi GPS diperbarui!", Toast.LENGTH_LONG).show()
     }

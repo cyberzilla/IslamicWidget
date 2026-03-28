@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
+import android.os.Build
 import android.util.Log
 
 class SilentModeReceiver : BroadcastReceiver() {
@@ -14,16 +15,26 @@ class SilentModeReceiver : BroadcastReceiver() {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
 
-        // Pastikan aplikasi masih memiliki izin DND dari pengguna
-        if (!notificationManager.isNotificationPolicyAccessGranted) {
-            Log.e("SilentModeReceiver", "Akses DND (Notification Policy) belum diberikan.")
-            return
-        }
-
         when (intent.action) {
-            "ACTION_MUTE" -> {
+            "ACTION_PLAY_ADZAN" -> {
+                val serviceIntent = Intent(context, AdzanService::class.java).apply {
+                    putExtra("IS_SUBUH", intent.getBooleanExtra("IS_SUBUH", false))
+                    putExtra("PRAYER_NAME", intent.getStringExtra("PRAYER_NAME"))
+                }
                 try {
-                    // 1. Simpan volume media dan mode dering saat ini agar bisa dikembalikan nanti
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceIntent)
+                    } else {
+                        context.startService(serviceIntent)
+                    }
+                } catch (e: Exception) {
+                    Log.e("SilentModeReceiver", "Gagal memutar Adzan: ${e.message}")
+                }
+            }
+
+            "ACTION_MUTE" -> {
+                if (!notificationManager.isNotificationPolicyAccessGranted) return
+                try {
                     val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                     val currentRingerMode = audioManager.ringerMode
 
@@ -32,10 +43,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                         .putInt("PREF_PREV_RINGER_MODE", currentRingerMode)
                         .apply()
 
-                    // 2. Ubah mode dering ke GETAR (Vibrate)
                     audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
-
-                    // 3. Paksa volume Media (Musik/Video/Game) menjadi 0
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
 
                 } catch (e: SecurityException) {
@@ -44,15 +52,13 @@ class SilentModeReceiver : BroadcastReceiver() {
             }
 
             "ACTION_UNMUTE" -> {
+                if (!notificationManager.isNotificationPolicyAccessGranted) return
                 try {
-                    // 1. Ambil data volume lama dari penyimpanan
                     val prevMediaVol = prefs.getInt("PREF_PREV_MEDIA_VOL", -1)
                     val prevRingerMode = prefs.getInt("PREF_PREV_RINGER_MODE", AudioManager.RINGER_MODE_NORMAL)
 
-                    // 2. Kembalikan mode dering seperti semula
                     audioManager.ringerMode = prevRingerMode
 
-                    // 3. Kembalikan volume Media jika sebelumnya ada data yang tersimpan
                     if (prevMediaVol != -1) {
                         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevMediaVol, 0)
                     }

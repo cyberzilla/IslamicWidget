@@ -23,9 +23,6 @@ class SettingsManager(context: Context) {
         get() = prefs.getInt("PREF_BG_RADIUS", 16)
         set(value) = prefs.edit().putInt("PREF_BG_RADIUS", value).apply()
 
-    // ==========================================
-    // PENGATURAN TAMPILAN ELEMEN INDEPENDEN
-    // ==========================================
     var showClock: Boolean get() = prefs.getBoolean("PREF_SHOW_CLOCK", true); set(value) = prefs.edit().putBoolean("PREF_SHOW_CLOCK", value).apply()
     var showDate: Boolean get() = prefs.getBoolean("PREF_SHOW_DATE", true); set(value) = prefs.edit().putBoolean("PREF_SHOW_DATE", value).apply()
     var showPrayer: Boolean get() = prefs.getBoolean("PREF_SHOW_PRAYER", true); set(value) = prefs.edit().putBoolean("PREF_SHOW_PRAYER", value).apply()
@@ -35,7 +32,6 @@ class SettingsManager(context: Context) {
     var fontSizeDate: Int get() = prefs.getInt("PREF_FS_DATE", 12); set(value) = prefs.edit().putInt("PREF_FS_DATE", value).apply()
     var fontSizePrayer: Int get() = prefs.getInt("PREF_FS_PRAYER", 13); set(value) = prefs.edit().putInt("PREF_FS_PRAYER", value).apply()
     var fontSizeAdditional: Int get() = prefs.getInt("PREF_FS_ADDITIONAL", 11); set(value) = prefs.edit().putInt("PREF_FS_ADDITIONAL", value).apply()
-    // ==========================================
 
     var calculationMethod: String
         get() = prefs.getString("PREF_CALC_METHOD", "MUSLIM_WORLD_LEAGUE") ?: "MUSLIM_WORLD_LEAGUE"
@@ -57,10 +53,22 @@ class SettingsManager(context: Context) {
         get() = prefs.getString("PREF_HIJRI_FORMAT", "ar-SA{dd MMMM yyyy} هـ") ?: "ar-SA{dd MMMM yyyy} هـ"
         set(value) = prefs.edit().putString("PREF_HIJRI_FORMAT", value).apply()
 
-    // FIX: DEFAULT DND SEKARANG ADALAH FALSE (MATI)
     var isAutoSilentEnabled: Boolean
         get() = prefs.getBoolean("PREF_AUTO_SILENT", false)
         set(value) = prefs.edit().putBoolean("PREF_AUTO_SILENT", value).apply()
+
+    // FITUR ADZAN AUDIO
+    var isAdzanAudioEnabled: Boolean
+        get() = prefs.getBoolean("PREF_ADZAN_AUDIO", true)
+        set(value) = prefs.edit().putBoolean("PREF_ADZAN_AUDIO", value).apply()
+
+    var customAdzanRegularUri: String?
+        get() = prefs.getString("PREF_ADZAN_REGULAR_URI", null)
+        set(value) = prefs.edit().putString("PREF_ADZAN_REGULAR_URI", value).apply()
+
+    var customAdzanSubuhUri: String?
+        get() = prefs.getString("PREF_ADZAN_SUBUH_URI", null)
+        set(value) = prefs.edit().putString("PREF_ADZAN_SUBUH_URI", value).apply()
 
     var previewScale: Int
         get() = prefs.getInt("PREF_PREVIEW_SCALE", 100)
