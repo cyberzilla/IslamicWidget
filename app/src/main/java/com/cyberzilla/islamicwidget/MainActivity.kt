@@ -642,6 +642,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_clear_adzan_subuh)?.setOnClickListener { tempSubuhUri = null; findViewById<TextView>(R.id.tv_adzan_subuh_status)?.text = getString(R.string.status_default); stopTestAdzan() }
         btnPlaySub?.setOnClickListener { toggleTestAdzan(true, btnPlaySub) }
 
+        // Slider tambahan untuk Quote Widget
+        setupSlider(R.id.sb_quote_interval, R.id.tv_quote_interval, 0, 120, settingsManager.quoteUpdateInterval, false, "m")
+        setupSlider(R.id.sb_quote_font, R.id.tv_quote_font, 10, 40, settingsManager.quoteFontSize, false, "sp")
+
         updatePreview()
     }
 
@@ -731,9 +735,21 @@ class MainActivity : AppCompatActivity() {
             settingsManager.customAdzanRegularUri = tempRegularUri
             settingsManager.customAdzanSubuhUri = tempSubuhUri
 
+            // Simpan Data Settings Quote Widget
+            val newInterval = findViewById<SeekBar>(R.id.sb_quote_interval)?.progress ?: 0
+            settingsManager.quoteUpdateInterval = newInterval
+            settingsManager.quoteFontSize = (findViewById<SeekBar>(R.id.sb_quote_font)?.progress ?: 4) + 10
+
+            // Panggil class QuoteUpdateManager (Pastikan Anda memiliki file ini dari instruksi sebelumnya)
+            QuoteUpdateManager.setAutoUpdate(this, newInterval)
+
             Toast.makeText(this, getString(R.string.toast_saved), Toast.LENGTH_SHORT).show()
             val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
             sendBroadcast(Intent(this, IslamicWidgetProvider::class.java).apply { action = AppWidgetManager.ACTION_APPWIDGET_UPDATE; putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids) })
+
+            // Trigger update untuk Quote Widget agar perubahan font langsung terlihat
+            val quoteIds = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, QuoteWidgetProvider::class.java))
+            sendBroadcast(Intent(this, QuoteWidgetProvider::class.java).apply { action = AppWidgetManager.ACTION_APPWIDGET_UPDATE; putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quoteIds) })
         } catch (e: Exception) {}
     }
 

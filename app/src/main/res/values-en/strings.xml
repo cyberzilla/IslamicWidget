@@ -115,4 +115,16 @@
     <string name="sunnah_ayyamul_bidh">✨ Ayyamul Bidh</string>
     <string name="sunnah_monday_thursday">🌙 Sunnah Fasting</string>
     <string name="sunnah_friday">📖 Al-Kahf</string>
+
+    <string name="quote_loading">Loading quote...</string>
+    <string name="quote_default_reference">- Reference</string>
+    <string name="quote_empty_data">No quote data available.</string>
+    <string name="quote_share_title">Share Quote via</string>
+    <string name="quote_share_format">\"%1$s\"\n\n- %2$s</string>
+    <string name="quote_desc_share">Share Quote</string>
+    <string name="quote_desc_random">Random Quote</string>
+    <string name="quote_settings_title">Quotes Widget</string>
+    <string name="quote_auto_update_label">Auto Update (0 = Manual)</string>
+    <string name="quote_minutes_label">Minutes</string>
+    <string name="quote_font_size_label">Quotes Font Size</string>
 </resources>

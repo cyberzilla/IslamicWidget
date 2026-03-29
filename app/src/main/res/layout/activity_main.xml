@@ -341,6 +341,40 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="?attr/colorSurface"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:contentPadding="16dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/quote_settings_title" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="16dp" />
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/quote_auto_update_label" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/quote_minutes_label" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp"/>
+                        <SeekBar android:id="@+id/sb_quote_interval" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_quote_interval" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
+                        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/quote_font_size_label" android:textStyle="bold" android:textColor="?attr/colorPrimary"/>
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                        <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
+                        <SeekBar android:id="@+id/sb_quote_font" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                        <TextView android:id="@+id/tv_quote_font" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_save_settings"
                 android:layout_width="match_parent"

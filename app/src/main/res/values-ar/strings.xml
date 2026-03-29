@@ -115,4 +115,16 @@
     <string name="sunnah_ayyamul_bidh">✨ الأيام البيض</string>
     <string name="sunnah_monday_thursday">🌙 صيام السنة</string>
     <string name="sunnah_friday">📖 سورة الكهف</string>
+
+    <string name="quote_loading">جاري تحميل الاقتباس...</string>
+    <string name="quote_default_reference">- مرجع</string>
+    <string name="quote_empty_data">لا توجد بيانات اقتباس.</string>
+    <string name="quote_share_title">مشاركة الاقتباس عبر</string>
+    <string name="quote_share_format">\"%1$s\"\n\n- %2$s</string>
+    <string name="quote_desc_share">مشاركة الاقتباس</string>
+    <string name="quote_desc_random">اقتباس عشوائي</string>
+    <string name="quote_settings_title">ويدجت الاقتباسات</string>
+    <string name="quote_auto_update_label">تحديث تلقائي (0 = يدوي)</string>
+    <string name="quote_minutes_label">دقائق</string>
+    <string name="quote_font_size_label">حجم خط الاقتباسات</string>
 </resources>

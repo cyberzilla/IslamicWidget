@@ -124,6 +124,7 @@
         </activity-alias>
         <receiver
             android:name=".IslamicWidgetProvider"
+            android:label="Datetime Info"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -142,5 +143,19 @@
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
+        <receiver
+            android:name=".QuoteWidgetProvider"
+            android:label="Quotes"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.cyberzilla.islamicwidget.ACTION_RANDOM_QUOTE" />
+                <action android:name="com.cyberzilla.islamicwidget.ACTION_SHARE_QUOTE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quotes_widget_info" />
+        </receiver>
     </application>
 </manifest>

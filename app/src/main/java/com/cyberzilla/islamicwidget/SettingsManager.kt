@@ -131,6 +131,19 @@ class SettingsManager(context: Context) {
         get() = prefs.getBoolean("isAdzanPlaying", false)
         set(value) = prefs.edit().putBoolean("isAdzanPlaying", value).apply()
 
+    var quoteUpdateInterval: Int
+        get() = prefs.getInt("quoteUpdateInterval", 0)
+        set(value) = prefs.edit().putInt("quoteUpdateInterval", value).apply()
+
+    var quoteFontSize: Int
+        get() = prefs.getInt("quoteFontSize", 14)
+        set(value) = prefs.edit().putInt("quoteFontSize", value).apply()
+
+    // --- State Animasi Quote ---
+    var quoteDisplayedChild: Int
+        get() = prefs.getInt("quoteDisplayedChild", 0)
+        set(value) = prefs.edit().putInt("quoteDisplayedChild", value).apply()
+
     fun restoreDefaults() {
         val currentLat = latitude
         val currentLon = longitude
