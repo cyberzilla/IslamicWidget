@@ -1,0 +1,1102 @@
+[
+  {
+    "id": "1",
+    "quotes": "Pujian yang sempurna di awal, di tengah, dan di akhir senantiasa hanya milik Allah. Mengakui nikmat-Nya dengan hati, lisan, dan amal adalah kunci pembuka pintu rahmat semesta alam.",
+    "reference": "QS. Al-Fatihah: 2 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "2",
+    "quotes": "Puncak kemerdekaan jiwa adalah saat kita menundukkan diri sepenuhnya hanya kepada Allah, dan puncak kekuatan adalah saat kita menyandarkan segala urusan dan memohon pertolongan hanya kepada-Nya.",
+    "reference": "QS. Al-Fatihah: 5 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "3",
+    "quotes": "Kebutuhan seorang hamba terhadap hidayah Allah (jalan yang lurus) di setiap hela napasnya jauh lebih mendesak daripada kebutuhannya terhadap makanan dan minuman untuk raganya.",
+    "reference": "QS. Al-Fatihah: 6 (Syaikhul Islam Ibnu Taimiyah / Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "4",
+    "quotes": "Al-Qur'an adalah petunjuk yang sempurna tanpa keraguan sedikit pun, namun cahaya hidayahnya hanya akan meresap dan bermanfaat bagi hati orang-orang yang bertakwa.",
+    "reference": "QS. Al-Baqarah: 2 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "5",
+    "quotes": "Jadikanlah kesabaran dan shalat sebagai pelita serta penolongmu. Shalat yang dikerjakan dengan khusyuk akan terasa ringan, dan menjadi benteng terkuat jiwa kala badai ujian datang mendera.",
+    "reference": "QS. Al-Baqarah: 45 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "6",
+    "quotes": "Ingatlah Allah di waktu lapangmu, niscaya Allah akan mengingatmu dan menolongmu di waktu sempitmu. Dzikir adalah nyawa bagi hati dan kunci datangnya ketenangan sejati.",
+    "reference": "QS. Al-Baqarah: 152 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "7",
+    "quotes": "Kalimat istirja' (Inna lillahi wa inna ilaihi raji'un) bukanlah sekadar ucapan lisan saat berduka, melainkan ikrar terdalam bahwa diri kita dan segala yang kita cintai murni milik Allah dan akan kembali kepada-Nya.",
+    "reference": "QS. Al-Baqarah: 156 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "8",
+    "quotes": "Allah itu sangat dekat. Dia senantiasa mendengar dan mengabulkan doa hamba-Nya yang memohon. Maka perbaikilah prasangka kepada-Nya dan jangan pernah letih mengetuk pintu rahmat-Nya.",
+    "reference": "QS. Al-Baqarah: 186 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "9",
+    "quotes": "Bisa jadi engkau membenci sesuatu, padahal ia amat baik bagimu. Serahkanlah pilihan hidupmu kepada Dzat yang Maha Mengetahui masa depan, karena akal manusia amatlah terbatas dalam melihat ujung dari sebuah takdir.",
+    "reference": "QS. Al-Baqarah: 216 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "10",
+    "quotes": "Sebesar apa pun ujian dan beban yang menimpa hari ini, yakinlah bahwa pundakmu telah ditakar oleh Sang Pencipta untuk mampu memikulnya. Allah tidak akan membebani hamba-Nya di luar batas kesanggupannya.",
+    "reference": "QS. Al-Baqarah: 286 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "11",
+    "quotes": "Hati manusia berada di antara jari-jemari Ar-Rahman. Memohon keteguhan di atas hidayah-Nya adalah doa mereka yang mendalam ilmunya, menyadari betapa lemahnya iman tanpa penjagaan dari-Nya.",
+    "reference": "QS. Ali 'Imran: 8 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "12",
+    "quotes": "Kesatuan sejati umat Islam hanya bisa diraih dengan berpegang teguh pada tali agama Allah (Al-Qur'an dan Sunnah). Perpecahan adalah jurang kebinasaan yang harus senantiasa dijauhi.",
+    "reference": "QS. Ali 'Imran: 103 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "13",
+    "quotes": "Tanda ketakwaan bukanlah pada hilangnya rasa marah, melainkan pada kemampuan menahannya dan kelapangan dada memaafkan kesalahan orang lain di saat diri kita mampu untuk membalas.",
+    "reference": "QS. Ali 'Imran: 134 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "14",
+    "quotes": "Kesedihan dan rasa lemah adalah fitrah manusiawi, namun iman akan mengangkat kita kembali. Janganlah larut dalam duka duniawi yang fana, sebab kemuliaan tertinggi senantiasa ada pada iman di dalam dada.",
+    "reference": "QS. Ali 'Imran: 139 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "15",
+    "quotes": "Kehidupan dunia tidak lain hanyalah kesenangan yang menipu. Kemenangan yang hakiki bukanlah meraup dunia sebanyak-banyaknya, melainkan diselamatkan dari neraka dan dilangkahkan masuk ke dalam surga.",
+    "reference": "QS. Ali 'Imran: 185 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "16",
+    "quotes": "Tauhid adalah pondasi amal, sedangkan berbakti kepada kedua orang tua adalah wujud akhlak tertinggi. Mengesakan Allah dan berbuat baik kepada sesama adalah dua hak yang tak terpisahkan dalam Islam.",
+    "reference": "QS. An-Nisa': 36 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "17",
+    "quotes": "Amanah adalah titipan yang kelak akan dimintai pertanggungjawaban. Menunaikan amanah kepada yang berhak dan menetapkan hukum dengan adil adalah kunci tegaknya kebaikan di muka bumi.",
+    "reference": "QS. An-Nisa': 58 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "18",
+    "quotes": "Satu-satunya timbangan kebenaran saat terjadi perselisihan adalah kembali kepada Al-Qur'an dan Sunnah Rasulullah ﷺ. Ketaatan kepada makhluk ada batasnya, dan tidak berlaku dalam kemaksiatan kepada Khalik.",
+    "reference": "QS. An-Nisa': 59 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "19",
+    "quotes": "Setiap nikmat dan kebaikan yang kita terima murni karena karunia Allah, sedangkan musibah dan keburukan terjadi akibat dosa dari tangan kita sendiri. Inilah landasan terpenting untuk senantiasa bermuhasabah.",
+    "reference": "QS. An-Nisa': 79 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "20",
+    "quotes": "Jalan kebenaran telah diretas oleh Rasulullah ﷺ dan para sahabatnya. Menyimpang dari jalan kaum mukminin generasi awal adalah jalan kebinasaan dan seburuk-buruknya tempat kembali.",
+    "reference": "QS. An-Nisa': 115 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "21",
+    "quotes": "Tolong-menolonglah kalian dalam kebaikan dan ketakwaan, bukan dalam dosa dan permusuhan. Persahabatan sejati adalah yang saling menguatkan di atas ketaatan kepada Allah, bukan yang membenarkan kebatilan.",
+    "reference": "QS. Al-Ma'idah: 2 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "22",
+    "quotes": "Agama Islam ini telah sempurna. Menambah-nambah syariat baru yang tidak dicontohkan oleh Rasulullah ﷺ bukanlah sebuah perbaikan, melainkan bentuk kelancangan dan penolakan terselubung atas kesempurnaan nikmat Allah.",
+    "reference": "QS. Al-Ma'idah: 3 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "23",
+    "quotes": "Keadilan sejati diuji ketika kita berhadapan dengan orang yang kita benci. Kebencian sama sekali tidak boleh menggeser kita dari timbangan objektivitas, karena berlaku adil itu lebih dekat kepada ketakwaan.",
+    "reference": "QS. Al-Ma'idah: 8 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "24",
+    "quotes": "Generasi yang dicintai Allah adalah mereka yang merendahkan hati di hadapan sesama mukmin, namun memiliki 'izzah (kehormatan dan ketegasan) di hadapan musuh agama, serta tidak gentar terhadap celaan manusia dalam membela kebenaran.",
+    "reference": "QS. Al-Ma'idah: 54 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "25",
+    "quotes": "Tanggung jawab utama seorang hamba adalah menjaga ketakwaan dirinya sendiri. Kesesatan orang lain tidak akan membahayakanmu selama engkau tetap berada di atas petunjuk dan telah menunaikan kewajiban saling menasihati.",
+    "reference": "QS. Al-Ma'idah: 105 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "26",
+    "quotes": "Dunia ini bagaikan tempat persinggahan singkat yang kerap menipu dengan senda guraunya. Orang yang berakal adalah mereka yang tidak terlena, melainkan giat mengumpulkan bekal tauhid dan amal shalih untuk kampung akhirat.",
+    "reference": "QS. Al-An'am: 32 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "27",
+    "quotes": "Tiada sehelai daun pun yang gugur di kegelapan malam melainkan dalam pengawasan Allah. Keyakinan akan ilmu Allah yang tak terbatas ini adalah peredam segala kegelisahan hati dalam menghadapi takdir yang tak disangka.",
+    "reference": "QS. Al-An'am: 59 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "28",
+    "quotes": "Keamanan jiwa di dunia dan keselamatan mutlak di akhirat hanya dijanjikan bagi mereka yang memurnikan tauhidnya, tanpa mencampurkan keimanan dengan setitik pun noda kesyirikan (kezaliman yang paling besar).",
+    "reference": "QS. Al-An'am: 82 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "29",
+    "quotes": "Jalan kebenaran (Sunnah) itu hanya ada satu dan lurus, sedangkan jalan kesesatan itu bercabang-cabang dan dihiasi syubhat. Berpegang teguhlah pada yang satu agar umat ini tidak tercerai-berai dalam kebinasaan.",
+    "reference": "QS. Al-An'am: 153 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "30",
+    "quotes": "Puncak keikhlasan adalah ketika seorang hamba mempersembahkan seluruh shalatnya, ibadahnya, prinsip hidupnya, hingga detik kematiannya murni hanya untuk Rabb semesta alam, tanpa ada sekutu bagi-Nya.",
+    "reference": "QS. Al-An'am: 162 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "31",
+    "quotes": "Kesalahan adalah tabiat manusia, namun kemuliaan sejati terletak pada seberapa cepat kita meniru teladan Nabi Adam: segera mengakui kezaliman diri dan memohon ampunan, bukan mencari pembenaran atas dosa.",
+    "reference": "QS. Al-A'raf: 23 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "32",
+    "quotes": "Memakai pakaian terbaik saat menuju masjid adalah wujud pengagungan kepada syiar Allah. Islam mengajarkan pertengahan; menikmati rezeki yang halal dan berhias tanpa terjatuh pada lembah kesombongan maupun sikap berlebih-lebihan.",
+    "reference": "QS. Al-A'raf: 31 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "33",
+    "quotes": "Berdoalah dengan suara yang lirih dan hati yang penuh ketundukan. Sesungguhnya Allah Maha Mendengar rintihan hamba-Nya yang paling sunyi, dan Dia tidak menyukai hamba yang melampaui batas dalam berdoa.",
+    "reference": "QS. Al-A'raf: 55 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "34",
+    "quotes": "Kunci keberkahan rezeki, keamanan, dan kemakmuran hidup bukanlah semata-mata pada kerasnya usaha lahiriah, melainkan pada ketakwaan dan keimanan yang menghujam kuat kepada Rabb semesta alam.",
+    "reference": "QS. Al-A'raf: 96 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "35",
+    "quotes": "Jadilah pemaaf, serulah manusia kepada kebaikan, dan berpalinglah dari orang-orang yang jahil. Tiga hal ini adalah pondasi akhlak mulia yang akan menjaga ketenangan hatimu dari buruknya lisan manusia.",
+    "reference": "QS. Al-A'raf: 199 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "36",
+    "quotes": "Tanda hidupnya sebuah hati adalah ketika ia bergetar tunduk mendengar asma Allah disebut, dan keimanannya bertambah saat merenungi ayat-ayat-Nya. Kebenaran iman itu lalu dibuktikan dengan tawakal yang sempurna.",
+    "reference": "QS. Al-Anfal: 2 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "37",
+    "quotes": "Ketahuilah bahwa kehidupan yang hakiki bagi jiwa dan akal hanya didapat dengan memenuhi seruan Allah dan Rasul-Nya ﷺ. Hati yang berpaling dari syariat-Nya sejatinya adalah hati yang telah mati.",
+    "reference": "QS. Al-Anfal: 24 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "38",
+    "quotes": "Buah termanis dari ketakwaan adalah diberikannya 'Furqan'—yakni cahaya ilmu di dalam hati yang mampu membedakan dengan tajam antara kebenaran dan kebatilan di tengah badai syubhat yang menyambar.",
+    "reference": "QS. Al-Anfal: 29 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "39",
+    "quotes": "Pertikaian dan perpecahan di barisan kaum muslimin adalah gerbang menuju kelemahan dan hilangnya kewibawaan. Ketaatan, persatuan di atas manhaj yang haq, dan kesabaran adalah kunci sebuah kemenangan.",
+    "reference": "QS. Al-Anfal: 46 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "40",
+    "quotes": "Allah tidak akan pernah mencabut nikmat keamanan, rezeki, dan kejayaan dari suatu kaum, melainkan kaum itu sendirilah yang merusaknya dengan maksiat dan meninggalkan ketaatan kepada-Nya.",
+    "reference": "QS. Al-Anfal: 53 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "41",
+    "quotes": "Kesedihan adalah ujian hati, namun ia akan sirna dengan keyakinan bahwa Allah senantiasa bersama hamba-Nya yang bertawakal. Pertolongan Allah sering kali datang di saat puncak kesulitan menyapa.",
+    "reference": "QS. At-Taubah: 40 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "42",
+    "quotes": "Sebesar apa pun dosa seorang hamba, pintu ampunan-Nya selalu terbuka luas. Allah tidak hanya menerima taubat yang tulus, tetapi juga menyucikan jiwa hamba tersebut dengan rahmat-Nya.",
+    "reference": "QS. At-Taubah: 104 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "43",
+    "quotes": "Kejujuran adalah kawan yang tidak akan pernah mengkhianati pemiliknya. Bertakwalah kepada Allah dan senantiasalah berada di barisan orang-orang yang jujur lisan dan hatinya agar selamat dari kemunafikan.",
+    "reference": "QS. At-Taubah: 119 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "44",
+    "quotes": "Rasulullah ﷺ adalah utusan yang sangat berbelas kasih. Berat terasa oleh beliau penderitaan umatnya, dan beliau sangat menginginkan keselamatan serta keimanan menghiasi hati kita semua.",
+    "reference": "QS. At-Taubah: 128 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "45",
+    "quotes": "Ketika manusia berpaling dan mengecewakanmu, cukuplah Allah sebagai sebaik-baik sandaran. Kepada-Nyalah kita bertawakal, sebab Dia adalah Rabb Penguasa 'Arsy yang agung.",
+    "reference": "QS. At-Taubah: 129 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "46",
+    "quotes": "Al-Qur'an adalah penawar bagi penyakit hati seperti keraguan, syahwat, dan syubhat. Hati yang senantiasa disentuh oleh ayat-ayat-Nya akan menemukan petunjuk, rahmat, dan kedamaian hakiki.",
+    "reference": "QS. Yunus: 57 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "47",
+    "quotes": "Karunia hidayah Islam dan nikmatnya iman jauh lebih berharga untuk dirayakan di dalam hati dibandingkan seluruh harta benda dan kemewahan duniawi yang dikumpulkan oleh manusia.",
+    "reference": "QS. Yunus: 58 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "48",
+    "quotes": "Tidak ada satu detik pun dari perbuatan, ucapan, atau gerak hati kita yang luput dari pengawasan Allah. Kesadaran akan hal ini (muraqabah) adalah pondasi ketakwaan yang paling kokoh.",
+    "reference": "QS. Yunus: 61 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "49",
+    "quotes": "Wali-wali Allah bukanlah mereka yang memiliki kekuatan gaib, melainkan mereka yang memadukan keimanan yang lurus dengan ketakwaan yang teguh. Bagi mereka tiada ketakutan di akhirat dan tiada kesedihan atas dunia.",
+    "reference": "QS. Yunus: 62-63 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "50",
+    "quotes": "Tidak ada musibah yang bisa diangkat, dan tidak ada nikmat yang bisa diraih, melainkan atas izin-Nya semata. Gantungkanlah segala harapan hanya kepada Dzat yang membagikan rahmat kepada siapa yang Dia kehendaki.",
+    "reference": "QS. Yunus: 107 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "51",
+    "quotes": "Tidak ada satu pun makhluk melata di bumi melainkan Allah yang menjamin rezekinya. Tenanglah dalam ikhtiar, sebab rezeki yang telah ditakar untukmu tidak akan pernah tertukar apalagi tersasar.",
+    "reference": "QS. Hud: 6 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "52",
+    "quotes": "Niat tulus untuk melakukan perbaikan (ishlah) harus selalu dibarengi dengan keyakinan bahwa taufik dan keberhasilan hanyalah dari Allah semata, bukan karena kehebatan diri kita sendiri.",
+    "reference": "QS. Hud: 88 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "53",
+    "quotes": "Perintah terberat bagi seorang hamba adalah istiqamah (tetap teguh di atas jalan kebenaran). Ia membutuhkan penjagaan hati dari sikap melampaui batas dan kecondongan kepada kezaliman.",
+    "reference": "QS. Hud: 112-113 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "54",
+    "quotes": "Bersabarlah dalam ketaatan dan dalam menahan diri dari maksiat. Sungguh, Allah tidak akan pernah menyia-nyiakan pahala orang-orang yang berbuat kebaikan (muhsinin) sekecil apa pun itu.",
+    "reference": "QS. Hud: 115 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "55",
+    "quotes": "Ibadah dan tawakal adalah dua sayap keimanan. Kepada-Nya dikembalikan segala urusan, maka sembahlah Dia dengan murni dan sandarkanlah hatimu secara totalitas hanya kepada-Nya.",
+    "reference": "QS. Hud: 123 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "56",
+    "quotes": "Kesabaran yang indah (shabrun jamil) adalah bersabar tanpa keluh kesah kepada makhluk. Menyerahkan segala perihnya ujian hanya kepada Allah adalah puncak keteguhan hati seorang mukmin.",
+    "reference": "QS. Yusuf: 18 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "57",
+    "quotes": "Allah senantiasa memegang kendali atas segala urusan, membalikkan makar musuh menjadi rahmat bagi hamba-Nya yang bertakwa. Namun, sering kali akal manusia terlalu sempit untuk memahaminya di awal waktu.",
+    "reference": "QS. Yusuf: 21 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "58",
+    "quotes": "Hawa nafsu selalu condong menyuruh kepada keburukan. Keselamatan dari maksiat bukanlah karena kehebatan diri menahan godaan, melainkan semata-mata karena rahmat dan perlindungan dari Allah.",
+    "reference": "QS. Yusuf: 53 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "59",
+    "quotes": "Mengadukan kepedihan dan kesedihan yang mendalam HANYA kepada Allah tidaklah mencederai kesabaran. Justru itulah wujud tauhid dan penghambaan yang paling sejati saat dunia terasa sempit.",
+    "reference": "QS. Yusuf: 86 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "60",
+    "quotes": "Seberat apa pun himpitan musibah, seorang mukmin diharamkan berputus asa dari rahmat Allah. Keputusasaan sejatinya adalah hilangnya husnudzan (prasangka baik) kepada Rabb yang Maha Penyayang.",
+    "reference": "QS. Yusuf: 87 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "61",
+    "quotes": "Perubahan nasib menuju kebaikan selalu dimulai dari dalam diri. Selama seorang hamba berusaha meniti jalan ketaatan, Allah akan membukakan pintu taufik untuk mengubah keadaannya menjadi lebih baik.",
+    "reference": "QS. Ar-Ra'd: 11 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "62",
+    "quotes": "Kebenaran (al-haq) itu ibarat air jernih yang menetap dan memberi manfaat, sedangkan kebatilan bagaikan buih kotor yang mengambang sebentar lalu pasti akan sirna ditelan waktu.",
+    "reference": "QS. Ar-Ra'd: 17 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "63",
+    "quotes": "Kesabaran di dunia dalam menaati Allah memang terkadang terasa pahit, namun kelak di surga ia akan berbuah manis berupa sambutan keselamatan dari para malaikat dari segala penjuru pintu.",
+    "reference": "QS. Ar-Ra'd: 24 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "64",
+    "quotes": "Ketenangan batin yang hakiki mustahil dicari pada gemerlapnya duniawi. Ketenangan itu hanya diturunkan ke dalam hati yang senantiasa basah oleh zikir dan mengingat Rabb semesta alam.",
+    "reference": "QS. Ar-Ra'd: 28 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "65",
+    "quotes": "Allah Maha Kuasa menghapus atau menetapkan takdir sesuai kehendak dan hikmah-Nya. Karena itu, jangan pernah lelah memanjatkan doa, sebab doa ibadah yang agung di sisi-Nya.",
+    "reference": "QS. Ar-Ra'd: 39 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "66",
+    "quotes": "Syukur bukanlah sekadar ucapan lisan, melainkan pengakuan hati dan penggunaan nikmat untuk ketaatan. Inilah pengikat nikmat agar tak sirna, sekaligus pembuka pintu tambahan karunia.",
+    "reference": "QS. Ibrahim: 7 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "67",
+    "quotes": "Kalimat tauhid diibaratkan seperti pohon yang baik; akarnya (keyakinan) menancap kuat di dalam hati, dan cabangnya (amal shalih) menjulang ke langit memberikan kebaikan setiap waktu.",
+    "reference": "QS. Ibrahim: 24-25 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "68",
+    "quotes": "Sering kali kita luput bersyukur karena sibuk meratapi apa yang belum dimiliki. Padahal, jika kita mencoba menghitung sepotong nikmat kesehatan dan oksigen saja, niscaya kita takkan sanggup menjumlahnya.",
+    "reference": "QS. Ibrahim: 34 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "69",
+    "quotes": "Doa Nabi Ibrahim mengajarkan kita agar tidak hanya mementingkan kesalehan diri sendiri, tapi juga terus memohon agar anak cucu kita diteguhkan hatinya dalam mendirikan shalat.",
+    "reference": "QS. Ibrahim: 40 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "70",
+    "quotes": "Jangan pernah mengira Allah lalai dari perbuatan orang-orang zalim. Penangguhan hukuman di dunia bukanlah tanda keridhaan, melainkan istidraj (uluran) hingga tiba hari penyesalan yang tiada guna.",
+    "reference": "QS. Ibrahim: 42 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "71",
+    "quotes": "Al-Qur'an adalah kitab suci yang dijaga kemurniannya langsung oleh Allah dari segala penyelewengan hingga hari kiamat. Ini adalah jaminan mutlak yang tidak dimiliki oleh kitab-kitab umat terdahulu.",
+    "reference": "QS. Al-Hijr: 9 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "72",
+    "quotes": "Seorang hamba harus menyadari bahwa rahmat dan ampunan Allah itu seluas samudra bagi yang bertaubat, namun azab-Nya pun teramat pedih bagi yang meremehkan maksiat.",
+    "reference": "QS. Al-Hijr: 49-50 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "73",
+    "quotes": "Janganlah matamu nanar menatap kemewahan duniawi yang dinikmati orang-orang lalai. Cukuplah hidayah Al-Qur'an dan keimanan sebagai kekayaan teragung yang menenteramkan hatimu.",
+    "reference": "QS. Al-Hijr: 88 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "74",
+    "quotes": "Ibadah kepada Allah bukanlah aktivitas musiman. Batas akhir ketaatan seorang mukmin di dunia ini hanyalah ketika malaikat maut datang menjemput nyawanya.",
+    "reference": "QS. Al-Hijr: 99 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "75",
+    "quotes": "Semua nikmat, mulai dari detak jantung hingga rezeki yang kita kecap, murni berasal dari Allah semata. Mengapa kepada selain-Nya sebagian manusia justru menyandarkan harapan?",
+    "reference": "QS. An-Nahl: 53 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "76",
+    "quotes": "Janji kehidupan yang baik (hayatan thayyibah) di dunia berupa ketenangan jiwa, qana'ah, dan keberkahan rezeki, adalah balasan pasti bagi siapa pun yang memadukan iman dan amal shalih.",
+    "reference": "QS. An-Nahl: 97 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "77",
+    "quotes": "Sebuah negeri atau keluarga yang awalnya makmur bisa seketika dicabut keberkahannya oleh Allah dan diganti dengan kelaparan serta ketakutan, akibat kufur terhadap nikmat-Nya.",
+    "reference": "QS. An-Nahl: 112 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "78",
+    "quotes": "Dakwah harus dilandasi dengan ilmu, hikmah, dan tutur kata yang baik. Namun, kelembutan dalam berdakwah bukan berarti menyembunyikan kebenaran atau berkompromi dengan kebatilan.",
+    "reference": "QS. An-Nahl: 125 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "79",
+    "quotes": "Keadilan adalah membalas setimpal dengan kejahatan yang dilakukan. Namun, bersabar dan memaafkan adalah jalan ksatria yang jauh lebih utama dan mulia di sisi Allah.",
+    "reference": "QS. An-Nahl: 126 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "80",
+    "quotes": "Pertolongan (ma'iyyah) Allah secara khusus senantiasa menyertai hamba-hamba-Nya yang bertakwa dan mereka yang selalu memperindah amalnya (muhsinin) dengan keikhlasan.",
+    "reference": "QS. An-Nahl: 128 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "81",
+    "quotes": "Merendahkan diri di hadapan kedua orang tua bukanlah sebuah kehinaan, melainkan ibadah agung yang kedudukannya bersanding tepat setelah perintah mentauhidkan Allah.",
+    "reference": "QS. Al-Isra': 23-24 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "82",
+    "quotes": "Syariat Islam yang sempurna tidak hanya mengharamkan perbuatan keji seperti zina, tetapi juga menutup rapat segala pintu, pandangan, dan celah yang mendekatinya demi menjaga kehormatan.",
+    "reference": "QS. Al-Isra': 32 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "83",
+    "quotes": "Janganlah berjalan di muka bumi dengan angkuh. Sungguh engkau tidak akan mampu membelah bumi dan tinggimu takkan menyamai gunung. Ketawadhuan adalah pakaian hamba yang sejati.",
+    "reference": "QS. Al-Isra': 37 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "84",
+    "quotes": "Al-Qur'an diturunkan sebagai penawar (syifa') bagi penyakit syubhat di akal dan syahwat di hati, serta menjadi rahmat yang luas bagi mereka yang membenarkannya dengan iman.",
+    "reference": "QS. Al-Isra': 82 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "85",
+    "quotes": "Akal manusia memiliki batas yang sangat sempit. Bertanya-tanya tentang esensi roh secara mendalam hanyalah menyibak betapa sedikitnya porsi ilmu yang dititipkan Allah kepada kita.",
+    "reference": "QS. Al-Isra': 85 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "86",
+    "quotes": "Para pemuda Ashabul Kahfi menyelamatkan tauhid mereka dengan mengasingkan diri dari lingkungan yang rusak. Doa mereka memohon rahmat dan petunjuk adalah tameng terkuat di tengah fitnah.",
+    "reference": "QS. Al-Kahfi: 10 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "87",
+    "quotes": "Janganlah memastikan suatu rencana di masa depan kecuali dengan mengaitkannya pada kehendak Allah (Insyaallah), karena kita sama sekali tidak memiliki kuasa atas apa yang terjadi esok hari.",
+    "reference": "QS. Al-Kahfi: 23-24 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "88",
+    "quotes": "Sabarkanlah dirimu untuk terus duduk dan bergaul bersama orang-orang yang ikhlas beribadah. Jangan berpaling dari mereka hanya demi mengejar pertemanan duniawi yang melalaikan.",
+    "reference": "QS. Al-Kahfi: 28 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "89",
+    "quotes": "Harta dan anak-anak hanyalah perhiasan dunia yang fana. Adapun amalan-amalan saleh yang kekal (al-baqiyatush shalihat) jauh lebih baik pahalanya dan lebih indah harapannya di sisi Rabbmu.",
+    "reference": "QS. Al-Kahfi: 46 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "90",
+    "quotes": "Perjalanan Nabi Musa menemui Khidr mengajarkan adab ketawadhuan yang luar biasa dari seorang utusan Ulul Azmi dalam menuntut ilmu, serta pengingat bahwa di atas orang berilmu masih ada yang lebih Mengetahui.",
+    "reference": "QS. Al-Kahfi: 66 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "91",
+    "quotes": "Berdoalah kepada Allah dengan suara yang lirih dan hati yang penuh ketundukan. Kesunyian malam adalah saksi terbaik bagi rintihan seorang hamba yang benar-benar membutuhkan Rabbnya.",
+    "reference": "QS. Maryam: 3 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "92",
+    "quotes": "Sepanjang hidupnya, seorang mukmin pantang berputus asa dalam berdoa. Kalimat 'dan aku belum pernah kecewa dalam berdoa kepada-Mu' adalah bukti husnudzan (prasangka baik) yang tak tergoyahkan kepada Allah.",
+    "reference": "QS. Maryam: 4 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "93",
+    "quotes": "Jadilah manusia yang membawa keberkahan di mana pun engkau berada. Keberkahan sejati adalah ketika keberadaanmu senantiasa mengingatkan orang lain kepada ketaatan, ilmu, dan kebaikan.",
+    "reference": "QS. Maryam: 31 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "94",
+    "quotes": "Awal dari segala kebinasaan suatu generasi adalah ketika mereka mulai meremehkan dan meninggalkan shalat, lalu tenggelam memperturutkan syahwat duniawi. Akhir dari jalan itu adalah kesesatan yang nyata.",
+    "reference": "QS. Maryam: 59 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "95",
+    "quotes": "Cinta kasih sesama manusia tidak bisa dibeli dengan harta. Namun, barang siapa yang menanamkan iman dan amal saleh, Allah sendiri yang akan menumbuhkan rasa cinta dan penerimaan di hati penduduk bumi untuknya.",
+    "reference": "QS. Maryam: 96 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "96",
+    "quotes": "Al-Qur'an tidak diturunkan untuk membuatmu berkeluh kesah atau menderita dalam aturan. Ia diturunkan justru sebagai rahmat dan cahaya peringatan agar hatimu dipenuhi kelapangan.",
+    "reference": "QS. Thaha: 2 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "97",
+    "quotes": "Sebelum meminta dimudahkan urusan, mintalah agar dadamu dilapangkan. Sebab, masalah yang besar akan terasa ringan bagi dada yang lapang, namun urusan kecil akan terasa mencekik bagi dada yang sempit.",
+    "reference": "QS. Thaha: 25-26 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "98",
+    "quotes": "Sejahat apa pun orang yang didakwahi, sampaikanlah kebenaran dengan tutur kata yang lemah lembut. Kelembutan lebih berpeluang mengetuk pintu hidayah dan menghilangkan kesombongan di hati pendengarnya.",
+    "reference": "QS. Thaha: 44 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "99",
+    "quotes": "Satu-satunya hal di dunia ini yang diperintahkan Allah kepada Nabi-Nya untuk diminta tambahannya adalah ilmu (yang bermanfaat), bukan harta, takhta, maupun gemerlap dunia lainnya.",
+    "reference": "QS. Thaha: 114 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "100",
+    "quotes": "Janganlah matamu terbelalak menatap nikmat dan kemewahan yang Allah berikan kepada orang lain. Karunia Rabbmu berupa hidayah dan rezeki yang halal—meski sedikit—jauh lebih baik dan lebih kekal.",
+    "reference": "QS. Thaha: 131 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "101",
+    "quotes": "Waktu perhitungan amal manusia semakin dekat, namun angan-angan duniawi kerap membuat hati lalai dan berpaling dari persiapan menempuh hari akhir yang pasti terjadi.",
+    "reference": "QS. Al-Anbiya': 1 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "102",
+    "quotes": "Setiap jiwa pasti akan merasakan kematian. Ketahuilah bahwa Allah menguji hamba-Nya bukan hanya dengan keburukan dan musibah, melainkan juga dengan kesenangan dan kekayaan sebagai fitnah (ujian).",
+    "reference": "QS. Al-Anbiya': 35 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "103",
+    "quotes": "Sakit dan hilangnya harta tidaklah menghinakan seorang hamba di mata Allah. Doa Nabi Ayyub mengajarkan bahwa pengakuan atas rahmat Allah di tengah musibah adalah kunci terangkatnya ujian.",
+    "reference": "QS. Al-Anbiya': 83 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "104",
+    "quotes": "Tidak ada penyelamat dari gelapnya penderitaan selain pemurnian tauhid dan pengakuan atas kezaliman diri. Doa Nabi Yunus (La ilaha illa anta...) adalah kunci pembuka pintu jalan keluar terhebat.",
+    "reference": "QS. Al-Anbiya': 87 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "105",
+    "quotes": "Ciri hamba yang doanya cepat dikabulkan adalah mereka yang bersegera dalam melakukan kebaikan, senantiasa berdoa dengan penuh harap dan cemas, serta menundukkan hati hanya kepada-Nya.",
+    "reference": "QS. Al-Anbiya': 90 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "106",
+    "quotes": "Kegoncangan hari kiamat adalah suatu hal yang sangat dahsyat. Ketakwaan yang dibangun di atas ilmu dan amal saleh di dunia adalah satu-satunya benteng keselamatan di hari yang mengerikan itu.",
+    "reference": "QS. Al-Hajj: 1-2 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "107",
+    "quotes": "Janganlah beribadah kepada Allah di 'tepi jurang'. Jangan menjadi hamba yang hanya taat saat rezekinya lapang, namun seketika murtad dan berburuk sangka kepada Allah saat ujian menghampiri.",
+    "reference": "QS. Al-Hajj: 11 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "108",
+    "quotes": "Dalam setiap syariat pengorbanan (seperti kurban), bukanlah daging atau darahnya yang menggapai keridhaan Allah, melainkan ketakwaan, keikhlasan niat, dan ketundukan hati yang menyertainya.",
+    "reference": "QS. Al-Hajj: 37 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "109",
+    "quotes": "Kebutaan yang paling hakiki dan membinasakan bukanlah hilangnya penglihatan mata pada wajah, melainkan butanya mata hati yang berada di dalam dada dari menerima cahaya kebenaran.",
+    "reference": "QS. Al-Hajj: 46 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "110",
+    "quotes": "Agama Islam dibangun di atas kemudahan, bukan untuk menyulitkan hamba-Nya. Rukuk, sujud, dan berbuat kebaikanlah semata-mata karena Allah, niscaya engkau akan meraih kemenangan yang nyata.",
+    "reference": "QS. Al-Hajj: 77-78 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "111",
+    "quotes": "Kemenangan sejati dan keberuntungan hakiki telah dipastikan bagi orang-orang mukmin yang memulai pondasi amalnya dengan kekhusyukan dan ketundukan hati di dalam shalatnya.",
+    "reference": "QS. Al-Mu'minun: 1-2 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "112",
+    "quotes": "Ciri kesempurnaan iman seseorang adalah kemampuannya menahan lisan dan anggota badan dari perkataan serta perbuatan yang tidak mendatangkan faedah bagi urusan agama maupun dunianya.",
+    "reference": "QS. Al-Mu'minun: 3 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "113",
+    "quotes": "Menjaga kehormatan diri dari syahwat yang diharamkan adalah gerbang menuju kesucian jiwa. Pelanggaran terhadap batasan ini hanyalah menjerumuskan pada kehinaan dan sikap melampaui batas.",
+    "reference": "QS. Al-Mu'minun: 5-7 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "114",
+    "quotes": "Orang yang benar-benar beriman bukanlah yang berbuat dosa lalu merasa aman, melainkan mereka yang giat beramal saleh namun hatinya tetap bergetar takut jika amalnya tidak diterima oleh Rabbnya.",
+    "reference": "QS. Al-Mu'minun: 60 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "115",
+    "quotes": "Tolaklah keburukan manusia dengan cara yang paling baik. Kesabaran menghadapi celaan dan membalasnya dengan kebaikan adalah kunci memadamkan api permusuhan dari lisan-lisan yang jahil.",
+    "reference": "QS. Al-Mu'minun: 96 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "116",
+    "quotes": "Menundukkan pandangan dari perkara yang diharamkan adalah langkah pertama untuk menyucikan hati. Dari pandangan yang terjaga, lahirlah kehormatan yang mulia dan ketenangan jiwa yang hakiki.",
+    "reference": "QS. An-Nur: 30 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "117",
+    "quotes": "Bertaubatlah kalian semua kepada Allah, wahai orang-orang yang beriman. Betapapun banyaknya amal salehmu, engkau senantiasa membutuhkan ampunan-Nya untuk meraih keberuntungan abadi.",
+    "reference": "QS. An-Nur: 31 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "118",
+    "quotes": "Allah adalah pemberi cahaya bagi langit dan bumi. Hidayah-Nya yang terhunjam di dalam dada seorang mukmin ibarat pelita terang benderang yang tak pernah padam dihempas badai syubhat maupun syahwat.",
+    "reference": "QS. An-Nur: 35 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "119",
+    "quotes": "Kesibukan perniagaan dan gemerlap harta duniawi tidak akan pernah mampu melalaikan hati laki-laki sejati dari mengingat Allah, mendirikan shalat dengan khusyuk, dan menunaikan kewajiban zakat.",
+    "reference": "QS. An-Nur: 37 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "120",
+    "quotes": "Satu-satunya prinsip orang beriman ketika diseru untuk taat kepada hukum Allah dan Rasul-Nya ﷺ adalah mengucapkan, 'Kami dengar dan kami taat.' Di sanalah letak keselamatan yang paripurna.",
+    "reference": "QS. An-Nur: 51 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "121",
+    "quotes": "Hamba-hamba Allah Yang Maha Pengasih (Ibadurrahman) adalah mereka yang berjalan di bumi dengan rendah hati. Dan apabila orang-orang jahil menyapa mereka dengan hinaan, mereka membalasnya dengan ucapan keselamatan dan berpaling dari perdebatan yang sia-sia.",
+    "reference": "QS. Al-Furqan: 63 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "122",
+    "quotes": "Ciri hamba yang dicintai Allah adalah mereka yang menghidupkan sepertiga malamnya. Saat manusia terlelap dalam buaian mimpi, mereka justru sibuk bersujud dan berdiri bermunajat dengan khusyuk kepada Rabbnya.",
+    "reference": "QS. Al-Furqan: 64 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "123",
+    "quotes": "Sikap pertengahan adalah pilar kebaikan dalam mengelola harta. Seorang mukmin tidaklah kikir hingga menahan hak orang lain, namun tidak pula boros menghamburkan harta untuk kesia-siaan.",
+    "reference": "QS. Al-Furqan: 67 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "124",
+    "quotes": "Betapa luasnya rahmat Allah; bagi mereka yang bertaubat nasuha, beriman, dan beramal saleh, Allah tidak hanya mengampuni dosanya, namun juga mengganti tumpukan keburukan masa lalunya menjadi pahala kebaikan.",
+    "reference": "QS. Al-Furqan: 70 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "125",
+    "quotes": "Puncak kebahagiaan sebuah keluarga adalah saat suami, istri, dan anak-anaknya menjadi penyejuk mata karena ketaatan mereka kepada Allah. Itulah visi hamba Ar-Rahman, memohon agar dijadikan teladan bagi orang-orang bertakwa.",
+    "reference": "QS. Al-Furqan: 74 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "126",
+    "quotes": "Keyakinan total kepada Allah saat krisis adalah meneladani Nabi Musa. Saat musuh mengepung di belakang dan lautan membentang di depan, beliau tetap kokoh berseru: 'Sekali-kali tidak! Sesungguhnya Rabbku bersamaku, Dia akan memberiku jalan keluar.'",
+    "reference": "QS. Asy-Syu'ara': 62 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "127",
+    "quotes": "Kesempurnaan tauhid Nabi Ibrahim terlihat dari adabnya kepada Allah. Beliau menisbatkan penciptaan, hidayah, rezeki, dan kesembuhan murni kepada Allah, sedangkan penyakit dinisbatkan pada kelemahan dirinya sendiri.",
+    "reference": "QS. Asy-Syu'ara': 78-80 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "128",
+    "quotes": "Pada hari kiamat, tumpukan harta yang berlimpah dan keturunan yang membanggakan tidak akan memberikan setitik pun manfaat. Keselamatan mutlak hanya milik mereka yang datang menghadap Allah dengan hati yang bersih (Qalbun Salim) dari noda syirik.",
+    "reference": "QS. Asy-Syu'ara': 88-89 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "129",
+    "quotes": "Keikhlasan sejati dalam berdakwah adalah pantang mengharapkan imbalan materi maupun pujian manusia. Cukuplah keridhaan dan pahala dari Rabb semesta alam sebagai satu-satunya tujuan perjuangan.",
+    "reference": "QS. Asy-Syu'ara': 109 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "130",
+    "quotes": "Dakwah dan perbaikan umat harus senantiasa dimulai dari lingkaran terdekat. Menyelamatkan keluarga inti dari ancaman api neraka adalah kewajiban pertama sebelum melangkah jauh memperingatkan masyarakat luas.",
+    "reference": "QS. Asy-Syu'ara': 214 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "131",
+    "quotes": "Kekuasaan dan harta bukanlah tanda kemuliaan mutlak, melainkan ujian kesyukuran. Nabi Sulaiman mencontohkan bahwa puncak kesuksesan sejati adalah saat kita menundukkan pencapaian duniawi dengan ucapan: 'Ini adalah sebagian dari karunia Rabbku...'",
+    "reference": "QS. An-Naml: 40 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "132",
+    "quotes": "Hanya Allah semata yang menjawab doa orang-orang yang berada dalam kesulitan manakala ia memohon, dan Dia-lah yang menghilangkan kesusahan. Tidak ada tempat bersandar yang hakiki selain-Nya di saat pintu-pintu bumi seakan tertutup.",
+    "reference": "QS. An-Naml: 62 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "133",
+    "quotes": "Kunci-kunci perkara gaib di langit dan di bumi hanyalah milik Allah. Mengklaim mengetahui masa depan melalui ramalan atau perbintangan adalah bentuk pembatalan tauhid yang sangat nyata.",
+    "reference": "QS. An-Naml: 65 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "134",
+    "quotes": "Bertawakallah sepenuhnya kepada Allah saat engkau berada di atas kebenaran yang nyata. Pemeliharaan Allah senantiasa menyertai hamba-Nya yang meyakini kelurusan jalan Al-Qur'an dan Sunnah.",
+    "reference": "QS. An-Naml: 79 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "135",
+    "quotes": "Janji Allah itu pasti benar, namun kebanyakan manusia tidak memahaminya. Kisah ibunda Nabi Musa mengajarkan bahwa apa pun yang kita titipkan penjagaannya kepada Allah dengan tawakal, pasti akan kembali membawa kebaikan yang berlipat.",
+    "reference": "QS. Al-Qashash: 13 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "136",
+    "quotes": "Seorang mukmin yang sejati bukanlah mereka yang tak pernah berbuat salah, melainkan yang ketika tergelincir berbuat zalim, ia segera mengakui kelemahannya dan memohon ampunan Rabbnya sebelum maut menjemput.",
+    "reference": "QS. Al-Qashash: 16 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "137",
+    "quotes": "Di tengah keterasingan dan rasa lapar, Nabi Musa memanjatkan doa yang paling indah: 'Ya Tuhanku, sesungguhnya aku sangat memerlukan kebaikan yang Engkau turunkan kepadaku.' Menunjukkan kelemahan dan hajat murni kepada Allah adalah inti dari ibadah.",
+    "reference": "QS. Al-Qashash: 24 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "138",
+    "quotes": "Hidayah taufik murni berada di Tangan Allah. Engkau tidak akan mampu memaksakan petunjuk kepada orang yang paling engkau cintai sekalipun. Tugas kita hanyalah berdakwah dan mendoakan kebaikan bagi mereka.",
+    "reference": "QS. Al-Qashash: 56 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "139",
+    "quotes": "Gunakanlah nikmat harta dan kedudukanmu untuk membangun istana di akhirat, namun jangan lupakan bagianmu yang halal di dunia. Berbuat baiklah kepada sesama, sebagaimana Allah telah berbuat baik kepadamu.",
+    "reference": "QS. Al-Qashash: 77 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "140",
+    "quotes": "Sikap ujub (membanggakan diri) adalah penyakit yang menghancurkan Qarun. Meyakini bahwa kekayaan dan kesuksesan diraih murni karena kecerdasan diri—tanpa mengakui campur tangan Allah—adalah gerbang menuju kebinasaan.",
+    "reference": "QS. Al-Qashash: 78 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "141",
+    "quotes": "Apakah manusia mengira mereka dibiarkan mengatakan 'Kami beriman' tanpa diuji? Ujian adalah saringan ilahi yang adil untuk membedakan mana iman yang jujur menancap di hati, dan mana yang sekadar klaim di lisan.",
+    "reference": "QS. Al-'Ankabut: 2-3 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "142",
+    "quotes": "Ketaatan kepada orang tua adalah kewajiban yang sangat agung, kecuali jika mereka menyuruh kepada kesyirikan. Tidak ada ketaatan kepada makhluk dalam bermaksiat kepada Al-Khaliq, namun tetaplah pergauli mereka di dunia dengan akhlak yang baik.",
+    "reference": "QS. Al-'Ankabut: 8 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "143",
+    "quotes": "Menjadikan selain Allah sebagai pelindung dan tempat bergantung ibarat bernaung di bawah sarang laba-laba. Ia tampak ada wujudnya, namun hakikatnya adalah pertahanan yang paling rapuh dan tidak mampu menahan hempasan ujian dunia maupun akhirat.",
+    "reference": "QS. Al-'Ankabut: 41 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "144",
+    "quotes": "Dirikanlah shalat dengan menghadirkan hati yang khusyuk. Sungguh, shalat yang ditegakkan sesuai sunnah dan penuh pemahaman, pasti akan menjadi perisai yang mencegah pelakunya dari perbuatan keji dan mungkar.",
+    "reference": "QS. Al-'Ankabut: 45 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "145",
+    "quotes": "Kehidupan dunia ini tak lebih dari sekadar senda gurau dan permainan yang fana, akan sirna pada waktunya. Orang yang berakal budi adalah mereka yang giat membangun amal tauhid untuk kehidupan negeri akhirat yang kekal abadi.",
+    "reference": "QS. Al-'Ankabut: 64 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "146",
+    "quotes": "Mawaddah (cinta) dan rahmah (kasih sayang) dalam pernikahan adalah ketetapan dan anugerah Allah yang turun ke dalam hati hamba-Nya. Ia bukan sekadar hasil usaha manusia, melainkan tanda kebesaran-Nya yang menuntut kesyukuran agar rumah tangga merasa tenteram.",
+    "reference": "QS. Ar-Rum: 21 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "147",
+    "quotes": "Hadapkanlah wajahmu dengan lurus kepada Islam. Itulah fitrah suci yang telah Allah tanamkan pada setiap manusia sejak lahir. Berpaling dari tauhid kepada kesyirikan berarti menyalahi dan merusak fitrah kesucian diri sendiri.",
+    "reference": "QS. Ar-Rum: 30 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "148",
+    "quotes": "Harta yang digulirkan melalui riba agar bertambah banyak di mata manusia, hakikatnya tidak bernilai dan tidak bertambah di sisi Allah. Namun, zakat dan sedekah yang dikeluarkan ikhlas mencari Wajah Allah, itulah yang akan dilipatgandakan berkali-kali lipat.",
+    "reference": "QS. Ar-Rum: 39 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "149",
+    "quotes": "Telah tampak kerusakan di darat dan di laut akibat ulah tangan manusia. Berbagai musibah, wabah, dan kerusakan alam adalah teguran kasih sayang dari Allah agar manusia merasakan akibat dosanya, lalu segera bertaubat kembali ke jalan ketaatan.",
+    "reference": "QS. Ar-Rum: 41 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "150",
+    "quotes": "Maka bersabarlah engkau dalam meniti jalan dakwah, sungguh janji Allah akan datangnya pertolongan itu benar. Jangan sampai orang-orang jahil yang tidak meyakini kebenaran itu menggoyahkan keteguhan hatimu sedikit pun.",
+    "reference": "QS. Ar-Rum: 60 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "151",
+    "quotes": "Kezaliman yang paling besar dan tak terampuni bukanlah merampas harta manusia, melainkan menyekutukan Allah (syirik). Itulah wasiat tauhid pertama Luqman kepada putranya sebelum menasihati perkara akhlak.",
+    "reference": "QS. Luqman: 13 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "152",
+    "quotes": "Berbakti kepada kedua orang tua adalah kewajiban mutlak setelah mentauhidkan Allah. Namun jika mereka memaksamu bermaksiat, tolaklah dengan lembut dan tetaplah pergauli mereka di dunia dengan penuh adab.",
+    "reference": "QS. Luqman: 14-15 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "153",
+    "quotes": "Sekecil apa pun amal kebaikan atau kemaksiatan, meski tersembunyi di dalam batu yang gelap gulita di dasar bumi, Allah pasti akan mendatangkannya pada hari kiamat. Kesadaran ini adalah pondasi rasa takut kepada-Nya.",
+    "reference": "QS. Luqman: 16 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "154",
+    "quotes": "Tegakkanlah shalat, berdakwahlah dengan ilmu, dan bersabarlah atas ujian yang menimpamu karenanya. Tiga hal ini adalah perkara-perkara besar yang sangat diwajibkan dan membutuhkan azam (tekad) yang kuat.",
+    "reference": "QS. Luqman: 17 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "155",
+    "quotes": "Janganlah memalingkan wajahmu dari manusia karena sombong, dan janganlah berjalan di muka bumi dengan angkuh. Sungguh, Allah sangat membenci setiap orang yang membanggakan diri lagi merendahkan sesama.",
+    "reference": "QS. Luqman: 18 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "156",
+    "quotes": "Ciri orang beriman yang sejati adalah ketika dibacakan ayat-ayat Allah, hati mereka bergetar dan tubuh mereka serta-merta tersungkur sujud, menyucikan Rabbnya seraya membuang jauh sifat kesombongan.",
+    "reference": "QS. As-Sajdah: 15 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "157",
+    "quotes": "Lambung mereka jauh dari tempat tidur di keheningan malam untuk bermunajat kepada Rabbnya dengan penuh rasa takut dan harap. Shalat malam (Tahajjud) adalah madrasah keikhlasan dan syiar hamba yang merindukan surga.",
+    "reference": "QS. As-Sajdah: 16 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "158",
+    "quotes": "Tak ada satu pun jiwa yang mampu membayangkan indahnya kenikmatan surga yang disembunyikan Allah bagi mereka. Itulah balasan paripurna atas amal saleh yang mereka rahasiakan dari pandangan manusia di dunia.",
+    "reference": "QS. As-Sajdah: 17 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "159",
+    "quotes": "Mustahil menyamakan derajat orang yang beriman dan taat dengan orang yang fasik dan gemar bermaksiat. Timbangan keadilan Allah menetapkan bahwa akhir perjalanan keduanya kelak tidak akan pernah sama.",
+    "reference": "QS. As-Sajdah: 18 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "160",
+    "quotes": "Musibah, penyakit, dan kesempitan hidup di dunia kerap kali Allah timpakan sebagai bentuk kasih sayang-Nya, agar hamba-Nya tersadar dari kelalaian dan segera bertaubat sebelum datangnya azab akhirat yang sejati.",
+    "reference": "QS. As-Sajdah: 21 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "161",
+    "quotes": "Cukuplah Allah sebagai pelindung dan tempat bersandar. Ketika manusia bertawakal sepenuhnya kepada-Nya, maka tak ada makar musuh atau kesulitan duniawi yang mampu menghancurkan keteguhan hatinya.",
+    "reference": "QS. Al-Ahzab: 3 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "162",
+    "quotes": "Rasulullah ﷺ adalah timbangan kebenaran dan suri teladan yang paripurna. Mengikuti jejak langkah dan sunnah beliau di kala sempit maupun lapang adalah bukti nyata pengharapan seorang hamba kepada Allah dan hari akhir.",
+    "reference": "QS. Al-Ahzab: 21 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "163",
+    "quotes": "Kemuliaan di sisi Allah tidak diukur dari gender atau rupa, melainkan dari seberapa kokoh keislaman, ketundukan, kesabaran, dan sedekah yang ditunaikan. Bagi jiwa-jiwa yang taat ini, Allah telah menyiapkan ampunan dan pahala yang agung.",
+    "reference": "QS. Al-Ahzab: 35 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "164",
+    "quotes": "Syariat hijab bukanlah pengekangan, melainkan wujud pemuliaan dan penjagaan Allah terhadap kehormatan wanita mukminah agar mereka dikenali kemuliaannya dan terhindar dari gangguan lisan maupun tangan orang-orang fasik.",
+    "reference": "QS. Al-Ahzab: 59 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "165",
+    "quotes": "Kejujuran lisan (qaulan sadida) adalah kunci pembuka pintu taufik. Siapa yang senantiasa menjaga kebenaran ucapannya karena takut kepada Allah, niscaya Dia akan memperbaiki amal-amalnya dan mengampuni dosa-dosanya.",
+    "reference": "QS. Al-Ahzab: 70-71 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "166",
+    "quotes": "Tidak ada yang luput dari ilmu Allah, bahkan seberat atom pun yang tersembunyi di langit dan di bumi. Kesadaran akan ilmu-Nya yang meliputi segala sesuatu harusnya membuahkan rasa muraqabah (pengawasan) di setiap detik kehidupan kita.",
+    "reference": "QS. Saba': 3 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "167",
+    "quotes": "Syukur yang sejati tidaklah cukup hanya dengan ucapan 'Alhamdulillah'. Syukur yang utuh adalah mengerahkan seluruh anggota badan dan nikmat yang didapat untuk beramal saleh serta menaati Sang Pemberi Nikmat.",
+    "reference": "QS. Saba': 13 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "168",
+    "quotes": "Kisah kaum Saba' adalah peringatan abadi. Sebesar apa pun kemakmuran sebuah negeri dan secanggih apa pun peradabannya, jika penduduknya berpaling dari ketakwaan, nikmat itu bisa seketika dicabut dan diganti dengan kebinasaan.",
+    "reference": "QS. Saba': 15-16 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "169",
+    "quotes": "Banyaknya harta dan keturunan sama sekali bukanlah parameter kedekatan seseorang dengan Allah. Kemuliaan derajat di sisi-Nya murni diukur dari kemurnian tauhid dan kualitas amal saleh yang dikerjakan dengan ikhlas.",
+    "reference": "QS. Saba': 37 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "170",
+    "quotes": "Jangan pernah takut miskin karena berinfak di jalan Allah. Setiap harta yang disedekahkan dengan niat yang benar, pasti akan diberikan ganti yang jauh lebih berkah oleh Allah, Sang Pemberi rezeki yang paling baik.",
+    "reference": "QS. Saba': 39 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "171",
+    "quotes": "Apa saja yang Allah anugerahkan kepada manusia berupa rahmat, maka tidak ada seorang pun yang dapat menahannya. Keyakinan ini adalah obat paling mujarab untuk menyembuhkan hati dari penyakit hasad dan keputusasaan.",
+    "reference": "QS. Fathir: 2 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "172",
+    "quotes": "Janji Allah tentang hari kebangkitan adalah kepastian. Maka janganlah sekali-kali gemerlapnya dunia menipumu, dan jangan pula setan yang ulung menipumu dari ketaatan kepada Tuhanmu.",
+    "reference": "QS. Fathir: 5 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "173",
+    "quotes": "Wahai manusia, sejatinya kalian semua adalah fakir yang sangat membutuhkan Allah di setiap tarikan napas. Sedangkan Allah, Dia Maha Kaya dan sama sekali tidak membutuhkan ketaatan hamba-hamba-Nya.",
+    "reference": "QS. Fathir: 15 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "174",
+    "quotes": "Ilmu yang sejati bukanlah diukur dari seberapa banyak hafalan atau luasnya wawasan semata, melainkan dari seberapa besar rasa takut (khasyyah) yang tumbuh di dalam hati kepada Allah Yang Maha Agung.",
+    "reference": "QS. Fathir: 28 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "175",
+    "quotes": "Membaca Al-Qur'an, mendirikan shalat, dan bersedekah secara sembunyi maupun terang-terangan adalah perniagaan spiritual yang tidak akan pernah merugi. Padanya terdapat tambahan karunia yang tak terhingga.",
+    "reference": "QS. Fathir: 29-30 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "176",
+    "quotes": "Peringatan Al-Qur'an hanya akan berbuah manis dan bermanfaat bagi mereka yang memiliki ketundukan hati untuk mengikuti petunjuk, serta memiliki rasa takut kepada Ar-Rahman meski dalam kesendirian.",
+    "reference": "QS. Yasin: 11 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "177",
+    "quotes": "Seorang penyeru kebenaran yang tulus tidak menyimpan dendam. Bahkan setelah kaumnya membunuhnya, ia justru berharap, 'Duhai, seandainya kaumku mengetahui ampunan Allah kepadaku.' Itulah puncak kasih sayang dalam berdakwah.",
+    "reference": "QS. Yasin: 26-27 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "178",
+    "quotes": "Keteraturan orbit matahari dan bulan yang tak pernah saling mendahului adalah bukti nyata kekuasaan Allah. Mustahil alam semesta yang maha presisi ini tercipta tanpa ada Pencipta Yang Maha Mengatur.",
+    "reference": "QS. Yasin: 40 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "179",
+    "quotes": "Akan tiba suatu masa di mana lisan akan dikunci rapat. Tangan yang berbuat akan berbicara, dan kaki yang melangkah akan bersaksi. Tidak ada lagi celah untuk berdusta menyembunyikan maksiat di hari pengadilan.",
+    "reference": "QS. Yasin: 65 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "180",
+    "quotes": "Bagi Allah, membangkitkan miliaran manusia dari kematian adalah perkara yang sangat ringan. Apabila Dia menghendaki sesuatu, cukup berkata 'Kun' (Jadilah!), maka seketika itu pula pasti akan terjadi.",
+    "reference": "QS. Yasin: 82 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "181",
+    "quotes": "Setiap langkah dan amalan kita di dunia akan dihentikan sejenak di Padang Mahsyar untuk dimintai pertanggungjawaban. Tidak ada satu pun niat dan perbuatan yang bisa luput dari pertanyaan keadilan Allah.",
+    "reference": "QS. Ash-Shaffat: 24 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "182",
+    "quotes": "Keselamatan di hadapan Allah kelak hanya bisa diraih dengan membawa 'Qalbun Salim', yakni hati yang selamat dari noda kesyirikan, keraguan, dan bersih dari kecondongan kepada maksiat.",
+    "reference": "QS. Ash-Shaffat: 84 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "183",
+    "quotes": "Pendidikan tauhid tertinggi terlihat saat sang anak merespons perintah ujian sembelihan yang maha berat itu dengan penuh ketaatan: 'Wahai ayahku, kerjakanlah.' Ketaatan anak lahir dari keteladanan tauhid orang tua.",
+    "reference": "QS. Ash-Shaffat: 102 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "184",
+    "quotes": "Amalan ketaatan yang senantiasa kita rutinkan di saat lapang, kelak akan menjadi penyelamat utama di saat kita terjepit dalam kesempitan, sebagaimana zikir dan tasbih Nabi Yunus yang menyelamatkannya dari perut ikan.",
+    "reference": "QS. Ash-Shaffat: 143-144 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "185",
+    "quotes": "Kemenangan hamba-hamba Allah dan para rasul-Nya adalah sebuah ketetapan yang pasti. Jika bukan di dunia dalam bentuk kejayaan, maka pasti berupa kemenangan hujjah (kebenaran) dan balasan keselamatan abadi di akhirat.",
+    "reference": "QS. Ash-Shaffat: 171-173 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "186",
+    "quotes": "Menghadapi celaan dan cemoohan orang-orang jahil membutuhkan perisai kesabaran. Dan sebaik-baik penguat kesabaran adalah dengan memperbanyak zikir dan meneladani kesalehan hamba-hamba Allah yang terdahulu.",
+    "reference": "QS. Shad: 17 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "187",
+    "quotes": "Orang yang mulia di sisi Allah bukanlah yang tidak pernah keliru, melainkan mereka yang apabila menyadari kesalahannya, segera tersungkur memohon ampunan (inabah) tanpa menunda-nunda apalagi mencari pembenaran.",
+    "reference": "QS. Shad: 24 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "188",
+    "quotes": "Tujuan utama diturunkannya Al-Qur'an yang penuh berkah ini bukanlah sekadar untuk dibaca huruf-hurufnya dengan cepat, melainkan agar ditadabburi maknanya dan diamalkan isinya oleh orang-orang yang berakal.",
+    "reference": "QS. Shad: 29 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "189",
+    "quotes": "Pujian tertinggi dari Allah bagi hamba-Nya adalah predikat 'sebaik-baik hamba yang amat taat'. Predikat ini disematkan kepada Nabi Ayyub atas kesabaran mutlaknya dalam menghadapi ujian penyakit dan hilangnya harta.",
+    "reference": "QS. Shad: 44 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "190",
+    "quotes": "Kesombongan adalah dosa pertama yang digunakan untuk bermaksiat kepada Allah di langit. Menolak syariat dengan mengandalkan logika dan merasa diri lebih mulia dari orang lain adalah mewarisi sifat dasar Iblis.",
+    "reference": "QS. Shad: 74-76 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "191",
+    "quotes": "Puncak diterimanya sebuah amal adalah ketika ia dikerjakan dengan memurnikan ketaatan (ikhlas) hanya untuk Allah semata, bersih dari segala noda kesyirikan dan riya di dalam hati.",
+    "reference": "QS. Az-Zumar: 2-3 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "192",
+    "quotes": "Sebaik-baik perkataan adalah Al-Qur'an. Ayat-ayatnya mampu menggetarkan kulit dan melunakkan kerasnya hati orang-orang yang takut kepada Rabbnya, lalu membimbing mereka menuju ketenangan zikrullah.",
+    "reference": "QS. Az-Zumar: 23 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "193",
+    "quotes": "Kematian adalah kepastian mutlak yang menanti setiap makhluk. Segala pertikaian dan kezaliman yang belum tuntas di dunia, kelak akan diadili dengan seadil-adilnya di hadapan Mahkamah Ilahi.",
+    "reference": "QS. Az-Zumar: 30-31 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "194",
+    "quotes": "Ketika musuh menakut-nakutimu dengan kekuatan makhluk, ingatlah selalu firman-Nya: 'Bukankah Allah cukup untuk melindungi hamba-Nya?' Keyakinan ini adalah tameng tawakal terkuat bagi jiwa seorang mukmin.",
+    "reference": "QS. Az-Zumar: 36 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "195",
+    "quotes": "Sebesar dan sekelam apa pun tumpukan dosa masa lalumu, diharamkan bagimu berputus asa dari rahmat Allah. Sungguh, pintu ampunan-Nya tak pernah tertutup bagi hamba yang tulus melangkah pulang dan bertaubat.",
+    "reference": "QS. Az-Zumar: 53 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "196",
+    "quotes": "Allah Maha Pengampun bagi yang bertaubat, namun azab-Nya teramat pedih bagi yang menantang-Nya. Menyeimbangkan rasa harap (raja') dan takut (khauf) di dalam dada adalah poros keselamatan iman.",
+    "reference": "QS. Ghafir: 3 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "197",
+    "quotes": "Betapa mulianya kedudukan orang yang beriman dan bertaubat; para malaikat pemikul 'Arsy pun tak henti-hentinya memohonkan ampunan dan surga perlindungan untuk mereka beserta keluarganya yang saleh.",
+    "reference": "QS. Ghafir: 7-8 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "198",
+    "quotes": "Janganlah terpedaya oleh gemerlap kekuasaan dan kekayaan orang-orang yang ingkar di muka bumi. Kehidupan dunia ini hanyalah kesinggahan yang fana, sedangkan akhirat adalah negeri keabadian yang hakiki.",
+    "reference": "QS. Ghafir: 39 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "199",
+    "quotes": "Doa bukanlah sekadar permohonan hajat, melainkan inti dari sebuah ibadah. Menolak untuk berdoa dan merasa tidak butuh kepada Allah adalah bentuk kesombongan yang diancam dengan kehinaan abadi di neraka Jahannam.",
+    "reference": "QS. Ghafir: 60 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "200",
+    "quotes": "Keimanan dan ikrar taubat yang diucapkan saat azab Allah telah turun menyapu di depan mata, takkan lagi membawa manfaat. Waktu terbaik untuk kembali kepada-Nya adalah sekarang, di saat engkau masih bernapas di waktu lapang.",
+    "reference": "QS. Ghafir: 85 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "201",
+    "quotes": "Keteguhan iman (istiqamah) yang dipertahankan hingga akhir hayat akan berbuah manis. Para malaikat akan turun menghampiri jiwa tersebut dengan kabar gembira: 'Janganlah takut dan jangan bersedih, bergembiralah dengan surga.'",
+    "reference": "QS. Fushshilat: 30 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "202",
+    "quotes": "Tidak ada profesi dan ucapan yang lebih mulia di bumi ini melebihi lisan seorang penyeru ke jalan Allah (dakwah), yang ia buktikan kesungguhannya dengan amal saleh dan rasa bangga sebagai seorang muslim.",
+    "reference": "QS. Fushshilat: 33 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "203",
+    "quotes": "Tolaklah keburukan dengan kebaikan yang paripurna. Itulah akhlak para utusan Allah yang mampu menyulap musuh bebuyutan yang penuh kebencian menjadi seolah-olah sahabat karib yang sangat setia.",
+    "reference": "QS. Fushshilat: 34 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "204",
+    "quotes": "Setiap kali amarah membakar akal atau godaan maksiat berbisik di dada, segeralah berlindung kepada Allah. Sungguh, Dia Maha Mendengar lagi Maha Mengetahui setiap makar setan yang tak kasat mata.",
+    "reference": "QS. Fushshilat: 36 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "205",
+    "quotes": "Al-Qur'an adalah petunjuk jalan sekaligus obat penyembuh bagi penyakit hati dan keraguan. Namun, cahaya penyembuh ini hanya akan meresap dan bekerja optimal di dalam dada orang-orang yang beriman.",
+    "reference": "QS. Fushshilat: 44 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "206",
+    "quotes": "Kaidah agung dalam mengenal Allah adalah meyakini kebesaran-Nya: 'Tidak ada sesuatu pun yang serupa dengan Dia.' Menetapkan sifat-Nya tanpa menyerupakan-Nya dengan makhluk adalah puncak akidah yang lurus.",
+    "reference": "QS. Asy-Syura: 11 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "207",
+    "quotes": "Barang siapa yang menjadikan akhirat sebagai ladang tujuannya, Allah akan melipatgandakan hasil panennya. Namun siapa yang ambisinya murni hanya dunia, Allah beri sedikit bagiannya, tapi ia takkan punya sisa apa pun di akhirat kelak.",
+    "reference": "QS. Asy-Syura: 20 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "208",
+    "quotes": "Setiap musibah, kesulitan, dan duka yang menimpa sejatinya adalah buah dari dosa kedua tangan kita sendiri. Dan ketahuilah, keburukan yang Allah maafkan dan tutupi dari kita jauh lebih banyak daripada yang Dia hukumkan.",
+    "reference": "QS. Asy-Syura: 30 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "209",
+    "quotes": "Ciri masyarakat yang dirahmati adalah mereka yang menegakkan shalat dan menyelesaikan segala urusan pentingnya dengan musyawarah (syura). Keputusan yang dirembukkan di atas ilmu akan selalu membawa pada keberkahan.",
+    "reference": "QS. Asy-Syura: 38 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "210",
+    "quotes": "Keadilan adalah membalas keburukan secara setimpal. Namun, barang siapa yang memilih memaafkan dan berbuat baik demi merajut kembali persaudaraan, maka pahalanya langsung ditanggung oleh Allah Yang Maha Mulia.",
+    "reference": "QS. Asy-Syura: 40 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "211",
+    "quotes": "Rahmat Allah berupa keimanan, hidayah, dan Al-Qur'an jauh lebih berharga daripada seluruh perhiasan dunia. Kesenjangan rezeki di bumi adalah ujian ilahi agar manusia saling bekerja sama, bukan untuk saling menyombongkan diri.",
+    "reference": "QS. Az-Zukhruf: 32 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "212",
+    "quotes": "Seandainya bukan karena kekhawatiran umat manusia akan serentak menjadi kafir, niscaya Allah berikan istana perak dan emas yang berlimpah bagi para penentang-Nya. Ini adalah bukti betapa tak bernilainya dunia di sisi Allah.",
+    "reference": "QS. Az-Zukhruf: 33-35 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "213",
+    "quotes": "Hukuman terberat di dunia bukanlah kemiskinan, melainkan ketika seseorang berpaling dari Al-Qur'an, lalu Allah biarkan setan menjadi teman karibnya yang selalu membenarkan kesesatannya seakan-akan ia berada di jalan yang benar.",
+    "reference": "QS. Az-Zukhruf: 36-37 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "214",
+    "quotes": "Berpegang teguhlah pada sunnah dan wahyu di tengah badai fitnah akhir zaman. Itulah satu-satunya tali keselamatan yang menjamin langkahmu tetap berada di atas jalan yang lurus (Shirathal Mustaqim).",
+    "reference": "QS. Az-Zukhruf: 43 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "215",
+    "quotes": "Setiap persahabatan yang dibangun di atas maksiat dan kepentingan duniawi semata akan berubah menjadi permusuhan sengit di hari kiamat. Persahabatan sejati yang abadi hanyalah yang dilandasi ketakwaan.",
+    "reference": "QS. Az-Zukhruf: 67 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "216",
+    "quotes": "Malam kemuliaan (Lailatul Qadar) adalah saksi diturunkannya Al-Qur'an. Pada malam yang penuh keberkahan itu, segala takdir, rezeki, dan ajal selama setahun ke depan dirinci dengan penuh keadilan oleh kehendak Allah.",
+    "reference": "QS. Ad-Dukhan: 3-4 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "217",
+    "quotes": "Hanya Allah semata yang memegang kendali mutlak atas kehidupan dan kematian. Kesadaran bahwa Dia adalah Rabb kita dan Rabb pendahulu kita seharusnya mampu memutus segala bentuk kesyirikan di dalam sanubari.",
+    "reference": "QS. Ad-Dukhan: 8 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "218",
+    "quotes": "Langit, bumi, dan segala isinya tidaklah diciptakan sekadar untuk kesia-siaan atau permainan. Ada kebenaran agung dan hari pertanggungjawaban besar yang menanti di balik penciptaan alam semesta ini.",
+    "reference": "QS. Ad-Dukhan: 38-39 (Tafsir Ibnu Katsir)"
+  },
+  {
+    "id": "219",
+    "quotes": "Akan tiba suatu hari di mana relasi, nasab, dan kawan setia tidak lagi mampu memberikan manfaat perlindungan sedikit pun. Pada hari pembalasan itu, satu-satunya naungan hanyalah rahmat dari Allah Yang Maha Perkasa.",
+    "reference": "QS. Ad-Dukhan: 41-42 (Tafsir As-Sa'di)"
+  },
+  {
+    "id": "220",
+    "quotes": "Allah telah memudahkan Al-Qur'an untuk dipahami sebagai pelajaran dan peringatan. Maka, sungguh merugi jiwa yang enggan mengambil hikmah dan membiarkan hatinya membatu dari petunjuk yang nyata.",
+    "reference": "QS. Ad-Dukhan: 58 (Tafsir Ibnu Katsir)"
+  }
+]
