@@ -5,6 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -24,15 +26,15 @@ class AdzanService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val settings = SettingsManager(this)
+
         if (intent?.action == "ACTION_STOP_ADZAN") {
-            stopAdzan()
+            stopAdzan(settings)
             return START_NOT_STICKY
         }
 
         val isSubuh = intent?.getBooleanExtra("IS_SUBUH", false) ?: false
         val prayerId = intent?.getIntExtra("PRAYER_ID", 0) ?: 0
-
-        val settings = SettingsManager(this)
 
         val selectedLocale = Locale.forLanguageTag(settings.languageCode)
         val config = Configuration(resources.configuration)
@@ -58,7 +60,6 @@ class AdzanService : Service() {
 
         val deletePendingIntent = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        // Gunakan localizedContext untuk SEMUA teks notifikasi
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
             .setContentTitle(localizedContext.getString(R.string.notif_title_adzan, prayerName))
             .setContentText(localizedContext.getString(R.string.notif_desc_adzan))
@@ -74,6 +75,10 @@ class AdzanService : Service() {
             .build()
 
         startForeground(1122, notification)
+
+        settings.isAdzanPlaying = true
+        updateWidgetNow()
+
         playAdzan(isSubuh, settings)
 
         return START_STICKY
@@ -81,17 +86,14 @@ class AdzanService : Service() {
 
     private fun playAdzan(isSubuh: Boolean, settings: SettingsManager) {
         val customUriString = if (isSubuh) settings.customAdzanSubuhUri else settings.customAdzanRegularUri
-
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         try {
             if (originalAlarmVolume == -1) {
                 originalAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
             }
-
             val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
             val targetVolume = (maxVolume * settings.adzanVolume) / 100
-
             audioManager.setStreamVolume(AudioManager.STREAM_ALARM, targetVolume, 0)
         } catch (e: SecurityException) {}
 
@@ -119,20 +121,19 @@ class AdzanService : Service() {
                     setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
                     afd.close()
                 }
-
                 prepare()
                 start()
             }
 
             mediaPlayer?.setOnCompletionListener {
-                stopAdzan()
+                stopAdzan(settings)
             }
         } catch (e: Exception) {
-            stopAdzan()
+            stopAdzan(settings)
         }
     }
 
-    private fun stopAdzan() {
+    private fun stopAdzan(settings: SettingsManager) {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
@@ -146,7 +147,19 @@ class AdzanService : Service() {
             stopForeground(true)
         }
 
+        settings.isAdzanPlaying = false
+        updateWidgetNow()
         stopSelf()
+    }
+
+    private fun updateWidgetNow() {
+        val intent = Intent(this, IslamicWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            val ids = AppWidgetManager.getInstance(application)
+                .getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        }
+        sendBroadcast(intent)
     }
 
     private fun restoreOriginalVolume() {
@@ -181,5 +194,10 @@ class AdzanService : Service() {
         mediaPlayer?.release()
         mediaPlayer = null
         restoreOriginalVolume()
+        val settings = SettingsManager(this)
+        if (settings.isAdzanPlaying) {
+            settings.isAdzanPlaying = false
+            updateWidgetNow()
+        }
     }
 }

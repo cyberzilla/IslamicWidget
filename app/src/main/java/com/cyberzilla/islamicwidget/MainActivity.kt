@@ -283,7 +283,10 @@ class MainActivity : AppCompatActivity() {
             findViewById<View>(R.id.container_clock)?.visibility = if (isShowClock) View.VISIBLE else View.GONE
             findViewById<View>(R.id.container_date)?.visibility = if (isShowDate) View.VISIBLE else View.GONE
             findViewById<View>(R.id.container_prayer)?.visibility = if (isShowPrayer) View.VISIBLE else View.GONE
-            findViewById<View>(R.id.container_additional)?.visibility = if (isShowAdd) View.VISIBLE else View.GONE
+
+            // Preview selalu menggunakan container normal
+            findViewById<View>(R.id.container_additional_normal)?.visibility = if (isShowAdd) View.VISIBLE else View.GONE
+            findViewById<View>(R.id.container_additional_flipper)?.visibility = View.GONE
 
             findViewById<TextView>(R.id.label_fajr)?.text = localizedContext.getString(R.string.fajr)
             findViewById<TextView>(R.id.label_dhuhr)?.text = localizedContext.getString(R.string.dhuhr)

@@ -104,4 +104,13 @@
     <string name="color_blue">Blue</string>
     <string name="color_hex">Hex: %1$s</string>
     <string name="format_lat_lon">Lat: %1$s, Lon: %2$s</string>
+
+    <string name="info_adzan_now">PRAYER TIME HAS ENTERED • ADZAN IS CALLING • LET\'S PRAY • </string>
+    <string name="info_adzan_sub">Please perform your prayer</string>
+    <string name="sunnah_muharram">✨ Tasu\'a / Ashura Fasting</string>
+    <string name="sunnah_dzulhijjah">✨ Dzulhijjah Fasting</string>
+    <string name="sunnah_arafah">✨ Arafah Fasting</string>
+    <string name="sunnah_ayyamul_bidh">✨ Ayyamul Bidh</string>
+    <string name="sunnah_monday_thursday">🌙 Sunnah Fasting</string>
+    <string name="sunnah_friday">📖 Al-Kahf</string>
 </resources>

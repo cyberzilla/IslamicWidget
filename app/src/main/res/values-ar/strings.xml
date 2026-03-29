@@ -104,4 +104,13 @@
     <string name="color_blue">أزرق</string>
     <string name="color_hex">سداسي عشري: %1$s</string>
     <string name="format_lat_lon">خط العرض: %1$s، خط الطول: %2$s</string>
+
+    <string name="info_adzan_now">حان وقت الصلاة • الأذان يرفع الآن • حي على الصلاة • </string>
+    <string name="info_adzan_sub">تفضل بأداء الصلاة</string>
+    <string name="sunnah_muharram">✨ صيام تاسوعاء / عاشوراء</string>
+    <string name="sunnah_dzulhijjah">✨ صيام ذي الحجة</string>
+    <string name="sunnah_arafah">✨ صيام يوم عرفة</string>
+    <string name="sunnah_ayyamul_bidh">✨ الأيام البيض</string>
+    <string name="sunnah_monday_thursday">🌙 صيام السنة</string>
+    <string name="sunnah_friday">📖 سورة الكهف</string>
 </resources>
