@@ -236,19 +236,14 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             if (settings.languageCode == "ar") {
                 val isAm = java.util.Calendar.getInstance().get(java.util.Calendar.AM_PM) == java.util.Calendar.AM
                 val amPmStr = if (isAm) "ص" else "م"
-
-                // Gunakan tanda kutip tunggal '' agar Android menganggapnya sebagai Text statis (Literal)
                 views.setCharSequence(R.id.clock_widget, "setFormat12Hour", "hh:mm '$amPmStr'")
                 views.setCharSequence(R.id.clock_widget, "setFormat24Hour", "hh:mm '$amPmStr'")
-
-                // Jadwalkan refresh akurat di jam 12:00 Siang/Malam untuk membalik ص/م
                 scheduleAmPmUpdate(context, appWidgetId)
             } else {
                 views.setCharSequence(R.id.clock_widget, "setFormat12Hour", "hh:mm a")
                 views.setCharSequence(R.id.clock_widget, "setFormat24Hour", "hh:mm a")
             }
         }
-        // =======================================================
 
         if (latString != null && lonString != null) {
             try {
@@ -329,17 +324,17 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            appWidgetId + 1000, // Supaya ID unik
+            appWidgetId + 1000,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val calendar = java.util.Calendar.getInstance()
         if (calendar.get(java.util.Calendar.AM_PM) == java.util.Calendar.AM) {
-            calendar.set(java.util.Calendar.HOUR_OF_DAY, 12) // Ke Jam 12 Siang
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 12)
         } else {
-            calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)  // Ke Hari Esok
-            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)  // Jam 00:00 Tengah Malam
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
+            calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
         }
         calendar.set(java.util.Calendar.MINUTE, 0)
         calendar.set(java.util.Calendar.SECOND, 0)
@@ -347,9 +342,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         try {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, calendar.timeInMillis, pendingIntent)
-        } catch (e: SecurityException) {
-            // Biarkan jika permission gagal
-        }
+        } catch (e: SecurityException) {}
     }
 
     @SuppressLint("ScheduleExactAlarm")
@@ -358,19 +351,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
 
         if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time) {
-            val prayerName = when(requestCodeId) {
-                1 -> localizedContext.getString(R.string.fajr)
-                2 -> localizedContext.getString(R.string.dhuhr)
-                3 -> localizedContext.getString(R.string.asr)
-                4 -> localizedContext.getString(R.string.maghrib)
-                5 -> localizedContext.getString(R.string.isha)
-                else -> localizedContext.getString(R.string.prayer)
-            }
-
+            // FIX: Hanya kirim PRAYER_ID ke Intent, JANGAN BAKE String!
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)
-                putExtra("PRAYER_NAME", prayerName)
+                putExtra("PRAYER_ID", requestCodeId)
             }
             val adzanPendingIntent = PendingIntent.getBroadcast(context, requestCodeId + 200, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 

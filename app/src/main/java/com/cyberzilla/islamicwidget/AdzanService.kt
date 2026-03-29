@@ -7,12 +7,14 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import java.util.Locale
 
 class AdzanService : Service() {
 
@@ -28,9 +30,25 @@ class AdzanService : Service() {
         }
 
         val isSubuh = intent?.getBooleanExtra("IS_SUBUH", false) ?: false
-        val prayerName = intent?.getStringExtra("PRAYER_NAME") ?: "Adzan"
+        val prayerId = intent?.getIntExtra("PRAYER_ID", 0) ?: 0
 
-        createNotificationChannel()
+        val settings = SettingsManager(this)
+
+        val selectedLocale = Locale.forLanguageTag(settings.languageCode)
+        val config = Configuration(resources.configuration)
+        config.setLocale(selectedLocale)
+        val localizedContext = createConfigurationContext(config)
+
+        val prayerName = when(prayerId) {
+            1 -> localizedContext.getString(R.string.fajr)
+            2 -> localizedContext.getString(R.string.dhuhr)
+            3 -> localizedContext.getString(R.string.asr)
+            4 -> localizedContext.getString(R.string.maghrib)
+            5 -> localizedContext.getString(R.string.isha)
+            else -> localizedContext.getString(R.string.prayer)
+        }
+
+        createNotificationChannel(localizedContext)
 
         val stopIntent = Intent(this, AdzanService::class.java).apply { action = "ACTION_STOP_ADZAN" }
         val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -40,12 +58,13 @@ class AdzanService : Service() {
 
         val deletePendingIntent = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
+        // Gunakan localizedContext untuk SEMUA teks notifikasi
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
-            .setContentTitle(getString(R.string.notif_title_adzan, prayerName))
-            .setContentText(getString(R.string.notif_desc_adzan))
+            .setContentTitle(localizedContext.getString(R.string.notif_title_adzan, prayerName))
+            .setContentText(localizedContext.getString(R.string.notif_desc_adzan))
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentIntent(contentPendingIntent)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.notif_action_stop), stopPendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, localizedContext.getString(R.string.notif_action_stop), stopPendingIntent)
             .setDeleteIntent(deletePendingIntent)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
@@ -55,13 +74,12 @@ class AdzanService : Service() {
             .build()
 
         startForeground(1122, notification)
-        playAdzan(isSubuh)
+        playAdzan(isSubuh, settings)
 
         return START_STICKY
     }
 
-    private fun playAdzan(isSubuh: Boolean) {
-        val settings = SettingsManager(this)
+    private fun playAdzan(isSubuh: Boolean, settings: SettingsManager) {
         val customUriString = if (isSubuh) settings.customAdzanSubuhUri else settings.customAdzanRegularUri
 
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -141,14 +159,14 @@ class AdzanService : Service() {
         }
     }
 
-    private fun createNotificationChannel() {
+    private fun createNotificationChannel(localizedContext: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "ADZAN_CHANNEL_V2",
-                getString(R.string.notif_channel_name),
+                localizedContext.getString(R.string.notif_channel_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = getString(R.string.notif_channel_desc)
+                description = localizedContext.getString(R.string.notif_channel_desc)
                 setSound(null, null)
                 setBypassDnd(true)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC

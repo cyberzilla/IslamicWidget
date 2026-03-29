@@ -19,7 +19,7 @@ class SilentModeReceiver : BroadcastReceiver() {
             "ACTION_PLAY_ADZAN" -> {
                 val serviceIntent = Intent(context, AdzanService::class.java).apply {
                     putExtra("IS_SUBUH", intent.getBooleanExtra("IS_SUBUH", false))
-                    putExtra("PRAYER_NAME", intent.getStringExtra("PRAYER_NAME"))
+                    putExtra("PRAYER_ID", intent.getIntExtra("PRAYER_ID", 0))
                 }
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
