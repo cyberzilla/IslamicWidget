@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         if (uri != null) {
             try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) {}
             tempRegularUri = uri.toString()
-            findViewById<TextView>(R.id.tv_adzan_regular_status).text = getString(R.string.status_custom)
+            findViewById<TextView>(R.id.tv_adzan_regular_status)?.text = getString(R.string.status_custom)
             stopTestAdzan()
         }
     }
@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         if (uri != null) {
             try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (e: Exception) {}
             tempSubuhUri = uri.toString()
-            findViewById<TextView>(R.id.tv_adzan_subuh_status).text = getString(R.string.status_custom)
+            findViewById<TextView>(R.id.tv_adzan_subuh_status)?.text = getString(R.string.status_custom)
             stopTestAdzan()
         }
     }
@@ -110,12 +110,12 @@ class MainActivity : AppCompatActivity() {
 
     private val requestNotificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
-            findViewById<SwitchCompat>(R.id.switch_audio_adzan).isChecked = true
+            findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked = true
             settingsManager.isAdzanAudioEnabled = true
             Toast.makeText(this, getString(R.string.toast_notification_granted), Toast.LENGTH_SHORT).show()
             showPauseActivityWarningDialog()
         } else {
-            findViewById<SwitchCompat>(R.id.switch_audio_adzan).isChecked = false
+            findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked = false
             settingsManager.isAdzanAudioEnabled = false
             Toast.makeText(this, getString(R.string.toast_notification_needed), Toast.LENGTH_LONG).show()
         }
@@ -125,14 +125,14 @@ class MainActivity : AppCompatActivity() {
     private fun Instant.asDate() = Date(toEpochMilliseconds())
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        settingsManager = SettingsManager(this)
-
-        val currentLocales = AppCompatDelegate.getApplicationLocales()
-        if (currentLocales.isEmpty) {
-            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(settingsManager.languageCode))
-        }
-
-        applyAppTheme(settingsManager.appTheme)
+        try {
+            settingsManager = SettingsManager(this)
+            val currentLocales = AppCompatDelegate.getApplicationLocales()
+            if (currentLocales.isEmpty) {
+                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(settingsManager.languageCode))
+            }
+            applyAppTheme(settingsManager.appTheme)
+        } catch (e: Exception) {}
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -148,8 +148,12 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        loadSettingsToUI()
-        setupButtons()
+        try {
+            loadSettingsToUI()
+            setupButtons()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Terdapat kesalahan pada layout XML Anda!", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun applyAppTheme(themeVal: String) {
@@ -166,7 +170,7 @@ class MainActivity : AppCompatActivity() {
             pendingDndPermission = false
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (notificationManager.isNotificationPolicyAccessGranted) {
-                findViewById<SwitchCompat>(R.id.switch_auto_silent).isChecked = true
+                findViewById<SwitchCompat>(R.id.switch_auto_silent)?.isChecked = true
                 settingsManager.isAutoSilentEnabled = true
                 Toast.makeText(this, getString(R.string.toast_dnd_granted), Toast.LENGTH_SHORT).show()
             }
@@ -177,8 +181,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() { super.onDestroy(); stopTestAdzan() }
 
     private fun setupSlider(seekBarId: Int, textViewId: Int, min: Int, max: Int, initialValue: Int, isFormatScale: Boolean = false, suffix: String = "") {
-        val seekBar = findViewById<SeekBar>(seekBarId)
-        val textView = findViewById<TextView>(textViewId)
+        val seekBar = findViewById<SeekBar>(seekBarId) ?: return
+        val textView = findViewById<TextView>(textViewId) ?: return
 
         seekBar.max = max - min
         seekBar.progress = initialValue - min
@@ -207,8 +211,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateLocationUI() {
-        val tvLocName = findViewById<TextView>(R.id.tv_location_name)
-        val tvLatLon = findViewById<TextView>(R.id.tv_lat_lon)
+        val tvLocName = findViewById<TextView>(R.id.tv_location_name) ?: return
+        val tvLatLon = findViewById<TextView>(R.id.tv_lat_lon) ?: return
         if (settingsManager.latitude != null && settingsManager.longitude != null) {
             tvLocName.text = settingsManager.locationName
             tvLatLon.text = getString(R.string.format_lat_lon, settingsManager.latitude, settingsManager.longitude)
@@ -249,18 +253,21 @@ class MainActivity : AppCompatActivity() {
     private fun updatePreview() {
         try {
             val previewBg = findViewById<ImageView>(R.id.widget_bg) ?: return
-            val scaleMultiplier = (findViewById<SeekBar>(R.id.sb_preview_scale).progress + 50) / 100f
-            val fsClock = (findViewById<SeekBar>(R.id.sb_fs_clock).progress + 20f) * scaleMultiplier
-            val fsDate = (findViewById<SeekBar>(R.id.sb_fs_date).progress + 8f) * scaleMultiplier
-            val fsPrayer = (findViewById<SeekBar>(R.id.sb_fs_prayer).progress + 8f) * scaleMultiplier
-            val fsAdd = (findViewById<SeekBar>(R.id.sb_fs_additional).progress + 8f) * scaleMultiplier
 
-            val isShowClock = findViewById<SwitchCompat>(R.id.sw_show_clock).isChecked
-            val isShowDate = findViewById<SwitchCompat>(R.id.sw_show_date).isChecked
-            val isShowPrayer = findViewById<SwitchCompat>(R.id.sw_show_prayer).isChecked
-            val isShowAdd = findViewById<SwitchCompat>(R.id.sw_show_additional).isChecked
-            val previewRadiusDp = findViewById<SeekBar>(R.id.sb_radius).progress.toFloat() * scaleMultiplier
-            val offsetHijri = findViewById<SeekBar>(R.id.sb_hijri_offset).progress - 2
+            val scaleProgress = findViewById<SeekBar>(R.id.sb_preview_scale)?.progress ?: 50
+            val scaleMultiplier = (scaleProgress + 50) / 100f
+
+            val fsClock = ((findViewById<SeekBar>(R.id.sb_fs_clock)?.progress ?: 20) + 20f) * scaleMultiplier
+            val fsDate = ((findViewById<SeekBar>(R.id.sb_fs_date)?.progress ?: 4) + 8f) * scaleMultiplier
+            val fsPrayer = ((findViewById<SeekBar>(R.id.sb_fs_prayer)?.progress ?: 5) + 8f) * scaleMultiplier
+            val fsAdd = ((findViewById<SeekBar>(R.id.sb_fs_additional)?.progress ?: 3) + 8f) * scaleMultiplier
+
+            val isShowClock = findViewById<SwitchCompat>(R.id.sw_show_clock)?.isChecked ?: true
+            val isShowDate = findViewById<SwitchCompat>(R.id.sw_show_date)?.isChecked ?: true
+            val isShowPrayer = findViewById<SwitchCompat>(R.id.sw_show_prayer)?.isChecked ?: true
+            val isShowAdd = findViewById<SwitchCompat>(R.id.sw_show_additional)?.isChecked ?: true
+            val previewRadiusDp = (findViewById<SeekBar>(R.id.sb_radius)?.progress?.toFloat() ?: 16f) * scaleMultiplier
+            val offsetHijri = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
 
             val currentLocales = AppCompatDelegate.getApplicationLocales()
             val activeLangCode = if (!currentLocales.isEmpty) currentLocales[0]!!.language else settingsManager.languageCode
@@ -274,19 +281,16 @@ class MainActivity : AppCompatActivity() {
             val txtLastThird = localizedContext.getString(R.string.last_third)
             val txtQibla = localizedContext.getString(R.string.qibla)
 
-            val selectedCalcStr = findViewById<AutoCompleteTextView>(R.id.spinner_calc_method).text.toString()
+            val selectedCalcStr = findViewById<AutoCompleteTextView>(R.id.spinner_calc_method)?.text?.toString() ?: ""
             val calcIdx = calcEntries.indexOf(selectedCalcStr).takeIf { it >= 0 } ?: 0
 
-            val masehiPattern = findViewById<EditText>(R.id.et_date_format).text.toString().ifEmpty { "en-US{EEEE, dd MMMM yyyy}" }
-            val hijriPattern = findViewById<EditText>(R.id.et_hijri_format).text.toString().ifEmpty { "en-US{dd MMMM yyyy} AH" }
+            val masehiPattern = findViewById<EditText>(R.id.et_date_format)?.text?.toString()?.ifEmpty { "en-US{EEEE, dd MMMM yyyy}" } ?: "en-US{EEEE, dd MMMM yyyy}"
+            val hijriPattern = findViewById<EditText>(R.id.et_hijri_format)?.text?.toString()?.ifEmpty { "en-US{dd MMMM yyyy} AH" } ?: "en-US{dd MMMM yyyy} AH"
 
+            findViewById<View>(R.id.container_info_board)?.visibility = View.GONE
             findViewById<View>(R.id.container_clock)?.visibility = if (isShowClock) View.VISIBLE else View.GONE
             findViewById<View>(R.id.container_date)?.visibility = if (isShowDate) View.VISIBLE else View.GONE
             findViewById<View>(R.id.container_prayer)?.visibility = if (isShowPrayer) View.VISIBLE else View.GONE
-
-            // Preview selalu menggunakan container normal
-            findViewById<View>(R.id.container_additional_normal)?.visibility = if (isShowAdd) View.VISIBLE else View.GONE
-            findViewById<View>(R.id.container_additional_flipper)?.visibility = View.GONE
 
             findViewById<TextView>(R.id.label_fajr)?.text = localizedContext.getString(R.string.fajr)
             findViewById<TextView>(R.id.label_dhuhr)?.text = localizedContext.getString(R.string.dhuhr)
@@ -321,7 +325,7 @@ class MainActivity : AppCompatActivity() {
                     val sunnahTimes = SunnahTimes(prayerTimes)
                     val qibla = Qibla(coordinates)
 
-                    if (findViewById<CheckBox>(R.id.cb_day_start).isChecked && Date().after(prayerTimes.maghrib.asDate())) {
+                    if (findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && Date().after(prayerTimes.maghrib.asDate())) {
                         totalHijriOffset += 1L
                     }
 
@@ -338,10 +342,59 @@ class MainActivity : AppCompatActivity() {
                     findViewById<TextView>(R.id.tv_last_third)?.text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}"
                     findViewById<TextView>(R.id.tv_qibla)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction)
 
-                } catch (e: Exception) { setDummyPreviewTimes(activeLangCode) }
-            } else { setDummyPreviewTimes(activeLangCode) }
+                    findViewById<TextView>(R.id.tv_sunrise_flip)?.text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}"
+                    findViewById<TextView>(R.id.tv_last_third_flip)?.text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}"
+                    findViewById<TextView>(R.id.tv_qibla_flip)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction)
 
-            if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
+                    if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
+                    val hijriDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
+                    val hijriMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
+                    val dayOfWeek = today.dayOfWeek
+                    val sunnahInfo = java.lang.StringBuilder()
+
+                    if (hijriMonth == 1 && (hijriDay == 9 || hijriDay == 10)) {
+                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_muharram))
+                    }
+                    if (hijriMonth == 12 && hijriDay in 1..9) {
+                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
+                        if (hijriDay == 9) {
+                            sunnahInfo.append(localizedContext.getString(R.string.sunnah_arafah))
+                        } else {
+                            sunnahInfo.append(localizedContext.getString(R.string.sunnah_dzulhijjah))
+                        }
+                    }
+                    if (hijriDay in 13..15) {
+                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
+                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_ayyamul_bidh))
+                    }
+                    if (dayOfWeek == java.time.DayOfWeek.MONDAY || dayOfWeek == java.time.DayOfWeek.THURSDAY) {
+                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
+                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_monday_thursday))
+                    }
+                    if (dayOfWeek == java.time.DayOfWeek.FRIDAY) {
+                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
+                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_friday))
+                    }
+
+                    if (isShowAdd) {
+                        if (sunnahInfo.isNotEmpty()) {
+                            findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
+                            findViewById<View>(R.id.container_additional_flipper)?.visibility = View.VISIBLE
+                            findViewById<TextView>(R.id.tv_sunnah_reminder_flip)?.text = sunnahInfo.toString()
+                        } else {
+                            findViewById<View>(R.id.container_additional_normal)?.visibility = View.VISIBLE
+                            findViewById<View>(R.id.container_additional_flipper)?.visibility = View.GONE
+                        }
+                    } else {
+                        findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
+                        findViewById<View>(R.id.container_additional_flipper)?.visibility = View.GONE
+                    }
+
+                } catch (e: Exception) { setDummyPreviewTimes(activeLangCode) }
+            } else {
+                setDummyPreviewTimes(activeLangCode)
+                if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
+            }
 
             findViewById<TextView>(R.id.tv_gregorian_date)?.text = formatCustomDate(masehiPattern, today, selectedLocale)
             findViewById<TextView>(R.id.tv_hijri_date)?.text = formatCustomDate(hijriPattern, hijriDate, selectedLocale)
@@ -367,11 +420,17 @@ class MainActivity : AppCompatActivity() {
                 findViewById<TextView>(it)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsPrayer); setTextColor(textColor) }
             }
 
-            findViewById<TextView>(R.id.tv_sunrise)?.apply { setTextColor(opacityTextColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
-            findViewById<TextView>(R.id.tv_last_third)?.apply { setTextColor(opacityTextColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
+            val additionalTextIds = listOf(
+                R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_divider_1, R.id.tv_divider_2,
+                R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
+            )
+            for (id in additionalTextIds) {
+                findViewById<TextView>(id)?.apply { setTextColor(opacityTextColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
+            }
             findViewById<TextView>(R.id.tv_qibla)?.apply { setTextColor(textColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
-            findViewById<TextView>(R.id.tv_divider_1)?.apply { setTextColor(opacityTextColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
-            findViewById<TextView>(R.id.tv_divider_2)?.apply { setTextColor(opacityTextColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
+            findViewById<TextView>(R.id.tv_qibla_flip)?.apply { setTextColor(textColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
+
+            findViewById<TextView>(R.id.tv_sunnah_reminder_flip)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
 
         } catch (e: Exception) {}
     }
@@ -387,7 +446,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tv_qibla)?.text = "..."
     }
 
-    private fun toggleTestAdzan(isSubuh: Boolean, btnPlay: Button) {
+    private fun toggleTestAdzan(isSubuh: Boolean, btnPlay: Button?) {
+        if (btnPlay == null) return
         if ((isSubuh && isTestingSubuh) || (!isSubuh && isTestingRegular)) { stopTestAdzan(); return }
         stopTestAdzan()
         val uriString = if (isSubuh) tempSubuhUri else tempRegularUri
@@ -400,7 +460,8 @@ class MainActivity : AppCompatActivity() {
 
                 val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
                 val maxVolume = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_ALARM)
-                val targetVolume = (maxVolume * findViewById<SeekBar>(R.id.sb_adzan_vol).progress) / 100
+                val sliderVol = findViewById<SeekBar>(R.id.sb_adzan_vol)?.progress ?: 80
+                val targetVolume = (maxVolume * sliderVol) / 100
                 audioManager.setStreamVolume(android.media.AudioManager.STREAM_ALARM, targetVolume, 0)
 
                 if (!uriString.isNullOrEmpty()) setDataSource(this@MainActivity, Uri.parse(uriString))
@@ -458,68 +519,55 @@ class MainActivity : AppCompatActivity() {
         val currentLocales = AppCompatDelegate.getApplicationLocales()
         val activeLangCode = if (!currentLocales.isEmpty) currentLocales[0]!!.language else settingsManager.languageCode
 
-        val langSpinner = findViewById<AutoCompleteTextView>(R.id.spinner_language)
-        langSpinner.isSaveEnabled = false
-        langSpinner.setDropdownItems(languageEntries)
-        langSpinner.setText(languageEntries[languageValues.indexOf(activeLangCode).takeIf { it >= 0 } ?: 0], false)
-
-        langSpinner.setOnItemClickListener { _, _, pos, _ ->
-            val code = languageValues[pos]
-            if (code != activeLangCode) {
-                settingsManager.languageCode = code
-
-                when (code) {
-                    "id" -> {
-                        settingsManager.dateFormat = "id-ID{EEEE, dd MMMM yyyy}"
-                        settingsManager.hijriFormat = "id-ID{dd MMMM yyyy} H"
+        findViewById<AutoCompleteTextView>(R.id.spinner_language)?.let { langSpinner ->
+            langSpinner.isSaveEnabled = false
+            langSpinner.setDropdownItems(languageEntries)
+            langSpinner.setText(languageEntries[languageValues.indexOf(activeLangCode).takeIf { it >= 0 } ?: 0], false)
+            langSpinner.setOnItemClickListener { _, _, pos, _ ->
+                val code = languageValues[pos]
+                if (code != activeLangCode) {
+                    settingsManager.languageCode = code
+                    when (code) {
+                        "id" -> { settingsManager.dateFormat = "id-ID{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "id-ID{dd MMMM yyyy} H" }
+                        "en" -> { settingsManager.dateFormat = "en-US{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "en-US{dd MMMM yyyy} AH" }
+                        "ar" -> { settingsManager.dateFormat = "ar-SA{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "ar-SA{dd MMMM yyyy} هـ" }
                     }
-                    "en" -> {
-                        settingsManager.dateFormat = "en-US{EEEE, dd MMMM yyyy}"
-                        settingsManager.hijriFormat = "en-US{dd MMMM yyyy} AH"
-                    }
-                    "ar" -> {
-                        settingsManager.dateFormat = "ar-SA{EEEE, dd MMMM yyyy}"
-                        settingsManager.hijriFormat = "ar-SA{dd MMMM yyyy} هـ"
-                    }
+                    findViewById<EditText>(R.id.et_date_format)?.setText(settingsManager.dateFormat)
+                    findViewById<EditText>(R.id.et_hijri_format)?.setText(settingsManager.hijriFormat)
+                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
                 }
-
-                findViewById<EditText>(R.id.et_date_format).setText(settingsManager.dateFormat)
-                findViewById<EditText>(R.id.et_hijri_format).setText(settingsManager.hijriFormat)
-
-                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
             }
         }
 
-        val themeSpinner = findViewById<AutoCompleteTextView>(R.id.spinner_theme)
-        themeSpinner.isSaveEnabled = false
-        themeSpinner.setDropdownItems(themeEntries)
-        themeSpinner.setText(themeEntries[themeValues.indexOf(settingsManager.appTheme).takeIf { it >= 0 } ?: 0], false)
-
-        themeSpinner.setOnItemClickListener { _, _, pos, _ ->
-            settingsManager.appTheme = themeValues[pos]
-            applyAppTheme(themeValues[pos])
+        findViewById<AutoCompleteTextView>(R.id.spinner_theme)?.let { themeSpinner ->
+            themeSpinner.isSaveEnabled = false
+            themeSpinner.setDropdownItems(themeEntries)
+            themeSpinner.setText(themeEntries[themeValues.indexOf(settingsManager.appTheme).takeIf { it >= 0 } ?: 0], false)
+            themeSpinner.setOnItemClickListener { _, _, pos, _ ->
+                settingsManager.appTheme = themeValues[pos]
+                applyAppTheme(themeValues[pos])
+            }
         }
 
         setupSlider(R.id.sb_preview_scale, R.id.tv_preview_scale_label, 50, 150, settingsManager.previewScale, true, "")
-
         updateLocationUI()
 
-        val calcSpinner = findViewById<AutoCompleteTextView>(R.id.spinner_calc_method)
-        calcSpinner.isSaveEnabled = false
-        calcSpinner.setDropdownItems(calcEntries)
-        calcSpinner.setText(calcEntries[calcValues.indexOf(settingsManager.calculationMethod).takeIf { it >= 0 } ?: 0], false)
-        calcSpinner.setOnItemClickListener { _, _, _, _ -> updatePreview() }
+        findViewById<AutoCompleteTextView>(R.id.spinner_calc_method)?.let { calcSpinner ->
+            calcSpinner.isSaveEnabled = false
+            calcSpinner.setDropdownItems(calcEntries)
+            calcSpinner.setText(calcEntries[calcValues.indexOf(settingsManager.calculationMethod).takeIf { it >= 0 } ?: 0], false)
+            calcSpinner.setOnItemClickListener { _, _, _, _ -> updatePreview() }
+        }
 
-        findViewById<SwitchCompat>(R.id.sw_show_clock).apply { isChecked = settingsManager.showClock; setOnCheckedChangeListener { _,_ -> updatePreview() } }
-        findViewById<SwitchCompat>(R.id.sw_show_date).apply { isChecked = settingsManager.showDate; setOnCheckedChangeListener { _,_ -> updatePreview() } }
-        findViewById<SwitchCompat>(R.id.sw_show_prayer).apply { isChecked = settingsManager.showPrayer; setOnCheckedChangeListener { _,_ -> updatePreview() } }
-        findViewById<SwitchCompat>(R.id.sw_show_additional).apply { isChecked = settingsManager.showAdditional; setOnCheckedChangeListener { _,_ -> updatePreview() } }
+        findViewById<SwitchCompat>(R.id.sw_show_clock)?.apply { isChecked = settingsManager.showClock; setOnCheckedChangeListener { _,_ -> updatePreview() } }
+        findViewById<SwitchCompat>(R.id.sw_show_date)?.apply { isChecked = settingsManager.showDate; setOnCheckedChangeListener { _,_ -> updatePreview() } }
+        findViewById<SwitchCompat>(R.id.sw_show_prayer)?.apply { isChecked = settingsManager.showPrayer; setOnCheckedChangeListener { _,_ -> updatePreview() } }
+        findViewById<SwitchCompat>(R.id.sw_show_additional)?.apply { isChecked = settingsManager.showAdditional; setOnCheckedChangeListener { _,_ -> updatePreview() } }
 
         setupSlider(R.id.sb_fs_clock, R.id.tv_fs_clock, 20, 80, settingsManager.fontSizeClock, false, "sp")
         setupSlider(R.id.sb_fs_date, R.id.tv_fs_date, 8, 30, settingsManager.fontSizeDate, false, "sp")
         setupSlider(R.id.sb_fs_prayer, R.id.tv_fs_prayer, 8, 30, settingsManager.fontSizePrayer, false, "sp")
         setupSlider(R.id.sb_fs_additional, R.id.tv_fs_additional, 8, 24, settingsManager.fontSizeAdditional, false, "sp")
-
         setupSlider(R.id.sb_radius, R.id.tv_label_radius, 0, 60, settingsManager.widgetBgRadius, false, "dp")
         setupSlider(R.id.sb_hijri_offset, R.id.tv_label_hijri, -2, 2, settingsManager.hijriOffset, false, "")
 
@@ -527,13 +575,13 @@ class MainActivity : AppCompatActivity() {
         currentBgColor = settingsManager.widgetBgColor
         updateColorButtons()
 
-        findViewById<CheckBox>(R.id.cb_day_start).apply { isChecked = settingsManager.isDayStartAtMaghrib; setOnCheckedChangeListener { _,_ -> updatePreview() } }
+        findViewById<CheckBox>(R.id.cb_day_start)?.apply { isChecked = settingsManager.isDayStartAtMaghrib; setOnCheckedChangeListener { _,_ -> updatePreview() } }
 
         val tw = object : TextWatcher { override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}; override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) { updatePreview() }; override fun afterTextChanged(s: Editable?) {} }
-        findViewById<EditText>(R.id.et_date_format).apply { setText(settingsManager.dateFormat); addTextChangedListener(tw) }
-        findViewById<EditText>(R.id.et_hijri_format).apply { setText(settingsManager.hijriFormat); addTextChangedListener(tw) }
+        findViewById<EditText>(R.id.et_date_format)?.apply { setText(settingsManager.dateFormat); addTextChangedListener(tw) }
+        findViewById<EditText>(R.id.et_hijri_format)?.apply { setText(settingsManager.hijriFormat); addTextChangedListener(tw) }
 
-        findViewById<SwitchCompat>(R.id.switch_auto_silent).apply {
+        findViewById<SwitchCompat>(R.id.switch_auto_silent)?.apply {
             isChecked = settingsManager.isAutoSilentEnabled
             setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked && !(getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).isNotificationPolicyAccessGranted) {
@@ -556,7 +604,7 @@ class MainActivity : AppCompatActivity() {
         setupSlider(R.id.sb_isha_bef, R.id.tv_isha_bef, 0, 60, settingsManager.ishaBefore, false, "m")
         setupSlider(R.id.sb_isha_aft, R.id.tv_isha_aft, 0, 120, settingsManager.ishaAfter, false, "m")
 
-        findViewById<SwitchCompat>(R.id.switch_audio_adzan).apply {
+        findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.apply {
             isChecked = settingsManager.isAdzanAudioEnabled
             setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
@@ -574,31 +622,32 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
         setupSlider(R.id.sb_adzan_vol, R.id.tv_adzan_vol, 0, 100, settingsManager.adzanVolume, false, "%")
 
         tempRegularUri = settingsManager.customAdzanRegularUri
         tempSubuhUri = settingsManager.customAdzanSubuhUri
 
-        findViewById<TextView>(R.id.tv_adzan_regular_status).text = if (tempRegularUri.isNullOrEmpty()) getString(R.string.status_default) else getString(R.string.status_custom)
-        findViewById<TextView>(R.id.tv_adzan_subuh_status).text = if (tempSubuhUri.isNullOrEmpty()) getString(R.string.status_default) else getString(R.string.status_custom)
+        findViewById<TextView>(R.id.tv_adzan_regular_status)?.text = if (tempRegularUri.isNullOrEmpty()) getString(R.string.status_default) else getString(R.string.status_custom)
+        findViewById<TextView>(R.id.tv_adzan_subuh_status)?.text = if (tempSubuhUri.isNullOrEmpty()) getString(R.string.status_default) else getString(R.string.status_custom)
 
         val btnPlayReg = findViewById<Button>(R.id.btn_play_adzan_regular)
         val btnPlaySub = findViewById<Button>(R.id.btn_play_adzan_subuh)
 
-        findViewById<Button>(R.id.btn_pick_adzan_regular).setOnClickListener { pickRegularAdzanLauncher.launch("audio/*") }
-        findViewById<Button>(R.id.btn_clear_adzan_regular).setOnClickListener { tempRegularUri = null; findViewById<TextView>(R.id.tv_adzan_regular_status).text = getString(R.string.status_default); stopTestAdzan() }
-        btnPlayReg.setOnClickListener { toggleTestAdzan(false, btnPlayReg) }
+        findViewById<Button>(R.id.btn_pick_adzan_regular)?.setOnClickListener { pickRegularAdzanLauncher.launch("audio/*") }
+        findViewById<Button>(R.id.btn_clear_adzan_regular)?.setOnClickListener { tempRegularUri = null; findViewById<TextView>(R.id.tv_adzan_regular_status)?.text = getString(R.string.status_default); stopTestAdzan() }
+        btnPlayReg?.setOnClickListener { toggleTestAdzan(false, btnPlayReg) }
 
-        findViewById<Button>(R.id.btn_pick_adzan_subuh).setOnClickListener { pickSubuhAdzanLauncher.launch("audio/*") }
-        findViewById<Button>(R.id.btn_clear_adzan_subuh).setOnClickListener { tempSubuhUri = null; findViewById<TextView>(R.id.tv_adzan_subuh_status).text = getString(R.string.status_default); stopTestAdzan() }
-        btnPlaySub.setOnClickListener { toggleTestAdzan(true, btnPlaySub) }
+        findViewById<Button>(R.id.btn_pick_adzan_subuh)?.setOnClickListener { pickSubuhAdzanLauncher.launch("audio/*") }
+        findViewById<Button>(R.id.btn_clear_adzan_subuh)?.setOnClickListener { tempSubuhUri = null; findViewById<TextView>(R.id.tv_adzan_subuh_status)?.text = getString(R.string.status_default); stopTestAdzan() }
+        btnPlaySub?.setOnClickListener { toggleTestAdzan(true, btnPlaySub) }
 
         updatePreview()
     }
 
     private fun updateColorButtons() {
-        try { findViewById<Button>(R.id.btn_pick_text_color).backgroundTintList = ColorStateList.valueOf(Color.parseColor(currentTextColor)) } catch (e: Exception) {}
-        try { findViewById<Button>(R.id.btn_pick_bg_color).backgroundTintList = ColorStateList.valueOf(Color.parseColor(currentBgColor)) } catch (e: Exception) {}
+        try { findViewById<Button>(R.id.btn_pick_text_color)?.backgroundTintList = ColorStateList.valueOf(Color.parseColor(currentTextColor)) } catch (e: Exception) {}
+        try { findViewById<Button>(R.id.btn_pick_bg_color)?.backgroundTintList = ColorStateList.valueOf(Color.parseColor(currentBgColor)) } catch (e: Exception) {}
     }
 
     private fun showColorPickerDialog(title: String, initialColorHex: String, onColorSelected: (String) -> Unit) {
@@ -640,41 +689,45 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveSettingsFromUI() {
         try {
-            settingsManager.previewScale = findViewById<SeekBar>(R.id.sb_preview_scale).progress + 50
-            settingsManager.calculationMethod = calcValues[calcEntries.indexOf(findViewById<AutoCompleteTextView>(R.id.spinner_calc_method).text.toString()).takeIf { it >= 0 } ?: 0]
-            settingsManager.showClock = findViewById<SwitchCompat>(R.id.sw_show_clock).isChecked
-            settingsManager.showDate = findViewById<SwitchCompat>(R.id.sw_show_date).isChecked
-            settingsManager.showPrayer = findViewById<SwitchCompat>(R.id.sw_show_prayer).isChecked
-            settingsManager.showAdditional = findViewById<SwitchCompat>(R.id.sw_show_additional).isChecked
-            settingsManager.fontSizeClock = findViewById<SeekBar>(R.id.sb_fs_clock).progress + 20
-            settingsManager.fontSizeDate = findViewById<SeekBar>(R.id.sb_fs_date).progress + 8
-            settingsManager.fontSizePrayer = findViewById<SeekBar>(R.id.sb_fs_prayer).progress + 8
-            settingsManager.fontSizeAdditional = findViewById<SeekBar>(R.id.sb_fs_additional).progress + 8
-            settingsManager.widgetBgRadius = findViewById<SeekBar>(R.id.sb_radius).progress
-            settingsManager.hijriOffset = findViewById<SeekBar>(R.id.sb_hijri_offset).progress - 2
+            settingsManager.previewScale = (findViewById<SeekBar>(R.id.sb_preview_scale)?.progress ?: 50) + 50
+
+            val calcSpinnerStr = findViewById<AutoCompleteTextView>(R.id.spinner_calc_method)?.text?.toString() ?: ""
+            settingsManager.calculationMethod = calcValues[calcEntries.indexOf(calcSpinnerStr).takeIf { it >= 0 } ?: 0]
+
+            settingsManager.showClock = findViewById<SwitchCompat>(R.id.sw_show_clock)?.isChecked ?: true
+            settingsManager.showDate = findViewById<SwitchCompat>(R.id.sw_show_date)?.isChecked ?: true
+            settingsManager.showPrayer = findViewById<SwitchCompat>(R.id.sw_show_prayer)?.isChecked ?: true
+            settingsManager.showAdditional = findViewById<SwitchCompat>(R.id.sw_show_additional)?.isChecked ?: true
+
+            settingsManager.fontSizeClock = (findViewById<SeekBar>(R.id.sb_fs_clock)?.progress ?: 16) + 20
+            settingsManager.fontSizeDate = (findViewById<SeekBar>(R.id.sb_fs_date)?.progress ?: 4) + 8
+            settingsManager.fontSizePrayer = (findViewById<SeekBar>(R.id.sb_fs_prayer)?.progress ?: 5) + 8
+            settingsManager.fontSizeAdditional = (findViewById<SeekBar>(R.id.sb_fs_additional)?.progress ?: 3) + 8
+            settingsManager.widgetBgRadius = findViewById<SeekBar>(R.id.sb_radius)?.progress ?: 16
+            settingsManager.hijriOffset = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
 
             settingsManager.widgetTextColor = currentTextColor
             settingsManager.widgetBgColor = currentBgColor
-            settingsManager.isDayStartAtMaghrib = findViewById<CheckBox>(R.id.cb_day_start).isChecked
+            settingsManager.isDayStartAtMaghrib = findViewById<CheckBox>(R.id.cb_day_start)?.isChecked ?: true
 
-            settingsManager.dateFormat = findViewById<EditText>(R.id.et_date_format).text.toString().ifEmpty { "en-US{EEEE, dd MMMM yyyy}" }
-            settingsManager.hijriFormat = findViewById<EditText>(R.id.et_hijri_format).text.toString().ifEmpty { "en-US{dd MMMM yyyy} AH" }
+            settingsManager.dateFormat = findViewById<EditText>(R.id.et_date_format)?.text?.toString()?.ifEmpty { "en-US{EEEE, dd MMMM yyyy}" } ?: "en-US{EEEE, dd MMMM yyyy}"
+            settingsManager.hijriFormat = findViewById<EditText>(R.id.et_hijri_format)?.text?.toString()?.ifEmpty { "en-US{dd MMMM yyyy} AH" } ?: "en-US{dd MMMM yyyy} AH"
 
-            settingsManager.isAutoSilentEnabled = findViewById<SwitchCompat>(R.id.switch_auto_silent).isChecked
-            settingsManager.fajrBefore = findViewById<SeekBar>(R.id.sb_fajr_bef).progress
-            settingsManager.fajrAfter = findViewById<SeekBar>(R.id.sb_fajr_aft).progress
-            settingsManager.dhuhrBefore = findViewById<SeekBar>(R.id.sb_dhuhr_bef).progress
-            settingsManager.dhuhrAfter = findViewById<SeekBar>(R.id.sb_dhuhr_aft).progress
-            settingsManager.fridayBefore = findViewById<SeekBar>(R.id.sb_fri_bef).progress
-            settingsManager.fridayAfter = findViewById<SeekBar>(R.id.sb_fri_aft).progress
-            settingsManager.asrBefore = findViewById<SeekBar>(R.id.sb_asr_bef).progress
-            settingsManager.asrAfter = findViewById<SeekBar>(R.id.sb_asr_aft).progress
-            settingsManager.maghribBefore = findViewById<SeekBar>(R.id.sb_maghrib_bef).progress
-            settingsManager.maghribAfter = findViewById<SeekBar>(R.id.sb_maghrib_aft).progress
-            settingsManager.ishaBefore = findViewById<SeekBar>(R.id.sb_isha_bef).progress
-            settingsManager.ishaAfter = findViewById<SeekBar>(R.id.sb_isha_aft).progress
-            settingsManager.isAdzanAudioEnabled = findViewById<SwitchCompat>(R.id.switch_audio_adzan).isChecked
-            settingsManager.adzanVolume = findViewById<SeekBar>(R.id.sb_adzan_vol).progress
+            settingsManager.isAutoSilentEnabled = findViewById<SwitchCompat>(R.id.switch_auto_silent)?.isChecked ?: false
+            settingsManager.fajrBefore = findViewById<SeekBar>(R.id.sb_fajr_bef)?.progress ?: 5
+            settingsManager.fajrAfter = findViewById<SeekBar>(R.id.sb_fajr_aft)?.progress ?: 15
+            settingsManager.dhuhrBefore = findViewById<SeekBar>(R.id.sb_dhuhr_bef)?.progress ?: 5
+            settingsManager.dhuhrAfter = findViewById<SeekBar>(R.id.sb_dhuhr_aft)?.progress ?: 15
+            settingsManager.fridayBefore = findViewById<SeekBar>(R.id.sb_fri_bef)?.progress ?: 10
+            settingsManager.fridayAfter = findViewById<SeekBar>(R.id.sb_fri_aft)?.progress ?: 45
+            settingsManager.asrBefore = findViewById<SeekBar>(R.id.sb_asr_bef)?.progress ?: 5
+            settingsManager.asrAfter = findViewById<SeekBar>(R.id.sb_asr_aft)?.progress ?: 15
+            settingsManager.maghribBefore = findViewById<SeekBar>(R.id.sb_maghrib_bef)?.progress ?: 5
+            settingsManager.maghribAfter = findViewById<SeekBar>(R.id.sb_maghrib_aft)?.progress ?: 15
+            settingsManager.ishaBefore = findViewById<SeekBar>(R.id.sb_isha_bef)?.progress ?: 5
+            settingsManager.ishaAfter = findViewById<SeekBar>(R.id.sb_isha_aft)?.progress ?: 15
+            settingsManager.isAdzanAudioEnabled = findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked ?: false
+            settingsManager.adzanVolume = findViewById<SeekBar>(R.id.sb_adzan_vol)?.progress ?: 80
             settingsManager.customAdzanRegularUri = tempRegularUri
             settingsManager.customAdzanSubuhUri = tempSubuhUri
 
@@ -685,14 +738,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
-        findViewById<Button>(R.id.btn_pick_text_color).setOnClickListener { showColorPickerDialog(getString(R.string.btn_text_color), currentTextColor) { selectedHex -> currentTextColor = selectedHex; updateColorButtons(); updatePreview() } }
-        findViewById<Button>(R.id.btn_pick_bg_color).setOnClickListener { showColorPickerDialog(getString(R.string.btn_bg_color), currentBgColor) { selectedHex -> currentBgColor = selectedHex; updateColorButtons(); updatePreview() } }
-        findViewById<Button>(R.id.btn_update_gps).setOnClickListener {
+        findViewById<Button>(R.id.btn_pick_text_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_text_color), currentTextColor) { selectedHex -> currentTextColor = selectedHex; updateColorButtons(); updatePreview() } }
+        findViewById<Button>(R.id.btn_pick_bg_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_bg_color), currentBgColor) { selectedHex -> currentBgColor = selectedHex; updateColorButtons(); updatePreview() } }
+        findViewById<Button>(R.id.btn_update_gps)?.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) fetchLocation() else requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
         }
-        findViewById<Button>(R.id.btn_save_settings).setOnClickListener { saveSettingsFromUI() }
+        findViewById<Button>(R.id.btn_save_settings)?.setOnClickListener { saveSettingsFromUI() }
 
-        findViewById<Button>(R.id.btn_restore).setOnClickListener {
+        findViewById<Button>(R.id.btn_restore)?.setOnClickListener {
             MaterialAlertDialogBuilder(this)
                 .setTitle(getString(R.string.dialog_reset_title))
                 .setMessage(getString(R.string.dialog_reset_message))
@@ -701,13 +754,13 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        findViewById<Button>(R.id.btn_about).setOnClickListener {
+        findViewById<Button>(R.id.btn_about)?.setOnClickListener {
             val dialogView = layoutInflater.inflate(R.layout.dialog_about, null)
             val dialog = MaterialAlertDialogBuilder(this)
                 .setView(dialogView)
                 .show()
 
-            dialogView.findViewById<Button>(R.id.btn_open_github).setOnClickListener {
+            dialogView.findViewById<Button>(R.id.btn_open_github)?.setOnClickListener {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/cyberzilla"))
                 startActivity(intent)
             }

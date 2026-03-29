@@ -105,7 +105,9 @@
     <string name="color_hex">Hex: %1$s</string>
     <string name="format_lat_lon">Lat: %1$s, Lon: %2$s</string>
 
-    <string name="info_adzan_now">PRAYER TIME HAS ENTERED • ADZAN IS CALLING • LET\'S PRAY • </string>
+    <string name="info_adzan_1">PRAYER TIME HAS ENTERED</string>
+    <string name="info_adzan_2">ADZAN IS CALLING</string>
+    <string name="info_adzan_3">LET\'S PRAY TOGETHER</string>
     <string name="info_adzan_sub">Please perform your prayer</string>
     <string name="sunnah_muharram">✨ Tasu\'a / Ashura Fasting</string>
     <string name="sunnah_dzulhijjah">✨ Dzulhijjah Fasting</string>

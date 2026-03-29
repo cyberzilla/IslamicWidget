@@ -158,6 +158,18 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val is24Hour = DateFormat.is24HourFormat(context)
         val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
 
+        val txtSunrise = localizedContext.getString(R.string.sunrise)
+        val txtLastThird = localizedContext.getString(R.string.last_third)
+        val txtQibla = localizedContext.getString(R.string.qibla)
+
+        val fsClock = settings.fontSizeClock.toFloat()
+        val fsDate = settings.fontSizeDate.toFloat()
+        val fsPrayer = settings.fontSizePrayer.toFloat()
+        val fsAdd = settings.fontSizeAdditional.toFloat()
+
+        val fsInfoTitle = fsPrayer + 4f
+        val fsInfoSub = fsAdd + 1f
+
         if (settings.isAdzanPlaying) {
             views.setViewVisibility(R.id.container_clock, View.GONE)
             views.setViewVisibility(R.id.container_date, View.GONE)
@@ -166,9 +178,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             views.setViewVisibility(R.id.container_additional_flipper, View.GONE)
 
             views.setViewVisibility(R.id.container_info_board, View.VISIBLE)
-            views.setTextViewText(R.id.tv_info_marquee, localizedContext.getString(R.string.info_adzan_now))
+
+            views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_SP, fsInfoTitle)
+            views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_SP, fsInfoTitle)
+            views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_SP, fsInfoTitle)
+            views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_SP, fsInfoSub)
+
+            views.setTextViewText(R.id.tv_info_adzan_1, localizedContext.getString(R.string.info_adzan_1))
+            views.setTextViewText(R.id.tv_info_adzan_2, localizedContext.getString(R.string.info_adzan_2))
+            views.setTextViewText(R.id.tv_info_adzan_3, localizedContext.getString(R.string.info_adzan_3))
             views.setTextViewText(R.id.tv_info_sub, localizedContext.getString(R.string.info_adzan_sub))
-            views.setBoolean(R.id.tv_info_marquee, "setSelected", true)
         } else {
             views.setViewVisibility(R.id.container_info_board, View.GONE)
             views.setViewVisibility(R.id.container_clock, if (settings.showClock) View.VISIBLE else View.GONE)
@@ -180,15 +199,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.label_asr, localizedContext.getString(R.string.asr))
             views.setTextViewText(R.id.label_maghrib, localizedContext.getString(R.string.maghrib))
             views.setTextViewText(R.id.label_isha, localizedContext.getString(R.string.isha))
-
-            val txtSunrise = localizedContext.getString(R.string.sunrise)
-            val txtLastThird = localizedContext.getString(R.string.last_third)
-            val txtQibla = localizedContext.getString(R.string.qibla)
-
-            val fsClock = settings.fontSizeClock.toFloat()
-            val fsDate = settings.fontSizeDate.toFloat()
-            val fsPrayer = settings.fontSizePrayer.toFloat()
-            val fsAdd = settings.fontSizeAdditional.toFloat()
 
             views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_SP, fsClock)
             views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_SP, fsDate - 2f)
@@ -209,7 +219,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             val opacityTextColor = try { Color.argb(200, Color.red(textColor), Color.green(textColor), Color.blue(textColor)) } catch (e: Exception) { Color.LTGRAY }
 
-            // Set styles for BOTH the normal layout and the flip layout
             val additionalTextIds = listOf(
                 R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_divider_1, R.id.tv_divider_2,
                 R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
@@ -280,12 +289,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.tv_maghrib_time, timeFormatter.format(prayerTimes.maghrib.asDate()))
                     views.setTextViewText(R.id.tv_isha_time, timeFormatter.format(prayerTimes.isha.asDate()))
 
-                    // Terapkan text ke normal layout
                     views.setTextViewText(R.id.tv_sunrise, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
                     views.setTextViewText(R.id.tv_last_third, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                     views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
-                    // Terapkan text ke flipper layout
                     views.setTextViewText(R.id.tv_sunrise_flip, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
                     views.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                     views.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
@@ -330,9 +337,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                         if (sunnahInfo.isNotEmpty()) {
                             views.setViewVisibility(R.id.container_additional_normal, View.GONE)
                             views.setViewVisibility(R.id.container_additional_flipper, View.VISIBLE)
-
                             views.setTextViewText(R.id.tv_sunnah_reminder_flip, sunnahInfo.toString())
-                            views.setBoolean(R.id.tv_sunnah_reminder_flip, "setSelected", true)
                         } else {
                             views.setViewVisibility(R.id.container_additional_normal, View.VISIBLE)
                             views.setViewVisibility(R.id.container_additional_flipper, View.GONE)

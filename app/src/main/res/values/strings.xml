@@ -105,7 +105,9 @@
     <string name="color_hex">Hex: %1$s</string>
     <string name="format_lat_lon">Lat: %1$s, Lon: %2$s</string>
 
-    <string name="info_adzan_now">WAKTU SHALAT TELAH MASUK • ADZAN SEDANG BERKUMANDANG • MARI MENUJU KEMENANGAN • </string>
+    <string name="info_adzan_1">WAKTU SHALAT TELAH MASUK</string>
+    <string name="info_adzan_2">ADZAN SEDANG BERKUMANDANG</string>
+    <string name="info_adzan_3">MARI SHALAT BERJAMAAH</string>
     <string name="info_adzan_sub">Silakan tunaikan ibadah shalat Anda</string>
     <string name="sunnah_muharram">✨ Puasa Tasu\'a / Asyura</string>
     <string name="sunnah_dzulhijjah">✨ Puasa Dzulhijjah</string>
