@@ -3,11 +3,11 @@ package com.cyberzilla.islamicwidget
 import android.content.Context
 import android.content.SharedPreferences
 
-class SettingsManager(context: Context) {
+class SettingsManager(private val context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
 
     var languageCode: String
-        get() = prefs.getString("languageCode", "id") ?: "id"
+        get() = prefs.getString("languageCode", "en") ?: "en"
         set(value) = prefs.edit().putString("languageCode", value).apply()
 
     var appTheme: String
@@ -19,7 +19,7 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit().putString("calculationMethod", value).apply()
 
     var previewScale: Int
-        get() = prefs.getInt("previewScale", 100)
+        get() = prefs.getInt("previewScale", 66)
         set(value) = prefs.edit().putInt("previewScale", value).apply()
 
     var latitude: String?
@@ -31,7 +31,7 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit().putString("longitude", value).apply()
 
     var locationName: String
-        get() = prefs.getString("locationName", "Lokasi belum diatur") ?: "Lokasi belum diatur"
+        get() = prefs.getString("locationName", context.getString(R.string.default_location)) ?: context.getString(R.string.default_location)
         set(value) = prefs.edit().putString("locationName", value).apply()
 
     var showClock: Boolean
@@ -51,19 +51,19 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit().putBoolean("showAdditional", value).apply()
 
     var fontSizeClock: Int
-        get() = prefs.getInt("fontSizeClock", 36)
+        get() = prefs.getInt("fontSizeClock", 43)
         set(value) = prefs.edit().putInt("fontSizeClock", value).apply()
 
     var fontSizeDate: Int
-        get() = prefs.getInt("fontSizeDate", 12)
+        get() = prefs.getInt("fontSizeDate", 25)
         set(value) = prefs.edit().putInt("fontSizeDate", value).apply()
 
     var fontSizePrayer: Int
-        get() = prefs.getInt("fontSizePrayer", 13)
+        get() = prefs.getInt("fontSizePrayer", 21)
         set(value) = prefs.edit().putInt("fontSizePrayer", value).apply()
 
     var fontSizeAdditional: Int
-        get() = prefs.getInt("fontSizeAdditional", 11)
+        get() = prefs.getInt("fontSizeAdditional", 20)
         set(value) = prefs.edit().putInt("fontSizeAdditional", value).apply()
 
     var widgetBgRadius: Int
@@ -87,29 +87,29 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit().putBoolean("isDayStartAtMaghrib", value).apply()
 
     var dateFormat: String
-        get() = prefs.getString("dateFormat", "id-ID{EEEE, dd MMMM yyyy}") ?: "id-ID{EEEE, dd MMMM yyyy}"
+        get() = prefs.getString("dateFormat", "en-US{EEEE, dd MMMM yyyy}") ?: "en-US{EEEE, dd MMMM yyyy}"
         set(value) = prefs.edit().putString("dateFormat", value).apply()
 
     var hijriFormat: String
-        get() = prefs.getString("hijriFormat", "id-ID{dd MMMM yyyy} H") ?: "id-ID{dd MMMM yyyy} H"
+        get() = prefs.getString("hijriFormat", "en-US{dd MMMM yyyy} H") ?: "en-US{dd MMMM yyyy} H"
         set(value) = prefs.edit().putString("hijriFormat", value).apply()
 
     var isAutoSilentEnabled: Boolean
         get() = prefs.getBoolean("isAutoSilentEnabled", false)
         set(value) = prefs.edit().putBoolean("isAutoSilentEnabled", value).apply()
 
-    var fajrBefore: Int get() = prefs.getInt("fajrBefore", 5); set(value) = prefs.edit().putInt("fajrBefore", value).apply()
-    var fajrAfter: Int get() = prefs.getInt("fajrAfter", 15); set(value) = prefs.edit().putInt("fajrAfter", value).apply()
-    var dhuhrBefore: Int get() = prefs.getInt("dhuhrBefore", 5); set(value) = prefs.edit().putInt("dhuhrBefore", value).apply()
-    var dhuhrAfter: Int get() = prefs.getInt("dhuhrAfter", 15); set(value) = prefs.edit().putInt("dhuhrAfter", value).apply()
+    var fajrBefore: Int get() = prefs.getInt("fajrBefore", 0); set(value) = prefs.edit().putInt("fajrBefore", value).apply()
+    var fajrAfter: Int get() = prefs.getInt("fajrAfter", 45); set(value) = prefs.edit().putInt("fajrAfter", value).apply()
+    var dhuhrBefore: Int get() = prefs.getInt("dhuhrBefore", 0); set(value) = prefs.edit().putInt("dhuhrBefore", value).apply()
+    var dhuhrAfter: Int get() = prefs.getInt("dhuhrAfter", 35); set(value) = prefs.edit().putInt("dhuhrAfter", value).apply()
     var fridayBefore: Int get() = prefs.getInt("fridayBefore", 10); set(value) = prefs.edit().putInt("fridayBefore", value).apply()
-    var fridayAfter: Int get() = prefs.getInt("fridayAfter", 45); set(value) = prefs.edit().putInt("fridayAfter", value).apply()
+    var fridayAfter: Int get() = prefs.getInt("fridayAfter", 61); set(value) = prefs.edit().putInt("fridayAfter", value).apply()
     var asrBefore: Int get() = prefs.getInt("asrBefore", 5); set(value) = prefs.edit().putInt("asrBefore", value).apply()
-    var asrAfter: Int get() = prefs.getInt("asrAfter", 15); set(value) = prefs.edit().putInt("asrAfter", value).apply()
+    var asrAfter: Int get() = prefs.getInt("asrAfter", 35); set(value) = prefs.edit().putInt("asrAfter", value).apply()
     var maghribBefore: Int get() = prefs.getInt("maghribBefore", 5); set(value) = prefs.edit().putInt("maghribBefore", value).apply()
-    var maghribAfter: Int get() = prefs.getInt("maghribAfter", 15); set(value) = prefs.edit().putInt("maghribAfter", value).apply()
-    var ishaBefore: Int get() = prefs.getInt("ishaBefore", 5); set(value) = prefs.edit().putInt("ishaBefore", value).apply()
-    var ishaAfter: Int get() = prefs.getInt("ishaAfter", 15); set(value) = prefs.edit().putInt("ishaAfter", value).apply()
+    var maghribAfter: Int get() = prefs.getInt("maghribAfter", 35); set(value) = prefs.edit().putInt("maghribAfter", value).apply()
+    var ishaBefore: Int get() = prefs.getInt("ishaBefore", 0); set(value) = prefs.edit().putInt("ishaBefore", value).apply()
+    var ishaAfter: Int get() = prefs.getInt("ishaAfter", 55); set(value) = prefs.edit().putInt("ishaAfter", value).apply()
 
     var isAdzanAudioEnabled: Boolean
         get() = prefs.getBoolean("isAdzanAudioEnabled", false)
@@ -136,10 +136,9 @@ class SettingsManager(context: Context) {
         set(value) = prefs.edit().putInt("quoteUpdateInterval", value).apply()
 
     var quoteFontSize: Int
-        get() = prefs.getInt("quoteFontSize", 14)
+        get() = prefs.getInt("quoteFontSize", 23)
         set(value) = prefs.edit().putInt("quoteFontSize", value).apply()
 
-    // --- State Animasi Quote ---
     var quoteDisplayedChild: Int
         get() = prefs.getInt("quoteDisplayedChild", 0)
         set(value) = prefs.edit().putInt("quoteDisplayedChild", value).apply()

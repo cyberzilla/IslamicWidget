@@ -7,9 +7,6 @@ import android.content.Intent
 
 object QuoteUpdateManager {
 
-    /**
-     * @param intervalMinutes Set > 0 untuk menyalakan, set 0 untuk mematikan.
-     */
     fun setAutoUpdate(context: Context, intervalMinutes: Int) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 

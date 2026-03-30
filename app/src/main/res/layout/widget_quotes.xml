@@ -110,10 +110,10 @@
 
         <ImageButton
             android:id="@+id/btn_share_quote"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="37dp"
+            android:layout_height="37dp"
             android:layout_marginEnd="32dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/bg_circle_ripple"
             android:contentDescription="@string/quote_desc_share"
             android:padding="10dp"
             android:scaleType="fitCenter"
@@ -122,9 +122,9 @@
 
         <ImageButton
             android:id="@+id/btn_random_quote"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:layout_width="37dp"
+            android:layout_height="37dp"
+            android:background="@drawable/bg_circle_ripple"
             android:contentDescription="@string/quote_desc_random"
             android:padding="10dp"
             android:scaleType="fitCenter"

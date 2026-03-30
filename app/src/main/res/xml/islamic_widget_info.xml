@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-android:initialLayout="@layout/widget_islamic"
-android:minWidth="320dp"
-android:minHeight="110dp"
-android:targetCellWidth="5"
-android:targetCellHeight="2"
-android:previewImage="@drawable/ic_icon_islamic"
-android:resizeMode="horizontal|vertical"
-android:updatePeriodMillis="1800000"
-android:widgetCategory="home_screen" />
+    android:initialLayout="@layout/widget_islamic"
+    android:minWidth="250dp"
+    android:minHeight="50dp"
+    android:minResizeHeight="50dp"
+    android:minResizeWidth="110dp"
+    android:targetCellWidth="5"
+    android:targetCellHeight="2"
+    android:previewImage="@drawable/ic_icon_islamic"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

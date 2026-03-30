@@ -171,13 +171,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val fsInfoSub = fsAdd + 1f
 
         if (settings.isAdzanPlaying) {
-            views.setViewVisibility(R.id.container_clock, View.GONE)
-            views.setViewVisibility(R.id.container_date, View.GONE)
-            views.setViewVisibility(R.id.container_prayer, View.GONE)
-            views.setViewVisibility(R.id.container_additional_normal, View.GONE)
-            views.setViewVisibility(R.id.container_additional_flipper, View.GONE)
-
-            views.setViewVisibility(R.id.container_info_board, View.VISIBLE)
+            views.setDisplayedChild(R.id.master_flipper, 1)
 
             views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_SP, fsInfoTitle)
             views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_SP, fsInfoTitle)
@@ -189,7 +183,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.tv_info_adzan_3, localizedContext.getString(R.string.info_adzan_3))
             views.setTextViewText(R.id.tv_info_sub, localizedContext.getString(R.string.info_adzan_sub))
         } else {
-            views.setViewVisibility(R.id.container_info_board, View.GONE)
+            views.setDisplayedChild(R.id.master_flipper, 0)
+
             views.setViewVisibility(R.id.container_clock, if (settings.showClock) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.container_date, if (settings.showDate) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.container_prayer, if (settings.showPrayer) View.VISIBLE else View.GONE)
@@ -217,20 +212,14 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             for (id in textViewsToResize) { views.setTextColor(id, textColor) }
             for (id in timeViewsToResize) { views.setTextColor(id, textColor) }
 
-            val opacityTextColor = try { Color.argb(200, Color.red(textColor), Color.green(textColor), Color.blue(textColor)) } catch (e: Exception) { Color.LTGRAY }
-
             val additionalTextIds = listOf(
-                R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_divider_1, R.id.tv_divider_2,
-                R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
+                R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2,
+                R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
             )
             for (id in additionalTextIds) {
-                views.setTextColor(id, opacityTextColor)
+                views.setTextColor(id, textColor)
                 views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_SP, fsAdd)
             }
-            views.setTextColor(R.id.tv_qibla, textColor)
-            views.setTextViewTextSize(R.id.tv_qibla, TypedValue.COMPLEX_UNIT_SP, fsAdd)
-            views.setTextColor(R.id.tv_qibla_flip, textColor)
-            views.setTextViewTextSize(R.id.tv_qibla_flip, TypedValue.COMPLEX_UNIT_SP, fsAdd)
 
             views.setTextViewTextSize(R.id.tv_sunnah_reminder_flip, TypedValue.COMPLEX_UNIT_SP, fsAdd)
 

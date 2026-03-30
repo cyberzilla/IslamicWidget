@@ -77,6 +77,7 @@
     <string name="dialog_close">Tutup</string>
     <string name="dialog_about_message">Islamic Widget\nVersi 1.0\n\nDikembangkan oleh cyberzilla</string>
 
+    <string name="default_location">Lokasi belum diatur</string>
     <string name="location_found">Lokasi Ditemukan</string>
     <string name="location_not_found">Belum Ada Lokasi</string>
 

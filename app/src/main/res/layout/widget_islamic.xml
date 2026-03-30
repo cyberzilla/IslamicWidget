@@ -10,247 +10,254 @@
         android:scaleType="fitXY"
         android:src="@drawable/widget_bg_shape" />
 
-    <LinearLayout
-        android:id="@+id/container_info_board"
+    <ViewFlipper
+        android:id="@+id/master_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        android:padding="12dp">
-
-        <ViewFlipper
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:autoStart="true"
-            android:flipInterval="2500"
-            android:inAnimation="@anim/slide_up_in"
-            android:outAnimation="@anim/slide_up_out">
-
-            <TextView
-                android:id="@+id/tv_info_adzan_1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="WAKTU SHALAT MASUK"
-                android:textColor="#FFC107"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:shadowColor="#B3000000"
-                android:shadowRadius="4"
-                android:shadowDx="1"
-                android:shadowDy="1" />
-
-            <TextView
-                android:id="@+id/tv_info_adzan_2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="ADZAN BERKUMANDANG"
-                android:textColor="#FFC107"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:shadowColor="#B3000000"
-                android:shadowRadius="4"
-                android:shadowDx="1"
-                android:shadowDy="1" />
-
-            <TextView
-                android:id="@+id/tv_info_adzan_3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="MARI KITA SHALAT"
-                android:textColor="#FFC107"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:shadowColor="#B3000000"
-                android:shadowRadius="4"
-                android:shadowDx="1"
-                android:shadowDy="1" />
-        </ViewFlipper>
-
-        <TextView
-            android:id="@+id/tv_info_sub"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Silakan Menunaikan Ibadah"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:layout_marginTop="8dp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="8dp"
-        android:gravity="center"
-        android:layoutDirection="ltr">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+        android:inAnimation="@android:anim/fade_in"
+        android:outAnimation="@android:anim/fade_out">
 
         <LinearLayout
-            android:id="@+id/container_clock"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center">
-
-            <TextClock
-                android:id="@+id/clock_widget"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:format12Hour="hh:mm a"
-                android:format24Hour="HH:mm"
-                android:textColor="#FFFFFF"
-                android:textSize="36sp"
-                android:textStyle="bold"
-                android:shadowColor="#B3000000"
-                android:shadowRadius="5"
-                android:shadowDx="1.5"
-                android:shadowDy="1.5" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/container_date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:padding="8dp"
             android:gravity="center"
-            android:layout_marginTop="2dp">
+            android:layoutDirection="ltr">
 
             <TextView
-                android:id="@+id/tv_gregorian_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#E0E0E0"
-                android:textSize="12sp"
-                android:text="Memuat tanggal..."
-                android:shadowColor="#B3000000"
-                android:shadowRadius="3"
-                android:shadowDx="1"
-                android:shadowDy="1" />
-
-            <TextView
-                android:id="@+id/tv_hijri_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFC107"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:text="Memuat hijriyah..."
-                android:shadowColor="#B3000000"
-                android:shadowRadius="3"
-                android:shadowDx="1"
-                android:shadowDy="1" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0.8" />
-
-        <LinearLayout
-            android:id="@+id/container_prayer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layoutDirection="ltr"
-            android:weightSum="5">
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:id="@+id/label_fajr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fajr" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
-                <TextView android:id="@+id/tv_fajr_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:id="@+id/label_dhuhr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/dhuhr" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
-                <TextView android:id="@+id/tv_dhuhr_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:id="@+id/label_asr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/asr" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
-                <TextView android:id="@+id/tv_asr_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:id="@+id/label_maghrib" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/maghrib" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
-                <TextView android:id="@+id/tv_maghrib_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
-            </LinearLayout>
-
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                <TextView android:id="@+id/label_isha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/isha" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
-                <TextView android:id="@+id/tv_isha_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0.8" />
-
-        <LinearLayout
-            android:id="@+id/container_additional_normal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layoutDirection="ltr"
-            android:gravity="center">
-
-            <TextView android:id="@+id/tv_sunrise" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Terbit: --:--" android:textSize="11sp" android:textStyle="italic" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
-            <TextView android:id="@+id/tv_divider_1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" • " android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
-            <TextView android:id="@+id/tv_last_third" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1/3 Malam: --:--" android:textSize="11sp" android:textStyle="italic" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
-            <TextView android:id="@+id/tv_divider_2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" • " android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
-            <TextView android:id="@+id/tv_qibla" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kiblat: --°" android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
-        </LinearLayout>
-
-        <ViewFlipper
-            android:id="@+id/container_additional_flipper"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:autoStart="true"
-            android:flipInterval="4000"
-            android:inAnimation="@anim/slide_up_in"
-            android:outAnimation="@anim/slide_up_out"
-            android:visibility="gone">
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <LinearLayout
+                android:id="@+id/container_clock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextClock
+                    android:id="@+id/clock_widget"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:format12Hour="hh:mm a"
+                    android:format24Hour="HH:mm"
+                    android:textColor="#FFFFFF"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="5"
+                    android:shadowDx="1.5"
+                    android:shadowDy="1.5" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginTop="2dp">
+
+                <TextView
+                    android:id="@+id/tv_gregorian_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#E0E0E0"
+                    android:textSize="12sp"
+                    android:text="Memuat tanggal..."
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="3"
+                    android:shadowDx="1"
+                    android:shadowDy="1" />
+
+                <TextView
+                    android:id="@+id/tv_hijri_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFC107"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:text="Memuat hijriyah..."
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="3"
+                    android:shadowDx="1"
+                    android:shadowDy="1" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.8" />
+
+            <LinearLayout
+                android:id="@+id/container_prayer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layoutDirection="ltr"
+                android:weightSum="5">
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:id="@+id/label_fajr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fajr" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
+                    <TextView android:id="@+id/tv_fajr_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:id="@+id/label_dhuhr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/dhuhr" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
+                    <TextView android:id="@+id/tv_dhuhr_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:id="@+id/label_asr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/asr" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
+                    <TextView android:id="@+id/tv_asr_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:id="@+id/label_maghrib" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/maghrib" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
+                    <TextView android:id="@+id/tv_maghrib_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:id="@+id/label_isha" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/isha" android:textColor="#FFFFFF" android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
+                    <TextView android:id="@+id/tv_isha_time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="4" android:shadowDx="1" android:shadowDy="1"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.8" />
+
+            <LinearLayout
+                android:id="@+id/container_additional_normal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layoutDirection="ltr"
                 android:gravity="center">
 
-                <TextView android:id="@+id/tv_sunrise_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Terbit: --:--" android:textSize="11sp" android:textStyle="italic" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
-                <TextView android:id="@+id/tv_divider_1_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" • " android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
-                <TextView android:id="@+id/tv_last_third_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1/3 Malam: --:--" android:textSize="11sp" android:textStyle="italic" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
-                <TextView android:id="@+id/tv_divider_2_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" • " android:textSize="11sp" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
-                <TextView android:id="@+id/tv_qibla_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kiblat: --°" android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
+                <TextView android:id="@+id/tv_sunrise" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Terbit: --:--" android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
+                <TextView android:id="@+id/tv_divider_1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" • " android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
+                <TextView android:id="@+id/tv_last_third" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1/3 Malam: --:--" android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
+                <TextView android:id="@+id/tv_divider_2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" • " android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
+                <TextView android:id="@+id/tv_qibla" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kiblat: --°" android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_sunnah_reminder_flip"
+            <ViewFlipper
+                android:id="@+id/container_additional_flipper"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#FFC107"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:shadowColor="#B3000000"
-                android:shadowRadius="3"
-                android:shadowDx="1"
-                android:shadowDy="1"/>
-        </ViewFlipper>
+                android:autoStart="true"
+                android:flipInterval="4000"
+                android:inAnimation="@anim/slide_up_in"
+                android:outAnimation="@anim/slide_up_out"
+                android:visibility="gone">
 
-        <TextView
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layoutDirection="ltr"
+                    android:gravity="center">
+
+                    <TextView android:id="@+id/tv_sunrise_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Terbit: --:--" android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1" />
+                    <TextView android:id="@+id/tv_divider_1_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" • " android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
+                    <TextView android:id="@+id/tv_last_third_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1/3 Malam: --:--" android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
+                    <TextView android:id="@+id/tv_divider_2_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" • " android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
+                    <TextView android:id="@+id/tv_qibla_flip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Kiblat: --°" android:textSize="11sp" android:textStyle="bold" android:shadowColor="#B3000000" android:shadowRadius="3" android:shadowDx="1" android:shadowDy="1"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tv_sunnah_reminder_flip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFC107"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="3"
+                    android:shadowDx="1"
+                    android:shadowDy="1"/>
+            </ViewFlipper>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/container_info_board"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="12dp">
 
-    </LinearLayout>
+            <ViewFlipper
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autoStart="true"
+                android:flipInterval="2500"
+                android:inAnimation="@anim/slide_up_in"
+                android:outAnimation="@anim/slide_up_out">
+
+                <TextView
+                    android:id="@+id/tv_info_adzan_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="WAKTU SHALAT MASUK"
+                    android:textColor="#FFC107"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="4"
+                    android:shadowDx="1"
+                    android:shadowDy="1" />
+
+                <TextView
+                    android:id="@+id/tv_info_adzan_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ADZAN BERKUMANDANG"
+                    android:textColor="#FFC107"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="4"
+                    android:shadowDx="1"
+                    android:shadowDy="1" />
+
+                <TextView
+                    android:id="@+id/tv_info_adzan_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="MARI KITA SHALAT"
+                    android:textColor="#FFC107"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:shadowColor="#B3000000"
+                    android:shadowRadius="4"
+                    android:shadowDx="1"
+                    android:shadowDy="1" />
+            </ViewFlipper>
+
+            <TextView
+                android:id="@+id/tv_info_sub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Silakan Menunaikan Ibadah"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+    </ViewFlipper>
 </FrameLayout>

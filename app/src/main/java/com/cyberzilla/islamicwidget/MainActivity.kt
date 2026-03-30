@@ -110,10 +110,8 @@ class MainActivity : AppCompatActivity() {
 
     private val requestNotificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
-            findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked = true
-            settingsManager.isAdzanAudioEnabled = true
             Toast.makeText(this, getString(R.string.toast_notification_granted), Toast.LENGTH_SHORT).show()
-            showPauseActivityWarningDialog()
+            findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked = true
         } else {
             findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked = false
             settingsManager.isAdzanAudioEnabled = false
@@ -287,7 +285,7 @@ class MainActivity : AppCompatActivity() {
             val masehiPattern = findViewById<EditText>(R.id.et_date_format)?.text?.toString()?.ifEmpty { "en-US{EEEE, dd MMMM yyyy}" } ?: "en-US{EEEE, dd MMMM yyyy}"
             val hijriPattern = findViewById<EditText>(R.id.et_hijri_format)?.text?.toString()?.ifEmpty { "en-US{dd MMMM yyyy} AH" } ?: "en-US{dd MMMM yyyy} AH"
 
-            findViewById<View>(R.id.container_info_board)?.visibility = View.GONE
+            findViewById<ViewFlipper>(R.id.master_flipper)?.displayedChild = 0
             findViewById<View>(R.id.container_clock)?.visibility = if (isShowClock) View.VISIBLE else View.GONE
             findViewById<View>(R.id.container_date)?.visibility = if (isShowDate) View.VISIBLE else View.GONE
             findViewById<View>(R.id.container_prayer)?.visibility = if (isShowPrayer) View.VISIBLE else View.GONE
@@ -400,7 +398,6 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.tv_hijri_date)?.text = formatCustomDate(hijriPattern, hijriDate, selectedLocale)
 
             val textColor = try { Color.parseColor(currentTextColor) } catch(e: Exception) { Color.WHITE }
-            val opacityTextColor = Color.argb(200, Color.red(textColor), Color.green(textColor), Color.blue(textColor))
             val bgColor = try { Color.parseColor(currentBgColor) } catch (e: Exception) { Color.TRANSPARENT }
 
             val bgDrawable = ContextCompat.getDrawable(this, R.drawable.widget_bg_shape)?.mutate() as? GradientDrawable
@@ -421,14 +418,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             val additionalTextIds = listOf(
-                R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_divider_1, R.id.tv_divider_2,
-                R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
+                R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2,
+                R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
             )
             for (id in additionalTextIds) {
-                findViewById<TextView>(id)?.apply { setTextColor(opacityTextColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
+                findViewById<TextView>(id)?.apply { setTextColor(textColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
             }
-            findViewById<TextView>(R.id.tv_qibla)?.apply { setTextColor(textColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
-            findViewById<TextView>(R.id.tv_qibla_flip)?.apply { setTextColor(textColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
 
             findViewById<TextView>(R.id.tv_sunnah_reminder_flip)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
 

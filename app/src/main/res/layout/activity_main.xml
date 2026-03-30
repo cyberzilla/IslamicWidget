@@ -255,7 +255,7 @@
                         <SeekBar android:id="@+id/sb_dhuhr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
                         <TextView android:id="@+id/tv_dhuhr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                     </LinearLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/friday" android:textStyle="bold" android:textColor="?attr/colorPrimary"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/friday" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                         <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
                         <SeekBar android:id="@+id/sb_fri_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
