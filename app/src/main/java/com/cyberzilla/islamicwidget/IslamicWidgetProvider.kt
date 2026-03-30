@@ -42,6 +42,21 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
     private fun Instant.asDate() = Date(toEpochMilliseconds())
 
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == "com.cyberzilla.islamicwidget.ACTION_UPDATE_ADZAN_STATE") {
+            val appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) ?: return
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val settings = SettingsManager(context)
+
+            for (appWidgetId in appWidgetIds) {
+                val views = RemoteViews(context.packageName, R.layout.widget_islamic)
+                views.setDisplayedChild(R.id.master_flipper, if (settings.isAdzanPlaying) 1 else 0)
+                appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+            }
+        }
+    }
+
     override fun onAppWidgetOptionsChanged(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -344,9 +359,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             }
         }
 
+        // PERBAIKAN: Mengisolasi update icon agar hanya dieksekusi 1 kali saat hari berubah, mencegah baterai terkuras habis
         try {
             val hDayOfMonth = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
-            IconHelper.updateLauncherIcon(context, hDayOfMonth)
+            val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+            val lastUpdatedIconDay = prefs.getInt("lastIconHijriDay", -1)
+
+            if (hDayOfMonth != lastUpdatedIconDay) {
+                IconHelper.updateLauncherIcon(context, hDayOfMonth)
+                prefs.edit().putInt("lastIconHijriDay", hDayOfMonth).apply()
+            }
         } catch (e: Exception) {}
 
         val masehiFormatted = formatCustomDate(settings.dateFormat, today, selectedLocale)
@@ -393,6 +415,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
 
+        // PERBAIKAN: Gunakan setAlarmClock untuk adzan agar selalu tembus Doze Mode meski layar mati
         if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
@@ -402,7 +425,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val adzanPendingIntent = PendingIntent.getBroadcast(context, requestCodeId + 200, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             try {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, prayerTime.time, adzanPendingIntent)
+                val alarmInfo = AlarmManager.AlarmClockInfo(prayerTime.time, adzanPendingIntent)
+                alarmManager.setAlarmClock(alarmInfo, adzanPendingIntent)
             } catch (e: SecurityException) {}
         }
 

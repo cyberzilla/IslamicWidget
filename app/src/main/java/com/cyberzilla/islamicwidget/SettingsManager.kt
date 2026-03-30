@@ -143,6 +143,10 @@ class SettingsManager(private val context: Context) {
         get() = prefs.getInt("quoteDisplayedChild", 0)
         set(value) = prefs.edit().putInt("quoteDisplayedChild", value).apply()
 
+    var quoteBgAlpha: Int
+        get() = prefs.getInt("quoteBgAlpha", 153) // Default 60% transparent (~153/255)
+        set(value) = prefs.edit().putInt("quoteBgAlpha", value).apply()
+
     fun restoreDefaults() {
         val currentLat = latitude
         val currentLon = longitude

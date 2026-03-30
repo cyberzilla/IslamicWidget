@@ -128,4 +128,6 @@
     <string name="quote_auto_update_label">تحديث تلقائي (0 = يدوي)</string>
     <string name="quote_minutes_label">دقائق</string>
     <string name="quote_font_size_label">حجم خط الاقتباسات</string>
+    <string name="quote_bg_transparency">شفافية الخلفية</string>
+    <string name="quote_bg_alpha">ألفا</string>
 </resources>

@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.util.TypedValue
 import android.widget.RemoteViews
 
@@ -61,21 +62,24 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         val quoteRef = quoteData?.second ?: ""
 
         val fontSize = settingsManager.quoteFontSize.toFloat()
-        // Buat ukuran font referensi sedikit lebih kecil, tapi batasi minimal 10 agar bisa dibaca
         val refFontSize = (fontSize - 3f).coerceAtLeast(10f)
 
-        // Logika ViewFlipper untuk Efek Fade
+        // Ambil nilai Alpha dari pengaturan
+        val alphaValue = settingsManager.quoteBgAlpha
+
         val currentChild = settingsManager.quoteDisplayedChild
         val nextChild = if (currentChild == 0) 1 else 0
         settingsManager.quoteDisplayedChild = nextChild
 
-        // Tentukan TextView mana yang harus diganti teksnya berdasarkan NextChild
         val tvQuoteId = if (nextChild == 0) R.id.tv_quote_text_0 else R.id.tv_quote_text_1
         val tvRefId = if (nextChild == 0) R.id.tv_quote_reference_0 else R.id.tv_quote_reference_1
 
-        // Terapkan ke setiap Widget yang ada di Homescreen
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_quotes)
+
+            // PERBAIKAN: Warnai background drawable menjadi dark grey (#262626) dan atur alpha-nya
+            views.setInt(R.id.quote_bg_image, "setColorFilter", Color.parseColor("#262626"))
+            views.setInt(R.id.quote_bg_image, "setImageAlpha", alphaValue)
 
             views.setTextViewText(tvQuoteId, "\"$quoteText\"")
             views.setTextViewText(tvRefId, quoteRef)
@@ -83,7 +87,6 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             views.setTextViewTextSize(tvQuoteId, TypedValue.COMPLEX_UNIT_SP, fontSize)
             views.setTextViewTextSize(tvRefId, TypedValue.COMPLEX_UNIT_SP, refFontSize)
 
-            // Picu animasi pergantian (Fade)
             views.setDisplayedChild(R.id.quote_flipper, nextChild)
 
             views.setContentDescription(R.id.btn_share_quote, context.getString(R.string.quote_desc_share))

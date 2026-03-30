@@ -15,6 +15,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import java.util.Locale
 
@@ -101,6 +102,9 @@ class AdzanService : Service() {
 
         try {
             mediaPlayer = MediaPlayer().apply {
+                // PERBAIKAN: Menambahkan Wakelock agar CPU tetap berjalan saat layar mati
+                setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     setAudioAttributes(
                         android.media.AudioAttributes.Builder()
@@ -153,8 +157,9 @@ class AdzanService : Service() {
     }
 
     private fun updateWidgetNow() {
+        // PERBAIKAN: Mengirim custom action agar widget memproses partial update (mencegah font hancur)
         val intent = Intent(this, IslamicWidgetProvider::class.java).apply {
-            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            action = "com.cyberzilla.islamicwidget.ACTION_UPDATE_ADZAN_STATE"
             val ids = AppWidgetManager.getInstance(application)
                 .getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)

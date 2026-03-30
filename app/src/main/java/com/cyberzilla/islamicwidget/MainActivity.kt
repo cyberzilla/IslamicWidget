@@ -518,18 +518,23 @@ class MainActivity : AppCompatActivity() {
             langSpinner.isSaveEnabled = false
             langSpinner.setDropdownItems(languageEntries)
             langSpinner.setText(languageEntries[languageValues.indexOf(activeLangCode).takeIf { it >= 0 } ?: 0], false)
+
+            // PERBAIKAN: Memunculkan Loading Spinner sebelum sistem recreate activity saat ubah bahasa
             langSpinner.setOnItemClickListener { _, _, pos, _ ->
                 val code = languageValues[pos]
                 if (code != activeLangCode) {
-                    settingsManager.languageCode = code
-                    when (code) {
-                        "id" -> { settingsManager.dateFormat = "id-ID{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "id-ID{dd MMMM yyyy} H" }
-                        "en" -> { settingsManager.dateFormat = "en-US{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "en-US{dd MMMM yyyy} AH" }
-                        "ar" -> { settingsManager.dateFormat = "ar-SA{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "ar-SA{dd MMMM yyyy} هـ" }
-                    }
-                    findViewById<EditText>(R.id.et_date_format)?.setText(settingsManager.dateFormat)
-                    findViewById<EditText>(R.id.et_hijri_format)?.setText(settingsManager.hijriFormat)
-                    AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
+                    findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        settingsManager.languageCode = code
+                        when (code) {
+                            "id" -> { settingsManager.dateFormat = "id-ID{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "id-ID{dd MMMM yyyy} H" }
+                            "en" -> { settingsManager.dateFormat = "en-US{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "en-US{dd MMMM yyyy} AH" }
+                            "ar" -> { settingsManager.dateFormat = "ar-SA{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "ar-SA{dd MMMM yyyy} هـ" }
+                        }
+                        findViewById<EditText>(R.id.et_date_format)?.setText(settingsManager.dateFormat)
+                        findViewById<EditText>(R.id.et_hijri_format)?.setText(settingsManager.hijriFormat)
+                        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
+                    }, 300)
                 }
             }
         }
@@ -538,9 +543,17 @@ class MainActivity : AppCompatActivity() {
             themeSpinner.isSaveEnabled = false
             themeSpinner.setDropdownItems(themeEntries)
             themeSpinner.setText(themeEntries[themeValues.indexOf(settingsManager.appTheme).takeIf { it >= 0 } ?: 0], false)
+
+            // PERBAIKAN: Memunculkan Loading Spinner sebelum sistem recreate activity saat ubah tema
             themeSpinner.setOnItemClickListener { _, _, pos, _ ->
-                settingsManager.appTheme = themeValues[pos]
-                applyAppTheme(themeValues[pos])
+                val newTheme = themeValues[pos]
+                if (settingsManager.appTheme != newTheme) {
+                    findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        settingsManager.appTheme = newTheme
+                        applyAppTheme(newTheme)
+                    }, 300)
+                }
             }
         }
 
@@ -637,9 +650,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_clear_adzan_subuh)?.setOnClickListener { tempSubuhUri = null; findViewById<TextView>(R.id.tv_adzan_subuh_status)?.text = getString(R.string.status_default); stopTestAdzan() }
         btnPlaySub?.setOnClickListener { toggleTestAdzan(true, btnPlaySub) }
 
-        // Slider tambahan untuk Quote Widget
         setupSlider(R.id.sb_quote_interval, R.id.tv_quote_interval, 0, 120, settingsManager.quoteUpdateInterval, false, "m")
         setupSlider(R.id.sb_quote_font, R.id.tv_quote_font, 10, 40, settingsManager.quoteFontSize, false, "sp")
+        setupSlider(R.id.sb_quote_alpha, R.id.tv_quote_alpha, 0, 255, settingsManager.quoteBgAlpha, false, "")
 
         updatePreview()
     }
@@ -730,19 +743,17 @@ class MainActivity : AppCompatActivity() {
             settingsManager.customAdzanRegularUri = tempRegularUri
             settingsManager.customAdzanSubuhUri = tempSubuhUri
 
-            // Simpan Data Settings Quote Widget
             val newInterval = findViewById<SeekBar>(R.id.sb_quote_interval)?.progress ?: 0
             settingsManager.quoteUpdateInterval = newInterval
             settingsManager.quoteFontSize = (findViewById<SeekBar>(R.id.sb_quote_font)?.progress ?: 4) + 10
+            settingsManager.quoteBgAlpha = findViewById<SeekBar>(R.id.sb_quote_alpha)?.progress ?: 153
 
-            // Panggil class QuoteUpdateManager (Pastikan Anda memiliki file ini dari instruksi sebelumnya)
             QuoteUpdateManager.setAutoUpdate(this, newInterval)
 
             Toast.makeText(this, getString(R.string.toast_saved), Toast.LENGTH_SHORT).show()
             val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
             sendBroadcast(Intent(this, IslamicWidgetProvider::class.java).apply { action = AppWidgetManager.ACTION_APPWIDGET_UPDATE; putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids) })
 
-            // Trigger update untuk Quote Widget agar perubahan font langsung terlihat
             val quoteIds = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, QuoteWidgetProvider::class.java))
             sendBroadcast(Intent(this, QuoteWidgetProvider::class.java).apply { action = AppWidgetManager.ACTION_APPWIDGET_UPDATE; putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quoteIds) })
         } catch (e: Exception) {}
@@ -760,7 +771,16 @@ class MainActivity : AppCompatActivity() {
             MaterialAlertDialogBuilder(this)
                 .setTitle(getString(R.string.dialog_reset_title))
                 .setMessage(getString(R.string.dialog_reset_message))
-                .setPositiveButton(getString(R.string.dialog_yes)) { _, _ -> settingsManager.restoreDefaults(); loadSettingsToUI() }
+                .setPositiveButton(getString(R.string.dialog_yes)) { _, _ ->
+
+                    findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        settingsManager.restoreDefaults()
+                        applyAppTheme("SYSTEM")
+                        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
+                        loadSettingsToUI()
+                    }, 300)
+                }
                 .setNegativeButton(getString(R.string.dialog_cancel), null)
                 .show()
         }

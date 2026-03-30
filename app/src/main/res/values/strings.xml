@@ -128,4 +128,6 @@
     <string name="quote_auto_update_label">Auto Update (0 = Manual)</string>
     <string name="quote_minutes_label">Menit</string>
     <string name="quote_font_size_label">Ukuran Font Quotes</string>
+    <string name="quote_bg_transparency">Transparansi Latar</string>
+    <string name="quote_bg_alpha">Alpha</string>
 </resources>
