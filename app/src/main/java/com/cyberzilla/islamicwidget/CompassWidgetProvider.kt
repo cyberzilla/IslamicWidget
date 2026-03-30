@@ -21,7 +21,6 @@ class CompassWidgetProvider : AppWidgetProvider() {
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
         val views = RemoteViews(context.packageName, R.layout.widget_compass)
 
-        // Mengambil lokasi tersimpan untuk menghitung derajat Kiblat
         val settings = SettingsManager(context)
         val latStr = settings.latitude
         val lonStr = settings.longitude
@@ -31,7 +30,6 @@ class CompassWidgetProvider : AppWidgetProvider() {
             try {
                 val coordinates = Coordinates(latStr.toDouble(), lonStr.toDouble())
                 val qiblaDegree = Qibla(coordinates).direction.toFloat()
-                // Format hanya angkanya saja agar muat di ukuran 1x1
                 degreeText = String.format(Locale.getDefault(), "%.1f°", qiblaDegree)
             } catch (e: Exception) {
                 degreeText = "Err"
