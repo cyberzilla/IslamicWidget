@@ -84,8 +84,8 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(tvQuoteId, "\"$quoteText\"")
             views.setTextViewText(tvRefId, quoteRef)
 
-            views.setTextViewTextSize(tvQuoteId, TypedValue.COMPLEX_UNIT_SP, fontSize)
-            views.setTextViewTextSize(tvRefId, TypedValue.COMPLEX_UNIT_SP, refFontSize)
+            views.setTextViewTextSize(tvQuoteId, TypedValue.COMPLEX_UNIT_DIP, fontSize)
+            views.setTextViewTextSize(tvRefId, TypedValue.COMPLEX_UNIT_DIP, refFontSize)
 
             views.setDisplayedChild(R.id.quote_flipper, nextChild)
 
