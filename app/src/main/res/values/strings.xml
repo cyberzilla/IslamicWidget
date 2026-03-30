@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Islamic Widget</string>
     <string name="settings_title">Pengaturan Widget</string>
@@ -128,6 +129,14 @@
     <string name="quote_auto_update_label">Auto Update (0 = Manual)</string>
     <string name="quote_minutes_label">Menit</string>
     <string name="quote_font_size_label">Ukuran Font Quotes</string>
+
     <string name="quote_bg_transparency">Transparansi Latar</string>
     <string name="quote_bg_alpha">Alpha</string>
+    <string name="pin_widget_title">Tambahkan ke Layar Utama</string>
+    <string name="pin_main_widget">+ Jadwal Sholat</string>
+    <string name="pin_quote_widget">+ Quotes</string>
+    <string name="pin_unsupported">Launcher HP Anda tidak mendukung penambahan widget otomatis.</string>
+    <string name="pin_os_unsupported">Fitur ini memerlukan Android 8.0 (Oreo) ke atas.</string>
+
+    <string name="pin_success">Widget berhasil ditambahkan!</string>
 </resources>

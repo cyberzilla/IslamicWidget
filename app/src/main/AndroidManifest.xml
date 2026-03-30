@@ -124,6 +124,8 @@
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity-alias>
 
+        <receiver android:name=".WidgetPinReceiver" android:exported="false" />
+
         <receiver
             android:name=".IslamicWidgetProvider"
             android:label="Datetime Info"

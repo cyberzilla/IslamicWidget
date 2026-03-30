@@ -1,7 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Islamic Widget</string>
     <string name="settings_title">Widget Settings</string>
-    <string name="preview_hint">*Use scale to match the preview with your homescreen</string>
+    <string name="preview_hint">*Use scale to match preview with your homescreen</string>
     <string name="preview_scale">Scale: %1$d%%</string>
 
     <string name="sec_lang_theme">Language &amp; Theme</string>
@@ -18,15 +19,15 @@
     <string name="el_add">Additional Info (Sunrise, etc)</string>
     <string name="tampil">Show </string>
     <string name="font_label">Font:</string>
-    <string name="visual_bg">Frame &amp; Background Color</string>
+    <string name="visual_bg">Border &amp; Background Color</string>
     <string name="radius">Radius:</string>
     <string name="btn_text_color">Text Color</string>
     <string name="btn_bg_color">Background Color</string>
 
     <string name="sec_calc">Calculation &amp; Format</string>
     <string name="calc_method">Adhan Calculation Method:</string>
-    <string name="hijri_offset">Hijri Correction:</string>
-    <string name="day_start_maghrib">Change Hijri date at Maghrib</string>
+    <string name="hijri_offset">Hijri Offset:</string>
+    <string name="day_start_maghrib">Change Hijri Date at Maghrib</string>
     <string name="format_hint">Use format: en-US{EEEE, dd MMMM yyyy}</string>
     <string name="hint_masehi">Gregorian Format</string>
     <string name="hint_hijri">Hijri Format</string>
@@ -39,7 +40,7 @@
     <string name="maghrib">Maghrib</string>
     <string name="isha">Isha</string>
     <string name="sunrise">Sunrise</string>
-    <string name="last_third">Last 1/3</string>
+    <string name="last_third">Last 1/3 Night</string>
     <string name="qibla">Qibla</string>
     <string name="prayer">Prayer</string>
     <string name="before">Before</string>
@@ -47,7 +48,7 @@
 
     <string name="sec_audio">Adhan Audio</string>
     <string name="volume">Volume:</string>
-    <string name="custom_audio_hint">Choose custom MP3 audio from your device (Leave blank for default).</string>
+    <string name="custom_audio_hint">Select a custom MP3 audio from your device (Leave blank for default).</string>
     <string name="btn_adzan_regular">Regular Adhan</string>
     <string name="btn_adzan_subuh">Fajr Adhan</string>
     <string name="btn_test">Test</string>
@@ -56,22 +57,22 @@
     <string name="status_custom">Status: Custom File Selected</string>
 
     <string name="btn_save">Save &amp; Apply Widget</string>
-    <string name="btn_restore">Restore to Default (Reset All)</string>
+    <string name="btn_restore">Restore to Default</string>
     <string name="btn_about">About Developer</string>
 
-    <string name="theme_system">System Default</string>
+    <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
 
-    <string name="toast_exit_warning">Press back again to exit</string>
+    <string name="toast_exit_warning">Press again to exit</string>
     <string name="toast_dnd_granted">DND permission granted!</string>
     <string name="toast_location_needed">Location permission required</string>
-    <string name="toast_saved">Settings Saved Successfully!</string>
+    <string name="toast_saved">Settings saved successfully!</string>
     <string name="toast_searching_location">Searching for location...</string>
-    <string name="toast_audio_error">Failed to play custom audio. Format might not be supported.</string>
+    <string name="toast_audio_error">Failed to play custom audio. Format might be unsupported.</string>
 
-    <string name="dialog_reset_title">Reset to Default?</string>
-    <string name="dialog_reset_message">All settings will be restored to their original default values.</string>
+    <string name="dialog_reset_title">Restore Defaults?</string>
+    <string name="dialog_reset_message">All settings will be restored to their initial values.</string>
     <string name="dialog_yes">Yes</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_close">Close</string>
@@ -79,23 +80,23 @@
 
     <string name="default_location">Location not set</string>
     <string name="location_found">Location Found</string>
-    <string name="location_not_found">No Location</string>
+    <string name="location_not_found">No Location Found</string>
 
     <string name="btn_stop">Stop</string>
 
     <string name="toast_notification_granted">Notification permission granted</string>
-    <string name="toast_notification_needed">Notification permission is required to control Adzan</string>
+    <string name="toast_notification_needed">Notification permission required for Adhan control</string>
     <string name="dialog_permission_title">System Warning!</string>
-    <string name="dialog_disable_pause_activity">To prevent Adzan notifications from being automatically hidden by the system in the future, please disable "Pause app activity if unused" on the app settings page.</string>
+    <string name="dialog_disable_pause_activity">To prevent the system from automatically hiding Adhan notifications in the future, please disable "Pause app activity if unused" in this app\'s settings page.</string>
     <string name="dialog_settings">Open Settings</string>
 
-    <string name="notif_title_adzan">Time for %1$s</string>
+    <string name="notif_title_adzan">It\'s time for %1$s</string>
     <string name="notif_desc_adzan">Swipe or tap the button to stop.</string>
-    <string name="notif_action_stop">Stop Adzan</string>
-    <string name="notif_channel_name">Prayer Times &amp; Adzan</string>
-    <string name="notif_channel_desc">Notification when Adzan is playing</string>
+    <string name="notif_action_stop">Stop Adhan</string>
+    <string name="notif_channel_name">Prayer Times &amp; Adhan</string>
+    <string name="notif_channel_desc">Notification when Adhan plays</string>
 
-    <string name="log_error_play_adzan">Failed to play Adzan: %1$s</string>
+    <string name="log_error_play_adzan">Failed to play Adhan: %1$s</string>
     <string name="log_error_mute">Failed to mute: %1$s</string>
     <string name="log_error_unmute">Failed to restore volume: %1$s</string>
 
@@ -107,15 +108,15 @@
     <string name="format_lat_lon">Lat: %1$s, Lon: %2$s</string>
 
     <string name="info_adzan_1">PRAYER TIME HAS ENTERED</string>
-    <string name="info_adzan_2">ADZAN IS CALLING</string>
-    <string name="info_adzan_3">LET\'S PRAY TOGETHER</string>
+    <string name="info_adzan_2">ADHAN IS PLAYING</string>
+    <string name="info_adzan_3">LET\'S PRAY IN CONGREGATION</string>
     <string name="info_adzan_sub">Please perform your prayer</string>
     <string name="sunnah_muharram">✨ Tasu\'a / Ashura Fasting</string>
     <string name="sunnah_dzulhijjah">✨ Dzulhijjah Fasting</string>
     <string name="sunnah_arafah">✨ Arafah Fasting</string>
-    <string name="sunnah_ayyamul_bidh">✨ Ayyamul Bidh</string>
+    <string name="sunnah_ayyamul_bidh">✨ Ayyamul Bidh Fasting</string>
     <string name="sunnah_monday_thursday">🌙 Sunnah Fasting</string>
-    <string name="sunnah_friday">📖 Al-Kahf</string>
+    <string name="sunnah_friday">📖 Surah Al-Kahf</string>
 
     <string name="quote_loading">Loading quote...</string>
     <string name="quote_default_reference">- Reference</string>
@@ -128,6 +129,14 @@
     <string name="quote_auto_update_label">Auto Update (0 = Manual)</string>
     <string name="quote_minutes_label">Minutes</string>
     <string name="quote_font_size_label">Quotes Font Size</string>
+
     <string name="quote_bg_transparency">Background Transparency</string>
     <string name="quote_bg_alpha">Alpha</string>
+    <string name="pin_widget_title">Add to Home Screen</string>
+    <string name="pin_main_widget">+ Prayer Times</string>
+    <string name="pin_quote_widget">+ Quotes</string>
+    <string name="pin_unsupported">Your launcher does not support automatic widget pinning.</string>
+    <string name="pin_os_unsupported">This feature requires Android 8.0 (Oreo) or higher.</string>
+
+    <string name="pin_success">Widget pinned successfully!</string>
 </resources>

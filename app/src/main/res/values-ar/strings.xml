@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">الويدجت الإسلامي</string>
     <string name="settings_title">إعدادات الويدجت</string>
@@ -128,6 +129,14 @@
     <string name="quote_auto_update_label">تحديث تلقائي (0 = يدوي)</string>
     <string name="quote_minutes_label">دقائق</string>
     <string name="quote_font_size_label">حجم خط الاقتباسات</string>
+
     <string name="quote_bg_transparency">شفافية الخلفية</string>
     <string name="quote_bg_alpha">ألفا</string>
+    <string name="pin_widget_title">إضافة إلى الشاشة الرئيسية</string>
+    <string name="pin_main_widget">+ ويدجت مواقيت الصلاة</string>
+    <string name="pin_quote_widget">+ ويدجت الاقتباسات</string>
+    <string name="pin_unsupported">مشغل التطبيقات الخاص بك لا يدعم التثبيت التلقائي للويدجت.</string>
+    <string name="pin_os_unsupported">تتطلب هذه الميزة نظام أندرويد 8.0 (Oreo) أو أحدث.</string>
+
+    <string name="pin_success">تمت إضافة الويدجت بنجاح!</string>
 </resources>

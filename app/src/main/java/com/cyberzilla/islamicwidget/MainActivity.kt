@@ -3,6 +3,7 @@ package com.cyberzilla.islamicwidget
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
@@ -508,6 +509,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // PERBAIKAN: Fungsi untuk Pin Widget sekarang memicu BroadcastReceiver saat selesai
+    private fun requestPinWidget(providerClass: Class<*>) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val appWidgetManager = AppWidgetManager.getInstance(this)
+            val myProvider = ComponentName(this, providerClass)
+
+            if (appWidgetManager.isRequestPinAppWidgetSupported) {
+
+                val successIntent = Intent(this, WidgetPinReceiver::class.java)
+                val successPendingIntent = PendingIntent.getBroadcast(
+                    this, 0, successIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                appWidgetManager.requestPinAppWidget(myProvider, null, successPendingIntent)
+
+            } else {
+                Toast.makeText(this, getString(R.string.pin_unsupported), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, getString(R.string.pin_os_unsupported), Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun loadSettingsToUI() {
         themeEntries = arrayOf(getString(R.string.theme_system), getString(R.string.theme_light), getString(R.string.theme_dark))
 
@@ -519,7 +543,6 @@ class MainActivity : AppCompatActivity() {
             langSpinner.setDropdownItems(languageEntries)
             langSpinner.setText(languageEntries[languageValues.indexOf(activeLangCode).takeIf { it >= 0 } ?: 0], false)
 
-            // PERBAIKAN: Memunculkan Loading Spinner sebelum sistem recreate activity saat ubah bahasa
             langSpinner.setOnItemClickListener { _, _, pos, _ ->
                 val code = languageValues[pos]
                 if (code != activeLangCode) {
@@ -544,7 +567,6 @@ class MainActivity : AppCompatActivity() {
             themeSpinner.setDropdownItems(themeEntries)
             themeSpinner.setText(themeEntries[themeValues.indexOf(settingsManager.appTheme).takeIf { it >= 0 } ?: 0], false)
 
-            // PERBAIKAN: Memunculkan Loading Spinner sebelum sistem recreate activity saat ubah tema
             themeSpinner.setOnItemClickListener { _, _, pos, _ ->
                 val newTheme = themeValues[pos]
                 if (settingsManager.appTheme != newTheme) {
@@ -760,6 +782,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
+        findViewById<Button>(R.id.btn_pin_main_widget)?.setOnClickListener {
+            requestPinWidget(IslamicWidgetProvider::class.java)
+        }
+
+        findViewById<Button>(R.id.btn_pin_quote_widget)?.setOnClickListener {
+            requestPinWidget(QuoteWidgetProvider::class.java)
+        }
+
         findViewById<Button>(R.id.btn_pick_text_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_text_color), currentTextColor) { selectedHex -> currentTextColor = selectedHex; updateColorButtons(); updatePreview() } }
         findViewById<Button>(R.id.btn_pick_bg_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_bg_color), currentBgColor) { selectedHex -> currentBgColor = selectedHex; updateColorButtons(); updatePreview() } }
         findViewById<Button>(R.id.btn_update_gps)?.setOnClickListener {
