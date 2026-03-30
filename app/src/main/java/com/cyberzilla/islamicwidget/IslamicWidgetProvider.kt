@@ -254,6 +254,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 }
             }
 
+            val compassIntent = Intent(context, CompassActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            val compassPendingIntent = PendingIntent.getActivity(
+                context, appWidgetId, compassIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.tv_qibla, compassPendingIntent)
+            views.setOnClickPendingIntent(R.id.tv_qibla_flip, compassPendingIntent)
+
             if (latString != null && lonString != null) {
                 try {
                     val latitude = latString.toDouble()

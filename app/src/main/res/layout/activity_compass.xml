@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="320dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="24dp"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="16dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="?attr/colorSurface"
+        android:clipToOutline="true"
+        android:clipChildren="true">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="36dp"
+                android:paddingBottom="40dp"
+                android:paddingHorizontal="24dp">
+
+                <TextView
+                    android:id="@+id/tv_compass_degree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="..."
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="?attr/colorOnSurface"
+                    android:letterSpacing="0.02"
+                    android:layout_marginBottom="32dp"/>
+
+                <FrameLayout
+                    android:layout_width="220dp"
+                    android:layout_height="220dp">
+
+                    <FrameLayout
+                        android:id="@+id/fl_compass_dial"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_compass_dial" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top|center_horizontal"
+                            android:layout_marginTop="28dp"
+                            android:text="@string/dir_north"
+                            android:textColor="#EF4444"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace"
+                            android:fontFamily="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical|right"
+                            android:layout_marginRight="28dp"
+                            android:text="@string/dir_east"
+                            android:textColor="?android:attr/textColorSecondary"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace"
+                            android:fontFamily="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|center_horizontal"
+                            android:layout_marginBottom="28dp"
+                            android:text="@string/dir_south"
+                            android:textColor="?android:attr/textColorSecondary"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace"
+                            android:fontFamily="monospace" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical|left"
+                            android:layout_marginLeft="28dp"
+                            android:text="@string/dir_west"
+                            android:textColor="?android:attr/textColorSecondary"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:typeface="monospace"
+                            android:fontFamily="monospace" />
+                    </FrameLayout>
+
+                    <ImageView
+                        android:id="@+id/iv_qibla_needle"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_qibla_needle" />
+                </FrameLayout>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/btn_close_compass"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_close"
+                app:tint="?attr/colorControlNormal"
+                android:contentDescription="@string/desc_close_button" />
+
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+</FrameLayout>

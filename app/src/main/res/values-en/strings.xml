@@ -140,4 +140,16 @@
     <string name="pin_os_unsupported">This feature requires Android 8.0 (Oreo) or higher.</string>
 
     <string name="pin_success">Widget pinned successfully!</string>
+
+    <string name="compass_title_qibla">Qibla:</string>
+    <string name="toast_compass_layout_error">Failed to load compass layout</string>
+    <string name="compass_invalid_location">Invalid location</string>
+    <string name="toast_no_compass_sensor">Your device does not have a compass sensor</string>
+    <string name="compass_sensor_unavailable">Compass sensor unavailable</string>
+    <string name="desc_close_button">Close Compass</string>
+
+    <string name="dir_north">N</string>
+    <string name="dir_east">E</string>
+    <string name="dir_south">S</string>
+    <string name="dir_west">W</string>
 </resources>

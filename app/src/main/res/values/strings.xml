@@ -140,4 +140,16 @@
     <string name="pin_os_unsupported">Fitur ini memerlukan Android 8.0 (Oreo) ke atas.</string>
 
     <string name="pin_success">Widget berhasil ditambahkan!</string>
+
+    <string name="compass_title_qibla">Kiblat:</string>
+    <string name="toast_compass_layout_error">Gagal memuat layout kompas</string>
+    <string name="compass_invalid_location">Lokasi tidak valid</string>
+    <string name="toast_no_compass_sensor">Perangkat Anda tidak memiliki sensor kompas</string>
+    <string name="compass_sensor_unavailable">Sensor kompas tidak tersedia</string>
+    <string name="desc_close_button">Tutup Kompas</string>
+
+    <string name="dir_north">U</string>
+    <string name="dir_east">T</string>
+    <string name="dir_south">S</string>
+    <string name="dir_west">B</string>
 </resources>

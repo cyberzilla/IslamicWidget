@@ -140,4 +140,16 @@
     <string name="pin_os_unsupported">تتطلب هذه الميزة نظام أندرويد 8.0 (Oreo) أو أحدث.</string>
 
     <string name="pin_success">تمت إضافة الويدجت بنجاح!</string>
+
+    <string name="compass_title_qibla">القبلة:</string>
+    <string name="toast_compass_layout_error">فشل تحميل تخطيط البوصلة</string>
+    <string name="compass_invalid_location">موقع غير صالح</string>
+    <string name="toast_no_compass_sensor">جهازك لا يحتوي على مستشعر بوصلة</string>
+    <string name="compass_sensor_unavailable">مستشعر البوصلة غير متوفر</string>
+    <string name="desc_close_button">إغلاق البوصلة</string>
+
+    <string name="dir_north">ش</string>
+    <string name="dir_east">ق</string>
+    <string name="dir_south">ج</string>
+    <string name="dir_west">غ</string>
 </resources>

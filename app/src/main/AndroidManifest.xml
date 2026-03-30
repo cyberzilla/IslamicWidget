@@ -33,6 +33,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".CompassActivity"
+            android:theme="@style/Theme.CompassPopup"
+            android:exported="true" />
+
         <activity-alias android:name=".MainActivityAlias1" android:enabled="false" android:exported="true" android:icon="@drawable/ic_icon_1" android:targetActivity=".MainActivity">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity-alias>
@@ -161,6 +166,18 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/quotes_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".CompassWidgetProvider"
+            android:label="Qibla Compass"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/compass_widget_info" />
         </receiver>
     </application>
 </manifest>
