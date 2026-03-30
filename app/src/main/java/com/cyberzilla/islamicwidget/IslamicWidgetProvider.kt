@@ -278,10 +278,14 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     val sunnahTimes = SunnahTimes(prayerTimes)
                     val qibla = Qibla(coordinates)
 
+                    var isAfterMaghrib = false
                     if (settings.isDayStartAtMaghrib) {
                         val currentTime = Date()
                         val maghribTime = prayerTimes.maghrib.asDate()
-                        if (currentTime.after(maghribTime)) totalHijriOffset += 1L
+                        if (currentTime.after(maghribTime)) {
+                            totalHijriOffset += 1L
+                            isAfterMaghrib = true
+                        }
                     }
 
                     val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
@@ -310,7 +314,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
                     val hijriDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
                     val hijriMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
-                    val dayOfWeek = today.dayOfWeek
+
+                    val islamicDayOfWeek = if (isAfterMaghrib) today.plusDays(1).dayOfWeek else today.dayOfWeek
                     val sunnahInfo = java.lang.StringBuilder()
 
                     if (hijriMonth == 1 && (hijriDay == 9 || hijriDay == 10)) {
@@ -328,11 +333,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                         if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
                         sunnahInfo.append(localizedContext.getString(R.string.sunnah_ayyamul_bidh))
                     }
-                    if (dayOfWeek == java.time.DayOfWeek.MONDAY || dayOfWeek == java.time.DayOfWeek.THURSDAY) {
+
+                    if (islamicDayOfWeek == java.time.DayOfWeek.MONDAY || islamicDayOfWeek == java.time.DayOfWeek.THURSDAY) {
                         if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
                         sunnahInfo.append(localizedContext.getString(R.string.sunnah_monday_thursday))
                     }
-                    if (dayOfWeek == java.time.DayOfWeek.FRIDAY) {
+                    if (islamicDayOfWeek == java.time.DayOfWeek.FRIDAY) {
                         if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
                         sunnahInfo.append(localizedContext.getString(R.string.sunnah_friday))
                     }
@@ -359,7 +365,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        // PERBAIKAN: Mengisolasi update icon agar hanya dieksekusi 1 kali saat hari berubah, mencegah baterai terkuras habis
         try {
             val hDayOfMonth = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
@@ -415,7 +420,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
 
-        // PERBAIKAN: Gunakan setAlarmClock untuk adzan agar selalu tembus Doze Mode meski layar mati
         if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
