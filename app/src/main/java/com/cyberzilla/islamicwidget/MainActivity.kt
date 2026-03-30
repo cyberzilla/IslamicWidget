@@ -151,7 +151,7 @@ class MainActivity : AppCompatActivity() {
             loadSettingsToUI()
             setupButtons()
         } catch (e: Exception) {
-            Toast.makeText(this, "Terdapat kesalahan pada layout XML Anda!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.toast_xml_error), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -324,8 +324,10 @@ class MainActivity : AppCompatActivity() {
                     val sunnahTimes = SunnahTimes(prayerTimes)
                     val qibla = Qibla(coordinates)
 
+                    var isAfterMaghrib = false
                     if (findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && Date().after(prayerTimes.maghrib.asDate())) {
                         totalHijriOffset += 1L
+                        isAfterMaghrib = true
                     }
 
                     val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
@@ -348,7 +350,8 @@ class MainActivity : AppCompatActivity() {
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
                     val hijriDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
                     val hijriMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
-                    val dayOfWeek = today.dayOfWeek
+
+                    val islamicDayOfWeek = if (isAfterMaghrib) today.plusDays(1).dayOfWeek else today.dayOfWeek
                     val sunnahInfo = java.lang.StringBuilder()
 
                     if (hijriMonth == 1 && (hijriDay == 9 || hijriDay == 10)) {
@@ -366,11 +369,12 @@ class MainActivity : AppCompatActivity() {
                         if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
                         sunnahInfo.append(localizedContext.getString(R.string.sunnah_ayyamul_bidh))
                     }
-                    if (dayOfWeek == java.time.DayOfWeek.MONDAY || dayOfWeek == java.time.DayOfWeek.THURSDAY) {
+
+                    if (islamicDayOfWeek == java.time.DayOfWeek.MONDAY || islamicDayOfWeek == java.time.DayOfWeek.THURSDAY) {
                         if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
                         sunnahInfo.append(localizedContext.getString(R.string.sunnah_monday_thursday))
                     }
-                    if (dayOfWeek == java.time.DayOfWeek.FRIDAY) {
+                    if (islamicDayOfWeek == java.time.DayOfWeek.FRIDAY) {
                         if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
                         sunnahInfo.append(localizedContext.getString(R.string.sunnah_friday))
                     }
@@ -509,7 +513,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // PERBAIKAN: Fungsi untuk Pin Widget sekarang memicu BroadcastReceiver saat selesai
     private fun requestPinWidget(providerClass: Class<*>) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val appWidgetManager = AppWidgetManager.getInstance(this)
@@ -846,8 +849,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateAddr(address: Address?) {
-        settingsManager.locationName = address?.locality ?: address?.subAdminArea ?: address?.adminArea ?: getString(R.string.location_found)
-        updateLocationUI(); updatePreview()
+        val locationParts = listOfNotNull(
+            address?.thoroughfare,
+            address?.subLocality,
+            address?.locality,
+            address?.subAdminArea,
+            address?.adminArea,
+            address?.countryName
+        )
+
+        settingsManager.locationName = if (locationParts.isNotEmpty()) {
+            locationParts.joinToString(", ")
+        } else {
+            getString(R.string.location_found)
+        }
+
+        updateLocationUI()
+        updatePreview()
     }
 
     private fun AutoCompleteTextView.setDropdownItems(items: Array<String>) {
