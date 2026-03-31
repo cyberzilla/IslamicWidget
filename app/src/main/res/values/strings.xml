@@ -98,6 +98,7 @@
     <string name="notif_channel_desc">Notifikasi saat Adzan berkumandang</string>
 
     <string name="log_error_play_adzan">Gagal memutar Adzan: %1$s</string>
+    <string name="log_error_stop_adzan">Gagal menghentikan service adzan</string>
     <string name="log_error_mute">Gagal melakukan mute: %1$s</string>
     <string name="log_error_unmute">Gagal mengembalikan volume: %1$s</string>
 

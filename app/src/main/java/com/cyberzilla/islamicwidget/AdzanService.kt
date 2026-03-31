@@ -59,7 +59,11 @@ class AdzanService : Service() {
         val contentIntent = Intent(this, MainActivity::class.java)
         val contentPendingIntent = PendingIntent.getActivity(this, 0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        val deletePendingIntent = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        // PERBAIKAN: Ubah deletePendingIntent untuk mengirim broadcast ke SilentModeReceiver
+        val clearIntent = Intent(this, SilentModeReceiver::class.java).apply {
+            action = "ACTION_ADZAN_DISMISSED"
+        }
+        val deletePendingIntent = PendingIntent.getBroadcast(this, 1, clearIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
             .setContentTitle(localizedContext.getString(R.string.notif_title_adzan, prayerName))
@@ -67,7 +71,7 @@ class AdzanService : Service() {
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentIntent(contentPendingIntent)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, localizedContext.getString(R.string.notif_action_stop), stopPendingIntent)
-            .setDeleteIntent(deletePendingIntent)
+            .setDeleteIntent(deletePendingIntent) // Dipanggil saat user swipe/clear notifikasi
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -102,7 +106,6 @@ class AdzanService : Service() {
 
         try {
             mediaPlayer = MediaPlayer().apply {
-                // PERBAIKAN: Menambahkan Wakelock agar CPU tetap berjalan saat layar mati
                 setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -152,12 +155,12 @@ class AdzanService : Service() {
         }
 
         settings.isAdzanPlaying = false
-        updateWidgetNow()
+
+        forceFullWidgetUpdate()
         stopSelf()
     }
 
     private fun updateWidgetNow() {
-        // PERBAIKAN: Mengirim custom action agar widget memproses partial update (mencegah font hancur)
         val intent = Intent(this, IslamicWidgetProvider::class.java).apply {
             action = "com.cyberzilla.islamicwidget.ACTION_UPDATE_ADZAN_STATE"
             val ids = AppWidgetManager.getInstance(application)
@@ -165,6 +168,27 @@ class AdzanService : Service() {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
         }
         sendBroadcast(intent)
+    }
+
+    private fun forceFullWidgetUpdate() {
+        val appWidgetManager = AppWidgetManager.getInstance(application)
+
+        // Update Islamic Widget
+        val islamicWidget = ComponentName(application, IslamicWidgetProvider::class.java)
+        val islamicIds = appWidgetManager.getAppWidgetIds(islamicWidget)
+        val updateIslamic = Intent(application, IslamicWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, islamicIds)
+        }
+        sendBroadcast(updateIslamic)
+
+        val quotesWidget = ComponentName(application, QuoteWidgetProvider::class.java)
+        val quotesIds = appWidgetManager.getAppWidgetIds(quotesWidget)
+        val updateQuotes = Intent(application, QuoteWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quotesIds)
+        }
+        sendBroadcast(updateQuotes)
     }
 
     private fun restoreOriginalVolume() {
@@ -202,7 +226,7 @@ class AdzanService : Service() {
         val settings = SettingsManager(this)
         if (settings.isAdzanPlaying) {
             settings.isAdzanPlaying = false
-            updateWidgetNow()
+            forceFullWidgetUpdate()
         }
     }
 }

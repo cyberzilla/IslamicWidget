@@ -1,7 +1,9 @@
 package com.cyberzilla.islamicwidget
 
 import android.app.NotificationManager
+import android.appwidget.AppWidgetManager
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
@@ -30,6 +32,38 @@ class SilentModeReceiver : BroadcastReceiver() {
                 } catch (e: Exception) {
                     Log.e("SilentModeReceiver", context.getString(R.string.log_error_play_adzan, e.message))
                 }
+            }
+
+            "ACTION_ADZAN_DISMISSED" -> {
+                val settings = SettingsManager(context)
+                settings.isAdzanPlaying = false
+
+                val stopServiceIntent = Intent(context, AdzanService::class.java).apply {
+                    action = "ACTION_STOP_ADZAN"
+                }
+                try {
+                    context.startService(stopServiceIntent)
+                } catch (e: Exception) {
+                    Log.e("SilentModeReceiver", context.getString(R.string.log_error_stop_adzan), e)
+                }
+
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+
+                val islamicWidget = ComponentName(context, IslamicWidgetProvider::class.java)
+                val islamicIds = appWidgetManager.getAppWidgetIds(islamicWidget)
+                val updateIslamic = Intent(context, IslamicWidgetProvider::class.java).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, islamicIds)
+                }
+                context.sendBroadcast(updateIslamic)
+
+                val quotesWidget = ComponentName(context, QuoteWidgetProvider::class.java)
+                val quotesIds = appWidgetManager.getAppWidgetIds(quotesWidget)
+                val updateQuotes = Intent(context, QuoteWidgetProvider::class.java).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quotesIds)
+                }
+                context.sendBroadcast(updateQuotes)
             }
 
             "ACTION_MUTE" -> {

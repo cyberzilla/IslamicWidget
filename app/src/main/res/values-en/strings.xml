@@ -98,6 +98,7 @@
     <string name="notif_channel_desc">Notification when Adhan plays</string>
 
     <string name="log_error_play_adzan">Failed to play Adhan: %1$s</string>
+    <string name="log_error_stop_adzan">Failed to stop adzan service</string>
     <string name="log_error_mute">Failed to mute: %1$s</string>
     <string name="log_error_unmute">Failed to restore volume: %1$s</string>
 

@@ -98,6 +98,7 @@
     <string name="notif_channel_desc">إشعار عند تشغيل الأذان</string>
 
     <string name="log_error_play_adzan">فشل تشغيل الأذان: %1$s</string>
+    <string name="log_error_stop_adzan">فشل إيقاف خدمة الأذان</string>
     <string name="log_error_mute">فشل كتم الصوت: %1$s</string>
     <string name="log_error_unmute">فشل استعادة مستوى الصوت: %1$s</string>
 
