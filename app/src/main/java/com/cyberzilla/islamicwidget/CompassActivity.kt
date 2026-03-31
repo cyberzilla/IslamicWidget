@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.batoulapps.adhan2.Coordinates
 import com.batoulapps.adhan2.Qibla
 import java.util.Locale
-import kotlin.math.abs
 
 class CompassActivity : AppCompatActivity(), SensorEventListener {
 
@@ -78,19 +77,24 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
             magnetometer = sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
         } catch (e: Exception) {
+            Toast.makeText(this, "Error memuat UI Kompas", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        accelerometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
-        magnetometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+        try {
+            accelerometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+            magnetometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+        } catch (e: Exception) {}
     }
 
     override fun onPause() {
         super.onPause()
-        sensorManager?.unregisterListener(this)
+        try {
+            sensorManager?.unregisterListener(this)
+        } catch (e: Exception) {}
     }
 
     private fun getShortestDelta(current: Float, target: Float): Float {
@@ -106,6 +110,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
         try {
             synchronized(this) {
+                // Kalkulasi Accelerometer
                 if (event.sensor.type == Sensor.TYPE_ACCELEROMETER && event.values.size >= 3) {
                     if (!isGravityInit) {
                         gravity[0] = event.values[0]
@@ -119,6 +124,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                     }
                 }
 
+                // Kalkulasi Magnetometer
                 if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD && event.values.size >= 3) {
                     if (!isGeomagneticInit) {
                         geomagnetic[0] = event.values[0]
@@ -139,17 +145,21 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                         val orientation = FloatArray(3)
                         SensorManager.getOrientation(r, orientation)
 
+                        // 1. Dapatkan azimuth dan normalisasi awal
                         var azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
                         if (azimuth < 0) azimuth += 360f
 
+                        // 2. Filter penstabil gerakan (Anti-jitter)
                         val rawDelta = getShortestDelta(currentAzimuth, azimuth)
                         if (Math.abs(rawDelta) > 0.8f) {
                             currentAzimuth += rawDelta * 0.04f
                         }
 
+                        // 3. Tampilkan derajat secara real-time di tengah layar (selalu 0-360)
                         val displayDegree = (currentAzimuth % 360 + 360) % 360
                         tvCenterHeading?.text = String.format(Locale.getDefault(), "%d°", displayDegree.toInt())
 
+                        // 4. Hitung target rotasi untuk dial (piringan) dan needle (jarum Ka'bah)
                         val targetDial = -currentAzimuth
                         val targetNeedle = qiblaDegree - currentAzimuth
 
@@ -163,20 +173,26 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                         needleVelocity *= 0.95f
                         needleRotation += needleVelocity
 
+                        // 5. Eksekusi putaran animasi
                         flDial?.rotation = dialRotation
                         ivNeedle?.rotation = needleRotation
 
+                        // 6. Cek kesesuaian arah HP dengan arah Kiblat (Toleransi 2.0 derajat)
                         val qiblaDiff = Math.abs(getShortestDelta(displayDegree, qiblaDegree))
                         if (qiblaDiff < 2.0f) {
+                            // Berubah warna menjadi Hijau jika pas
                             ivStaticNeedle?.setImageResource(R.drawable.ic_green_circle_needle)
+                            ivNeedle?.setImageResource(R.drawable.ic_kaaba_indicator_green)
                         } else {
+                            // Kembali ke warna default (Merah & Abu-abu) jika tidak pas
                             ivStaticNeedle?.setImageResource(R.drawable.ic_red_circle_needle)
+                            ivNeedle?.setImageResource(R.drawable.ic_kaaba_indicator)
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            // Abaikan error pada kalkulasi sensor
+            // Mengabaikan error sesaat jika sensor memberikan data yang tidak valid
         }
     }
 
