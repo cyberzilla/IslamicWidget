@@ -35,16 +35,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="..."
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="?attr/colorOnSurface"
-                    android:letterSpacing="0.02"
                     android:layout_marginBottom="32dp"/>
 
                 <FrameLayout
-                    android:layout_width="220dp"
-                    android:layout_height="220dp">
+                    android:layout_width="260dp"
+                    android:layout_height="260dp">
 
                     <FrameLayout
                         android:id="@+id/fl_compass_dial"
@@ -54,13 +53,14 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:src="@drawable/ic_compass_dial" />
+                            android:src="@drawable/ic_compass_outer_dial"
+                            android:contentDescription="Outer Compass Dial" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="top|center_horizontal"
-                            android:layout_marginTop="28dp"
+                            android:layout_marginTop="70dp"
                             android:text="@string/dir_north"
                             android:textColor="#EF4444"
                             android:textSize="16sp"
@@ -71,8 +71,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical|right"
-                            android:layout_marginRight="28dp"
+                            android:layout_gravity="center_vertical|end"
+                            android:layout_marginEnd="75dp"
                             android:text="@string/dir_east"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="16sp"
@@ -84,7 +84,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="bottom|center_horizontal"
-                            android:layout_marginBottom="28dp"
+                            android:layout_marginBottom="70dp"
                             android:text="@string/dir_south"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="16sp"
@@ -95,8 +95,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical|left"
-                            android:layout_marginLeft="28dp"
+                            android:layout_gravity="center_vertical|start"
+                            android:layout_marginStart="75dp"
                             android:text="@string/dir_west"
                             android:textColor="?android:attr/textColorSecondary"
                             android:textSize="16sp"
@@ -109,9 +109,27 @@
                         android:id="@+id/iv_qibla_needle"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:src="@drawable/ic_qibla_needle" />
-                </FrameLayout>
+                        android:src="@drawable/ic_kaaba_indicator"
+                        android:contentDescription="Kaaba Indicator" />
 
+                    <ImageView
+                        android:id="@+id/iv_static_needle"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_red_circle_needle"
+                        android:contentDescription="Center Static Needle" />
+
+                    <TextView
+                        android:id="@+id/tv_center_heading"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="0°"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                </FrameLayout>
             </LinearLayout>
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -122,13 +140,12 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 android:padding="12dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_close"
                 app:tint="?attr/colorControlNormal"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
                 android:contentDescription="@string/desc_close_button" />
-
         </FrameLayout>
     </com.google.android.material.card.MaterialCardView>
 </FrameLayout>

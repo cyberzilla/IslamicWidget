@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.batoulapps.adhan2.Coordinates
 import com.batoulapps.adhan2.Qibla
 import java.util.Locale
+import kotlin.math.abs
 
 class CompassActivity : AppCompatActivity(), SensorEventListener {
 
@@ -38,7 +39,9 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
     private var flDial: FrameLayout? = null
     private var ivNeedle: ImageView? = null
+    private var ivStaticNeedle: ImageView? = null
     private var tvDegree: TextView? = null
+    private var tvCenterHeading: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +52,9 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
             flDial = findViewById(R.id.fl_compass_dial)
             ivNeedle = findViewById(R.id.iv_qibla_needle)
+            ivStaticNeedle = findViewById(R.id.iv_static_needle)
             tvDegree = findViewById(R.id.tv_compass_degree)
+            tvCenterHeading = findViewById(R.id.tv_center_heading)
 
             findViewById<ImageView>(R.id.btn_close_compass)?.setOnClickListener { finish() }
 
@@ -57,50 +62,35 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
             val latStr = settings.latitude
             val lonStr = settings.longitude
 
-            val titleQibla = try { getString(R.string.compass_title_qibla) } catch (e: Exception) { "Kiblat:" }
-
             if (latStr != null && lonStr != null) {
                 try {
                     val coordinates = Coordinates(latStr.toDouble(), lonStr.toDouble())
                     qiblaDegree = Qibla(coordinates).direction.toFloat()
-                    tvDegree?.text = String.format(Locale.getDefault(), "%s %.1f°", titleQibla, qiblaDegree)
+                    val title = try { getString(R.string.compass_title_qibla) } catch (e: Exception) { "Kiblat:" }
+                    tvDegree?.text = String.format(Locale.getDefault(), "%s %.1f°", title, qiblaDegree)
                 } catch (e: Exception) {
-                    tvDegree?.text = try { getString(R.string.compass_invalid_location) } catch (e: Exception) { "Lokasi tidak valid" }
+                    tvDegree?.text = "Lokasi tidak valid"
                 }
-            } else {
-                tvDegree?.text = try { getString(R.string.default_location) } catch (e: Exception) { "Lokasi belum diatur" }
             }
 
             sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
             accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             magnetometer = sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-            if (accelerometer == null || magnetometer == null) {
-                val errorToast = try { getString(R.string.toast_no_compass_sensor) } catch(e: Exception) { "Sensor kompas tidak ditemukan!" }
-                val errorText = try { getString(R.string.compass_sensor_unavailable) } catch(e: Exception) { "Sensor kompas tidak tersedia" }
-                Toast.makeText(this, errorToast, Toast.LENGTH_LONG).show()
-                tvDegree?.text = errorText
-            }
-
         } catch (e: Exception) {
-            Toast.makeText(this, "Error XML: ${e.message}", Toast.LENGTH_LONG).show()
             finish()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        try {
-            accelerometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
-            magnetometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
-        } catch (e: Exception) {}
+        accelerometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+        magnetometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
     }
 
     override fun onPause() {
         super.onPause()
-        try {
-            sensorManager?.unregisterListener(this)
-        } catch (e: Exception) {}
+        sensorManager?.unregisterListener(this)
     }
 
     private fun getShortestDelta(current: Float, target: Float): Float {
@@ -118,7 +108,9 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
             synchronized(this) {
                 if (event.sensor.type == Sensor.TYPE_ACCELEROMETER && event.values.size >= 3) {
                     if (!isGravityInit) {
-                        gravity[0] = event.values[0]; gravity[1] = event.values[1]; gravity[2] = event.values[2]
+                        gravity[0] = event.values[0]
+                        gravity[1] = event.values[1]
+                        gravity[2] = event.values[2]
                         isGravityInit = true
                     } else {
                         gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0]
@@ -129,7 +121,9 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
                 if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD && event.values.size >= 3) {
                     if (!isGeomagneticInit) {
-                        geomagnetic[0] = event.values[0]; geomagnetic[1] = event.values[1]; geomagnetic[2] = event.values[2]
+                        geomagnetic[0] = event.values[0]
+                        geomagnetic[1] = event.values[1]
+                        geomagnetic[2] = event.values[2]
                         isGeomagneticInit = true
                     } else {
                         geomagnetic[0] = alpha * geomagnetic[0] + (1 - alpha) * event.values[0]
@@ -149,10 +143,12 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                         if (azimuth < 0) azimuth += 360f
 
                         val rawDelta = getShortestDelta(currentAzimuth, azimuth)
-
                         if (Math.abs(rawDelta) > 0.8f) {
                             currentAzimuth += rawDelta * 0.04f
                         }
+
+                        val displayDegree = (currentAzimuth % 360 + 360) % 360
+                        tvCenterHeading?.text = String.format(Locale.getDefault(), "%d°", displayDegree.toInt())
 
                         val targetDial = -currentAzimuth
                         val targetNeedle = qiblaDegree - currentAzimuth
@@ -169,10 +165,19 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
                         flDial?.rotation = dialRotation
                         ivNeedle?.rotation = needleRotation
+
+                        val qiblaDiff = Math.abs(getShortestDelta(displayDegree, qiblaDegree))
+                        if (qiblaDiff < 2.0f) {
+                            ivStaticNeedle?.setImageResource(R.drawable.ic_green_circle_needle)
+                        } else {
+                            ivStaticNeedle?.setImageResource(R.drawable.ic_red_circle_needle)
+                        }
                     }
                 }
             }
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            // Abaikan error pada kalkulasi sensor
+        }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
