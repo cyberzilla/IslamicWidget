@@ -5,8 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -29,11 +27,6 @@ class AdzanService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val settings = SettingsManager(this)
 
-        if (intent?.action == "ACTION_STOP_ADZAN") {
-            stopAdzan(settings)
-            return START_NOT_STICKY
-        }
-
         val isSubuh = intent?.getBooleanExtra("IS_SUBUH", false) ?: false
         val prayerId = intent?.getIntExtra("PRAYER_ID", 0) ?: 0
 
@@ -53,17 +46,20 @@ class AdzanService : Service() {
 
         createNotificationChannel(localizedContext)
 
-        val stopIntent = Intent(this, AdzanService::class.java).apply { action = "ACTION_STOP_ADZAN" }
-        val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val stopIntent = Intent(this, SilentModeReceiver::class.java).apply {
+            action = "ACTION_STOP_ADZAN_BROADCAST"
+        }
+        val stopPendingIntent = PendingIntent.getBroadcast(
+            this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val deletePendingIntent = PendingIntent.getBroadcast(
+            this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val contentIntent = Intent(this, MainActivity::class.java)
-        val contentPendingIntent = PendingIntent.getActivity(this, 0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-
-        // PERBAIKAN: Ubah deletePendingIntent untuk mengirim broadcast ke SilentModeReceiver
-        val clearIntent = Intent(this, SilentModeReceiver::class.java).apply {
-            action = "ACTION_ADZAN_DISMISSED"
-        }
-        val deletePendingIntent = PendingIntent.getBroadcast(this, 1, clearIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val contentPendingIntent = PendingIntent.getActivity(
+            this, 0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
             .setContentTitle(localizedContext.getString(R.string.notif_title_adzan, prayerName))
@@ -71,7 +67,7 @@ class AdzanService : Service() {
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentIntent(contentPendingIntent)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, localizedContext.getString(R.string.notif_action_stop), stopPendingIntent)
-            .setDeleteIntent(deletePendingIntent) // Dipanggil saat user swipe/clear notifikasi
+            .setDeleteIntent(deletePendingIntent)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -82,7 +78,11 @@ class AdzanService : Service() {
         startForeground(1122, notification)
 
         settings.isAdzanPlaying = true
-        updateWidgetNow()
+
+        val updateIntent = Intent(this, SilentModeReceiver::class.java).apply {
+            action = "ACTION_UPDATE_WIDGETS_BROADCAST"
+        }
+        sendBroadcast(updateIntent)
 
         playAdzan(isSubuh, settings)
 
@@ -133,62 +133,17 @@ class AdzanService : Service() {
             }
 
             mediaPlayer?.setOnCompletionListener {
-                stopAdzan(settings)
+                val stopIntent = Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
+                    action = "ACTION_STOP_ADZAN_BROADCAST"
+                }
+                sendBroadcast(stopIntent)
             }
         } catch (e: Exception) {
-            stopAdzan(settings)
+            val stopIntent = Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
+                action = "ACTION_STOP_ADZAN_BROADCAST"
+            }
+            sendBroadcast(stopIntent)
         }
-    }
-
-    private fun stopAdzan(settings: SettingsManager) {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
-
-        restoreOriginalVolume()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
-
-        settings.isAdzanPlaying = false
-
-        forceFullWidgetUpdate()
-        stopSelf()
-    }
-
-    private fun updateWidgetNow() {
-        val intent = Intent(this, IslamicWidgetProvider::class.java).apply {
-            action = "com.cyberzilla.islamicwidget.ACTION_UPDATE_ADZAN_STATE"
-            val ids = AppWidgetManager.getInstance(application)
-                .getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-        }
-        sendBroadcast(intent)
-    }
-
-    private fun forceFullWidgetUpdate() {
-        val appWidgetManager = AppWidgetManager.getInstance(application)
-
-        // Update Islamic Widget
-        val islamicWidget = ComponentName(application, IslamicWidgetProvider::class.java)
-        val islamicIds = appWidgetManager.getAppWidgetIds(islamicWidget)
-        val updateIslamic = Intent(application, IslamicWidgetProvider::class.java).apply {
-            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, islamicIds)
-        }
-        sendBroadcast(updateIslamic)
-
-        val quotesWidget = ComponentName(application, QuoteWidgetProvider::class.java)
-        val quotesIds = appWidgetManager.getAppWidgetIds(quotesWidget)
-        val updateQuotes = Intent(application, QuoteWidgetProvider::class.java).apply {
-            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quotesIds)
-        }
-        sendBroadcast(updateQuotes)
     }
 
     private fun restoreOriginalVolume() {
@@ -220,13 +175,18 @@ class AdzanService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
         restoreOriginalVolume()
+
         val settings = SettingsManager(this)
         if (settings.isAdzanPlaying) {
             settings.isAdzanPlaying = false
-            forceFullWidgetUpdate()
+            val updateIntent = Intent(this, SilentModeReceiver::class.java).apply {
+                action = "ACTION_UPDATE_WIDGETS_BROADCAST"
+            }
+            sendBroadcast(updateIntent)
         }
     }
 }

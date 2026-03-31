@@ -49,9 +49,43 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val settings = SettingsManager(context)
 
+            val fsClock = settings.fontSizeClock.toFloat()
+            val fsDate = settings.fontSizeDate.toFloat()
+            val fsPrayer = settings.fontSizePrayer.toFloat()
+            val fsAdd = settings.fontSizeAdditional.toFloat()
+
+            val fsInfoTitle = fsPrayer + 4f
+            val fsInfoSub = fsAdd + 1f
+
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_islamic)
                 views.setDisplayedChild(R.id.master_flipper, if (settings.isAdzanPlaying) 1 else 0)
+
+                if (!settings.isAdzanPlaying) {
+                    views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_DIP, fsClock)
+                    views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_DIP, fsDate - 2f)
+                    views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_DIP, fsDate)
+
+                    val textViewsToResize = listOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
+                    for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsPrayer - 2f) }
+
+                    val timeViewsToResize = listOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
+                    for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsPrayer) }
+
+                    val additionalTextIds = listOf(
+                        R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2,
+                        R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
+                    )
+                    for (id in additionalTextIds) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsAdd) }
+
+                    views.setTextViewTextSize(R.id.tv_sunnah_reminder_flip, TypedValue.COMPLEX_UNIT_DIP, fsAdd)
+                } else {
+                    views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
+                    views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
+                    views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
+                    views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_DIP, fsInfoSub)
+                }
+
                 appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
             }
         }

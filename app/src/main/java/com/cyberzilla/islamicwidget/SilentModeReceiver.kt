@@ -34,36 +34,23 @@ class SilentModeReceiver : BroadcastReceiver() {
                 }
             }
 
-            "ACTION_ADZAN_DISMISSED" -> {
+            "ACTION_STOP_ADZAN_BROADCAST" -> {
                 val settings = SettingsManager(context)
                 settings.isAdzanPlaying = false
 
-                val stopServiceIntent = Intent(context, AdzanService::class.java).apply {
-                    action = "ACTION_STOP_ADZAN"
-                }
+                val stopServiceIntent = Intent(context, AdzanService::class.java)
                 try {
-                    context.startService(stopServiceIntent)
+                    context.stopService(stopServiceIntent)
                 } catch (e: Exception) {
-                    Log.e("SilentModeReceiver", context.getString(R.string.log_error_stop_adzan), e)
+                    val errorMsg = try { context.getString(R.string.log_error_stop_adzan) } catch (ex: Exception) { "Gagal menghentikan service adzan" }
+                    Log.e("SilentModeReceiver", errorMsg, e)
                 }
 
-                val appWidgetManager = AppWidgetManager.getInstance(context)
+                forceUpdateAllWidgets(context)
+            }
 
-                val islamicWidget = ComponentName(context, IslamicWidgetProvider::class.java)
-                val islamicIds = appWidgetManager.getAppWidgetIds(islamicWidget)
-                val updateIslamic = Intent(context, IslamicWidgetProvider::class.java).apply {
-                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, islamicIds)
-                }
-                context.sendBroadcast(updateIslamic)
-
-                val quotesWidget = ComponentName(context, QuoteWidgetProvider::class.java)
-                val quotesIds = appWidgetManager.getAppWidgetIds(quotesWidget)
-                val updateQuotes = Intent(context, QuoteWidgetProvider::class.java).apply {
-                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quotesIds)
-                }
-                context.sendBroadcast(updateQuotes)
+            "ACTION_UPDATE_WIDGETS_BROADCAST" -> {
+                forceUpdateAllWidgets(context)
             }
 
             "ACTION_MUTE" -> {
@@ -102,5 +89,25 @@ class SilentModeReceiver : BroadcastReceiver() {
                 }
             }
         }
+    }
+
+    private fun forceUpdateAllWidgets(context: Context) {
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+
+        val islamicWidget = ComponentName(context, IslamicWidgetProvider::class.java)
+        val islamicIds = appWidgetManager.getAppWidgetIds(islamicWidget)
+        val updateIslamic = Intent(context, IslamicWidgetProvider::class.java).apply {
+            action = "com.cyberzilla.islamicwidget.ACTION_UPDATE_ADZAN_STATE"
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, islamicIds)
+        }
+        context.sendBroadcast(updateIslamic)
+
+        val quotesWidget = ComponentName(context, QuoteWidgetProvider::class.java)
+        val quotesIds = appWidgetManager.getAppWidgetIds(quotesWidget)
+        val updateQuotes = Intent(context, QuoteWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quotesIds)
+        }
+        context.sendBroadcast(updateQuotes)
     }
 }
