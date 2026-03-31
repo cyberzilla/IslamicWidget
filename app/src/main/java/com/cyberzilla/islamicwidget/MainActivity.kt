@@ -15,7 +15,6 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.location.Address
 import android.location.Geocoder
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -36,28 +35,24 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
-import com.batoulapps.adhan2.CalculationMethod
 import com.batoulapps.adhan2.Coordinates
-import com.batoulapps.adhan2.PrayerTimes
 import com.batoulapps.adhan2.Qibla
 import com.batoulapps.adhan2.SunnahTimes
-import com.batoulapps.adhan2.data.DateComponents
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.chrono.HijrahDate
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalAccessor
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
+@OptIn(ExperimentalTime::class)
 class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -78,9 +73,6 @@ class MainActivity : AppCompatActivity() {
     private var pendingDndPermission = false
     private var tempRegularUri: String? = null
     private var tempSubuhUri: String? = null
-    private var testMediaPlayer: MediaPlayer? = null
-    private var isTestingRegular = false
-    private var isTestingSubuh = false
     private var doubleBackToExitPressedOnce = false
 
     private val pickRegularAdzanLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -119,9 +111,6 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.toast_notification_needed), Toast.LENGTH_LONG).show()
         }
     }
-
-    @OptIn(ExperimentalTime::class)
-    private fun Instant.asDate() = Date(toEpochMilliseconds())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
@@ -221,34 +210,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun formatCustomDate(inputStr: String, dateObj: TemporalAccessor, defaultLocale: Locale): String {
-        val regex = Regex("([a-zA-Z0-9-]+)\\{([^}]+)\\}")
-        return try {
-            if (regex.containsMatchIn(inputStr)) {
-                regex.replace(inputStr) { matchResult ->
-                    val localeTag = matchResult.groupValues[1]
-                    val pattern = matchResult.groupValues[2]
-                    val locale = try { Locale.forLanguageTag(localeTag) } catch (e: Exception) { defaultLocale }
-                    var formattedText = DateTimeFormatter.ofPattern(pattern, locale).format(dateObj)
-                    if (localeTag.lowercase().startsWith("ar")) {
-                        val arabicDigits = arrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
-                        val builder = StringBuilder()
-                        for (char in formattedText) {
-                            if (char in '0'..'9') builder.append(arabicDigits[char - '0']) else builder.append(char)
-                        }
-                        formattedText = builder.toString()
-                    }
-                    formattedText
-                }
-            } else {
-                DateTimeFormatter.ofPattern(inputStr, defaultLocale).format(dateObj)
-            }
-        } catch (e: Exception) {
-            DateTimeFormatter.ofPattern("dd MMMM yyyy", defaultLocale).format(dateObj)
-        }
-    }
-
-    @OptIn(ExperimentalTime::class)
     private fun updatePreview() {
         try {
             val previewBg = findViewById<ImageView>(R.id.widget_bg) ?: return
@@ -306,23 +267,13 @@ class MainActivity : AppCompatActivity() {
 
             if (settingsManager.latitude != null && settingsManager.longitude != null) {
                 try {
-                    val coordinates = Coordinates(settingsManager.latitude!!.toDouble(), settingsManager.longitude!!.toDouble())
-                    val dateComponents = DateComponents(today.year, today.monthValue, today.dayOfMonth)
-                    val method = when (calcValues[calcIdx]) {
-                        "EGYPTIAN" -> CalculationMethod.EGYPTIAN
-                        "KARACHI" -> CalculationMethod.KARACHI
-                        "UMM_AL_QURA" -> CalculationMethod.UMM_AL_QURA
-                        "DUBAI" -> CalculationMethod.DUBAI
-                        "QATAR" -> CalculationMethod.QATAR
-                        "KUWAIT" -> CalculationMethod.KUWAIT
-                        "MOON_SIGHTING_COMMITTEE" -> CalculationMethod.MOON_SIGHTING_COMMITTEE
-                        "SINGAPORE" -> CalculationMethod.SINGAPORE
-                        else -> CalculationMethod.MUSLIM_WORLD_LEAGUE
-                    }
+                    val lat = settingsManager.latitude!!.toDouble()
+                    val lon = settingsManager.longitude!!.toDouble()
 
-                    val prayerTimes = PrayerTimes(coordinates, dateComponents, method.parameters)
+                    // Panggil fungsi terpusat dari IslamicAppUtils
+                    val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, calcValues[calcIdx], today)
                     val sunnahTimes = SunnahTimes(prayerTimes)
-                    val qibla = Qibla(coordinates)
+                    val qibla = Qibla(Coordinates(lat, lon))
 
                     var isAfterMaghrib = false
                     if (findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && Date().after(prayerTimes.maghrib.asDate())) {
@@ -348,42 +299,15 @@ class MainActivity : AppCompatActivity() {
                     findViewById<TextView>(R.id.tv_qibla_flip)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction)
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
-                    val hijriDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
-                    val hijriMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
 
-                    val islamicDayOfWeek = if (isAfterMaghrib) today.plusDays(1).dayOfWeek else today.dayOfWeek
-                    val sunnahInfo = java.lang.StringBuilder()
-
-                    if (hijriMonth == 1 && (hijriDay == 9 || hijriDay == 10)) {
-                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_muharram))
-                    }
-                    if (hijriMonth == 12 && hijriDay in 1..9) {
-                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-                        if (hijriDay == 9) {
-                            sunnahInfo.append(localizedContext.getString(R.string.sunnah_arafah))
-                        } else {
-                            sunnahInfo.append(localizedContext.getString(R.string.sunnah_dzulhijjah))
-                        }
-                    }
-                    if (hijriDay in 13..15) {
-                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_ayyamul_bidh))
-                    }
-
-                    if (islamicDayOfWeek == java.time.DayOfWeek.MONDAY || islamicDayOfWeek == java.time.DayOfWeek.THURSDAY) {
-                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_monday_thursday))
-                    }
-                    if (islamicDayOfWeek == java.time.DayOfWeek.FRIDAY) {
-                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_friday))
-                    }
+                    // Panggil fungsi terpusat puasa sunnah
+                    val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
 
                     if (isShowAdd) {
                         if (sunnahInfo.isNotEmpty()) {
                             findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
                             findViewById<View>(R.id.container_additional_flipper)?.visibility = View.VISIBLE
-                            findViewById<TextView>(R.id.tv_sunnah_reminder_flip)?.text = sunnahInfo.toString()
+                            findViewById<TextView>(R.id.tv_sunnah_reminder_flip)?.text = sunnahInfo
                         } else {
                             findViewById<View>(R.id.container_additional_normal)?.visibility = View.VISIBLE
                             findViewById<View>(R.id.container_additional_flipper)?.visibility = View.GONE
@@ -399,8 +323,8 @@ class MainActivity : AppCompatActivity() {
                 if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
             }
 
-            findViewById<TextView>(R.id.tv_gregorian_date)?.text = formatCustomDate(masehiPattern, today, selectedLocale)
-            findViewById<TextView>(R.id.tv_hijri_date)?.text = formatCustomDate(hijriPattern, hijriDate, selectedLocale)
+            findViewById<TextView>(R.id.tv_gregorian_date)?.text = IslamicAppUtils.formatCustomDate(masehiPattern, today, selectedLocale)
+            findViewById<TextView>(R.id.tv_hijri_date)?.text = IslamicAppUtils.formatCustomDate(hijriPattern, hijriDate, selectedLocale)
 
             val textColor = try { Color.parseColor(currentTextColor) } catch(e: Exception) { Color.WHITE }
             val bgColor = try { Color.parseColor(currentBgColor) } catch (e: Exception) { Color.TRANSPARENT }
@@ -448,52 +372,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleTestAdzan(isSubuh: Boolean, btnPlay: Button?) {
         if (btnPlay == null) return
-        if ((isSubuh && isTestingSubuh) || (!isSubuh && isTestingRegular)) { stopTestAdzan(); return }
-        stopTestAdzan()
-        val uriString = if (isSubuh) tempSubuhUri else tempRegularUri
+        val uri = if (isSubuh) tempSubuhUri else tempRegularUri
+        val vol = findViewById<SeekBar>(R.id.sb_adzan_vol)?.progress ?: 80
 
-        try {
-            testMediaPlayer = MediaPlayer().apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    setAudioAttributes(android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC).build())
-                } else { @Suppress("DEPRECATION") setAudioStreamType(android.media.AudioManager.STREAM_ALARM) }
-
-                val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
-                val maxVolume = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_ALARM)
-                val sliderVol = findViewById<SeekBar>(R.id.sb_adzan_vol)?.progress ?: 80
-                val targetVolume = (maxVolume * sliderVol) / 100
-                audioManager.setStreamVolume(android.media.AudioManager.STREAM_ALARM, targetVolume, 0)
-
-                if (!uriString.isNullOrEmpty()) setDataSource(this@MainActivity, Uri.parse(uriString))
-                else {
-                    val afd = resources.openRawResourceFd(if (isSubuh) R.raw.adzan_subuh else R.raw.adzan_regular)
-                    setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                    afd.close()
-                }
-                prepare(); start()
-
-                if (isSubuh) {
-                    isTestingSubuh = true
-                    btnPlay.text = getString(R.string.btn_stop)
-                    btnPlay.setTextColor(Color.RED)
-                } else {
-                    isTestingRegular = true
-                    btnPlay.text = getString(R.string.btn_stop)
-                    btnPlay.setTextColor(Color.RED)
-                }
-                setOnCompletionListener { stopTestAdzan() }
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this@MainActivity, getString(R.string.toast_audio_error), Toast.LENGTH_SHORT).show()
-            stopTestAdzan()
+        AudioAdzanManager.toggleTestAdzan(this, isSubuh, btnPlay, uri, vol) {
+            findViewById<Button>(R.id.btn_play_adzan_regular)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
+            findViewById<Button>(R.id.btn_play_adzan_subuh)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
         }
     }
 
     private fun stopTestAdzan() {
-        try { testMediaPlayer?.stop(); testMediaPlayer?.release() } catch (e: Exception) {}
-        testMediaPlayer = null; isTestingRegular = false; isTestingSubuh = false
-        findViewById<Button>(R.id.btn_play_adzan_regular)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
-        findViewById<Button>(R.id.btn_play_adzan_subuh)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
+        AudioAdzanManager.stopTestAdzan {
+            findViewById<Button>(R.id.btn_play_adzan_regular)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
+            findViewById<Button>(R.id.btn_play_adzan_subuh)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
+        }
     }
 
     private fun showPauseActivityWarningDialog() {
@@ -519,14 +411,12 @@ class MainActivity : AppCompatActivity() {
             val myProvider = ComponentName(this, providerClass)
 
             if (appWidgetManager.isRequestPinAppWidgetSupported) {
-
                 val successIntent = Intent(this, WidgetPinReceiver::class.java)
                 val successPendingIntent = PendingIntent.getBroadcast(
                     this, 0, successIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 appWidgetManager.requestPinAppWidget(myProvider, null, successPendingIntent)
-
             } else {
                 Toast.makeText(this, getString(R.string.pin_unsupported), Toast.LENGTH_SHORT).show()
             }

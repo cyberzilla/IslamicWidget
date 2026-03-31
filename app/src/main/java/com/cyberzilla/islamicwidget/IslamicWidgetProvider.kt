@@ -18,29 +18,22 @@ import android.text.format.DateFormat
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
-import com.batoulapps.adhan2.CalculationMethod
 import com.batoulapps.adhan2.Coordinates
-import com.batoulapps.adhan2.PrayerTimes
 import com.batoulapps.adhan2.Qibla
 import com.batoulapps.adhan2.SunnahTimes
-import com.batoulapps.adhan2.data.DateComponents
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.chrono.HijrahDate
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalAccessor
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class IslamicWidgetProvider : AppWidgetProvider() {
-
-    private fun Instant.asDate() = Date(toEpochMilliseconds())
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
@@ -108,43 +101,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     ) {
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
-        }
-    }
-
-    private fun formatCustomDate(inputStr: String, dateObj: TemporalAccessor, defaultLocale: Locale): String {
-        val regex = Regex("([a-zA-Z0-9-]+)\\{([^}]+)\\}")
-
-        return try {
-            if (regex.containsMatchIn(inputStr)) {
-                regex.replace(inputStr) { matchResult ->
-                    val localeTag = matchResult.groupValues[1]
-                    val pattern = matchResult.groupValues[2]
-
-                    val locale = try { Locale.forLanguageTag(localeTag) } catch (e: Exception) { defaultLocale }
-                    val formatter = DateTimeFormatter.ofPattern(pattern, locale)
-                    var formattedText = formatter.format(dateObj)
-
-                    if (localeTag.lowercase().startsWith("ar")) {
-                        val arabicDigits = arrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
-                        val builder = StringBuilder()
-                        for (char in formattedText) {
-                            if (char in '0'..'9') {
-                                builder.append(arabicDigits[char - '0'])
-                            } else {
-                                builder.append(char)
-                            }
-                        }
-                        formattedText = builder.toString()
-                    }
-                    formattedText
-                }
-            } else {
-                val formatter = DateTimeFormatter.ofPattern(inputStr, defaultLocale)
-                formatter.format(dateObj)
-            }
-        } catch (e: Exception) {
-            val fallbackFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", defaultLocale)
-            fallbackFormatter.format(dateObj)
         }
     }
 
@@ -300,27 +256,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             if (latString != null && lonString != null) {
                 try {
-                    val latitude = latString.toDouble()
-                    val longitude = lonString.toDouble()
-                    val coordinates = Coordinates(latitude, longitude)
-                    val dateComponents = DateComponents(today.year, today.monthValue, today.dayOfMonth)
+                    val lat = latString.toDouble()
+                    val lon = lonString.toDouble()
 
-                    val method = when (settings.calculationMethod) {
-                        "MUSLIM_WORLD_LEAGUE" -> CalculationMethod.MUSLIM_WORLD_LEAGUE
-                        "EGYPTIAN" -> CalculationMethod.EGYPTIAN
-                        "KARACHI" -> CalculationMethod.KARACHI
-                        "UMM_AL_QURA" -> CalculationMethod.UMM_AL_QURA
-                        "DUBAI" -> CalculationMethod.DUBAI
-                        "QATAR" -> CalculationMethod.QATAR
-                        "KUWAIT" -> CalculationMethod.KUWAIT
-                        "MOON_SIGHTING_COMMITTEE" -> CalculationMethod.MOON_SIGHTING_COMMITTEE
-                        "SINGAPORE" -> CalculationMethod.SINGAPORE
-                        else -> CalculationMethod.MUSLIM_WORLD_LEAGUE
-                    }
-
-                    val prayerTimes = PrayerTimes(coordinates, dateComponents, method.parameters)
+                    val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
                     val sunnahTimes = SunnahTimes(prayerTimes)
-                    val qibla = Qibla(coordinates)
+                    val qibla = Qibla(Coordinates(lat, lon))
 
                     var isAfterMaghrib = false
                     if (settings.isDayStartAtMaghrib) {
@@ -349,49 +290,21 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                     views.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
-                    scheduleSilentMode(context, localizedContext, prayerTimes.fajr.asDate(), 1, settings)
-                    scheduleSilentMode(context, localizedContext, prayerTimes.dhuhr.asDate(), 2, settings)
-                    scheduleSilentMode(context, localizedContext, prayerTimes.asr.asDate(), 3, settings)
-                    scheduleSilentMode(context, localizedContext, prayerTimes.maghrib.asDate(), 4, settings)
-                    scheduleSilentMode(context, localizedContext, prayerTimes.isha.asDate(), 5, settings)
+                    scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
+                    scheduleSilentMode(context, prayerTimes.dhuhr.asDate(), 2, settings)
+                    scheduleSilentMode(context, prayerTimes.asr.asDate(), 3, settings)
+                    scheduleSilentMode(context, prayerTimes.maghrib.asDate(), 4, settings)
+                    scheduleSilentMode(context, prayerTimes.isha.asDate(), 5, settings)
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
-                    val hijriDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
-                    val hijriMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
 
-                    val islamicDayOfWeek = if (isAfterMaghrib) today.plusDays(1).dayOfWeek else today.dayOfWeek
-                    val sunnahInfo = java.lang.StringBuilder()
-
-                    if (hijriMonth == 1 && (hijriDay == 9 || hijriDay == 10)) {
-                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_muharram))
-                    }
-                    if (hijriMonth == 12 && hijriDay in 1..9) {
-                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-                        if (hijriDay == 9) {
-                            sunnahInfo.append(localizedContext.getString(R.string.sunnah_arafah))
-                        } else {
-                            sunnahInfo.append(localizedContext.getString(R.string.sunnah_dzulhijjah))
-                        }
-                    }
-                    if (hijriDay in 13..15) {
-                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_ayyamul_bidh))
-                    }
-
-                    if (islamicDayOfWeek == java.time.DayOfWeek.MONDAY || islamicDayOfWeek == java.time.DayOfWeek.THURSDAY) {
-                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_monday_thursday))
-                    }
-                    if (islamicDayOfWeek == java.time.DayOfWeek.FRIDAY) {
-                        if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-                        sunnahInfo.append(localizedContext.getString(R.string.sunnah_friday))
-                    }
+                    val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
 
                     if (settings.showAdditional) {
                         if (sunnahInfo.isNotEmpty()) {
                             views.setViewVisibility(R.id.container_additional_normal, View.GONE)
                             views.setViewVisibility(R.id.container_additional_flipper, View.VISIBLE)
-                            views.setTextViewText(R.id.tv_sunnah_reminder_flip, sunnahInfo.toString())
+                            views.setTextViewText(R.id.tv_sunnah_reminder_flip, sunnahInfo)
                         } else {
                             views.setViewVisibility(R.id.container_additional_normal, View.VISIBLE)
                             views.setViewVisibility(R.id.container_additional_flipper, View.GONE)
@@ -420,8 +333,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             }
         } catch (e: Exception) {}
 
-        val masehiFormatted = formatCustomDate(settings.dateFormat, today, selectedLocale)
-        val hijriFormatted = formatCustomDate(settings.hijriFormat, hijriDate, selectedLocale)
+        val masehiFormatted = IslamicAppUtils.formatCustomDate(settings.dateFormat, today, selectedLocale)
+        val hijriFormatted = IslamicAppUtils.formatCustomDate(settings.hijriFormat, hijriDate, selectedLocale)
 
         views.setTextViewText(R.id.tv_gregorian_date, masehiFormatted)
         views.setTextViewText(R.id.tv_hijri_date, hijriFormatted)
@@ -460,7 +373,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     }
 
     @SuppressLint("ScheduleExactAlarm")
-    private fun scheduleSilentMode(context: Context, localizedContext: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
+    private fun scheduleSilentMode(context: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
 
