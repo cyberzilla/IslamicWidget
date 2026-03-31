@@ -65,19 +65,27 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 try {
                     val coordinates = Coordinates(latStr.toDouble(), lonStr.toDouble())
                     qiblaDegree = Qibla(coordinates).direction.toFloat()
-                    val title = try { getString(R.string.compass_title_qibla) } catch (e: Exception) { "Kiblat:" }
+
+                    val title = getString(R.string.compass_title_qibla)
                     tvDegree?.text = String.format(Locale.getDefault(), "%s %.1f°", title, qiblaDegree)
                 } catch (e: Exception) {
-                    tvDegree?.text = "Lokasi tidak valid"
+                    tvDegree?.text = getString(R.string.compass_invalid_location)
                 }
+            } else {
+                tvDegree?.text = getString(R.string.default_location)
             }
 
             sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
             accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             magnetometer = sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
+            if (accelerometer == null || magnetometer == null) {
+                Toast.makeText(this, getString(R.string.toast_no_compass_sensor), Toast.LENGTH_LONG).show()
+                tvDegree?.text = getString(R.string.compass_sensor_unavailable)
+            }
+
         } catch (e: Exception) {
-            Toast.makeText(this, "Error memuat UI Kompas", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_compass_layout_error), Toast.LENGTH_LONG).show()
             finish()
         }
     }
@@ -85,8 +93,12 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
     override fun onResume() {
         super.onResume()
         try {
-            accelerometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
-            magnetometer?.let { sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+            accelerometer?.let {
+                sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            }
+            magnetometer?.let {
+                sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            }
         } catch (e: Exception) {}
     }
 
@@ -110,7 +122,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
         try {
             synchronized(this) {
-                // Kalkulasi Accelerometer
                 if (event.sensor.type == Sensor.TYPE_ACCELEROMETER && event.values.size >= 3) {
                     if (!isGravityInit) {
                         gravity[0] = event.values[0]
@@ -124,7 +135,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                     }
                 }
 
-                // Kalkulasi Magnetometer
+                // Filter data medan magnet
                 if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD && event.values.size >= 3) {
                     if (!isGeomagneticInit) {
                         geomagnetic[0] = event.values[0]
@@ -145,21 +156,17 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                         val orientation = FloatArray(3)
                         SensorManager.getOrientation(r, orientation)
 
-                        // 1. Dapatkan azimuth dan normalisasi awal
                         var azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
                         if (azimuth < 0) azimuth += 360f
 
-                        // 2. Filter penstabil gerakan (Anti-jitter)
                         val rawDelta = getShortestDelta(currentAzimuth, azimuth)
                         if (Math.abs(rawDelta) > 0.8f) {
                             currentAzimuth += rawDelta * 0.04f
                         }
 
-                        // 3. Tampilkan derajat secara real-time di tengah layar (selalu 0-360)
                         val displayDegree = (currentAzimuth % 360 + 360) % 360
                         tvCenterHeading?.text = String.format(Locale.getDefault(), "%d°", displayDegree.toInt())
 
-                        // 4. Hitung target rotasi untuk dial (piringan) dan needle (jarum Ka'bah)
                         val targetDial = -currentAzimuth
                         val targetNeedle = qiblaDegree - currentAzimuth
 
@@ -173,18 +180,14 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                         needleVelocity *= 0.95f
                         needleRotation += needleVelocity
 
-                        // 5. Eksekusi putaran animasi
                         flDial?.rotation = dialRotation
                         ivNeedle?.rotation = needleRotation
 
-                        // 6. Cek kesesuaian arah HP dengan arah Kiblat (Toleransi 2.0 derajat)
                         val qiblaDiff = Math.abs(getShortestDelta(displayDegree, qiblaDegree))
                         if (qiblaDiff < 2.0f) {
-                            // Berubah warna menjadi Hijau jika pas
                             ivStaticNeedle?.setImageResource(R.drawable.ic_green_circle_needle)
                             ivNeedle?.setImageResource(R.drawable.ic_kaaba_indicator_green)
                         } else {
-                            // Kembali ke warna default (Merah & Abu-abu) jika tidak pas
                             ivStaticNeedle?.setImageResource(R.drawable.ic_red_circle_needle)
                             ivNeedle?.setImageResource(R.drawable.ic_kaaba_indicator)
                         }
@@ -192,7 +195,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
         } catch (e: Exception) {
-            // Mengabaikan error sesaat jika sensor memberikan data yang tidak valid
+            // Gagal dalam kalkulasi sensor secara periodik dapat diabaikan untuk kestabilan
         }
     }
 
