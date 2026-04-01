@@ -67,36 +67,47 @@ object IslamicAppUtils {
     }
 
     fun getSunnahFastingInfo(context: Context, hijriDate: HijrahDate, today: LocalDate, isAfterMaghrib: Boolean): String {
-        val hijriDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
-        val hijriMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
-        val islamicDayOfWeek = if (isAfterMaghrib) today.plusDays(1).dayOfWeek else today.dayOfWeek
-        val sunnahInfo = StringBuilder()
+        val hDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
+        val hMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
 
-        if (hijriMonth == 1 && (hijriDay == 9 || hijriDay == 10)) {
-            sunnahInfo.append(context.getString(R.string.sunnah_muharram))
+        // Logika Akurat Syariat: Hari berganti setelah Maghrib
+        val islamicDayOfWeek = if (isAfterMaghrib) today.plusDays(1).dayOfWeek else today.dayOfWeek
+
+        val sunnahList = mutableListOf<String>()
+
+        // 1. Muharram (Tasu'a & Asyura)
+        if (hMonth == 1 && (hDay == 9 || hDay == 10)) {
+            sunnahList.add(context.getString(R.string.sunnah_muharram))
         }
-        if (hijriMonth == 12 && hijriDay in 1..9) {
-            if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-            if (hijriDay == 9) {
-                sunnahInfo.append(context.getString(R.string.sunnah_arafah))
-            } else {
-                sunnahInfo.append(context.getString(R.string.sunnah_dzulhijjah))
+
+        // 2. Dzulhijjah (1-9)
+        if (hMonth == 12) {
+            when (hDay) {
+                in 1..7 -> sunnahList.add(context.getString(R.string.sunnah_dzulhijjah, hDay))
+                8 -> sunnahList.add(context.getString(R.string.sunnah_tarwiyah))
+                9 -> sunnahList.add(context.getString(R.string.sunnah_arafah))
             }
         }
-        if (hijriDay in 13..15) {
-            if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-            sunnahInfo.append(context.getString(R.string.sunnah_ayyamul_bidh))
+
+        // 3. Ayyamul Bidh (13, 14, 15) - Kecuali 13 Dzulhijjah (Tasyriq)
+        if (hDay in 13..15 && !(hMonth == 12 && hDay == 13)) {
+            val hariKe = hDay - 12
+            sunnahList.add(context.getString(R.string.sunnah_ayyamul_bidh, hariKe))
         }
 
-        if (islamicDayOfWeek == java.time.DayOfWeek.MONDAY || islamicDayOfWeek == java.time.DayOfWeek.THURSDAY) {
-            if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-            sunnahInfo.append(context.getString(R.string.sunnah_monday_thursday))
+        // 4. Puasa Senin & Kamis (Menggunakan islamicDayOfWeek)
+        if (islamicDayOfWeek == java.time.DayOfWeek.MONDAY) {
+            sunnahList.add(context.getString(R.string.sunnah_monday))
+        } else if (islamicDayOfWeek == java.time.DayOfWeek.THURSDAY) {
+            sunnahList.add(context.getString(R.string.sunnah_thursday))
         }
+
+        // 5. Sunnah Jumat (Al-Kahfi)
         if (islamicDayOfWeek == java.time.DayOfWeek.FRIDAY) {
-            if (sunnahInfo.isNotEmpty()) sunnahInfo.append(" • ")
-            sunnahInfo.append(context.getString(R.string.sunnah_friday))
+            sunnahList.add(context.getString(R.string.sunnah_friday))
         }
 
-        return sunnahInfo.toString()
+        // Gabungkan semuanya menggunakan titik bulat (bullet) seperti kode asli Anda
+        return sunnahList.joinToString(" • ")
     }
 }

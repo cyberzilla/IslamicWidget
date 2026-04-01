@@ -109,16 +109,19 @@
     <string name="color_hex">سداسي عشري: %1$s</string>
     <string name="format_lat_lon">خط العرض: %1$s، خط الطول: %2$s</string>
 
-    <string name="info_adzan_1">حان وقت الصلاة</string>
-    <string name="info_adzan_2">الأذان يرفع الآن</string>
-    <string name="info_adzan_3">حي على الصلاة</string>
-    <string name="info_adzan_sub">تفضل بأداء الصلاة</string>
-    <string name="sunnah_muharram">✨ صيام تاسوعاء / عاشوراء</string>
-    <string name="sunnah_dzulhijjah">✨ صيام ذي الحجة</string>
-    <string name="sunnah_arafah">✨ صيام يوم عرفة</string>
-    <string name="sunnah_ayyamul_bidh">✨ الأيام البيض</string>
-    <string name="sunnah_monday_thursday">🌙 صيام السنة</string>
-    <string name="sunnah_friday">📖 سورة الكهف</string>
+    <string name="info_adzan_1">لَقَدْ دَخَلَ وَقْتُ الصَّلَاةِ</string>
+    <string name="info_adzan_2">الْأَذَانُ يُرْفَعُ الْآنَ</string>
+    <string name="info_adzan_3">حَيَّ عَلَى الصَّلَاةِ فِي جَمَاعَةٍ</string>
+    <string name="info_adzan_sub">تَفَضَّلْ بِأَدَاءِ صَلَاتِكَ</string>
+
+    <string name="sunnah_muharram">✨ صِيَامُ تَاسُوعَاءَ / عَاشُورَاءَ</string>
+    <string name="sunnah_dzulhijjah">✨ صِيَامُ ذِي الْحِجَّةِ (الْيَوْمُ %1$d)</string>
+    <string name="sunnah_tarwiyah">✨ صِيَامُ يَوْمِ التَّرْوِيَةِ</string>
+    <string name="sunnah_arafah">✨ صِيَامُ يَوْمِ عَرَفَةَ</string>
+    <string name="sunnah_ayyamul_bidh">✨ صِيَامُ أَيَّامِ الْبِيضِ (الْيَوْمُ %1$d)</string>
+    <string name="sunnah_monday">🌙 صِيَامُ يَوْمِ الِاثْنَيْنِ</string>
+    <string name="sunnah_thursday">🌙 صِيَامُ يَوْمِ الْخَمِيسِ</string>
+    <string name="sunnah_friday">📖 قِرَاءَةُ سُورَةِ الْكَهْفِ</string>
 
     <string name="quote_loading">جاري تحميل الاقتباس...</string>
     <string name="quote_default_reference">- مرجع</string>

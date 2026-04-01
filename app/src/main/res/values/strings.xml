@@ -113,12 +113,15 @@
     <string name="info_adzan_2">ADZAN SEDANG BERKUMANDANG</string>
     <string name="info_adzan_3">MARI SHALAT BERJAMAAH</string>
     <string name="info_adzan_sub">Silakan tunaikan ibadah shalat Anda</string>
+
     <string name="sunnah_muharram">✨ Puasa Tasu\'a / Asyura</string>
-    <string name="sunnah_dzulhijjah">✨ Puasa Dzulhijjah</string>
+    <string name="sunnah_dzulhijjah">✨ Puasa Dzulhijjah (Hari ke-%1$d)</string>
+    <string name="sunnah_tarwiyah">✨ Puasa Tarwiyah</string>
     <string name="sunnah_arafah">✨ Puasa Arafah</string>
-    <string name="sunnah_ayyamul_bidh">✨ Ayyamul Bidh</string>
-    <string name="sunnah_monday_thursday">🌙 Puasa Sunnah</string>
-    <string name="sunnah_friday">📖 Al-Kahfi</string>
+    <string name="sunnah_ayyamul_bidh">✨ Puasa Ayyamul Bidh (Hari ke-%1$d)</string>
+    <string name="sunnah_monday">🌙 Puasa Sunnah Senin</string>
+    <string name="sunnah_thursday">🌙 Puasa Sunnah Kamis</string>
+    <string name="sunnah_friday">📖 Sunnah Al-Kahfi</string>
 
     <string name="quote_loading">Memuat quote...</string>
     <string name="quote_default_reference">- Referensi</string>

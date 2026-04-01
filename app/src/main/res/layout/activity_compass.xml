@@ -11,9 +11,11 @@
         android:layout_gravity="center"
         android:layout_margin="24dp"
         app:cardCornerRadius="28dp"
-        app:cardElevation="16dp"
-        app:strokeWidth="0dp"
-        app:cardBackgroundColor="?attr/colorSurface"
+
+        app:cardElevation="0dp"
+        app:strokeWidth="1.5dp"
+        app:strokeColor="@color/glass_card_stroke"
+        app:cardBackgroundColor="@color/glass_overlay_bg"
         android:clipToOutline="true"
         android:clipChildren="true">
 

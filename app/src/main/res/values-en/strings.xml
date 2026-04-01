@@ -110,15 +110,18 @@
     <string name="format_lat_lon">Lat: %1$s, Lon: %2$s</string>
 
     <string name="info_adzan_1">PRAYER TIME HAS ENTERED</string>
-    <string name="info_adzan_2">ADHAN IS PLAYING</string>
-    <string name="info_adzan_3">LET\'S PRAY IN CONGREGATION</string>
+    <string name="info_adzan_2">THE ADHAN IS CALLING</string>
+    <string name="info_adzan_3">LET\'S PRAY TOGETHER</string>
     <string name="info_adzan_sub">Please perform your prayer</string>
+
     <string name="sunnah_muharram">✨ Tasu\'a / Ashura Fasting</string>
-    <string name="sunnah_dzulhijjah">✨ Dzulhijjah Fasting</string>
+    <string name="sunnah_dzulhijjah">✨ Dzulhijjah Fasting (Day %1$d)</string>
+    <string name="sunnah_tarwiyah">✨ Tarwiyah Fasting</string>
     <string name="sunnah_arafah">✨ Arafah Fasting</string>
-    <string name="sunnah_ayyamul_bidh">✨ Ayyamul Bidh Fasting</string>
-    <string name="sunnah_monday_thursday">🌙 Sunnah Fasting</string>
-    <string name="sunnah_friday">📖 Surah Al-Kahf</string>
+    <string name="sunnah_ayyamul_bidh">✨ Ayyamul Bidh Fasting (Day %1$d)</string>
+    <string name="sunnah_monday">🌙 Monday Sunnah Fasting</string>
+    <string name="sunnah_thursday">🌙 Thursday Sunnah Fasting</string>
+    <string name="sunnah_friday">📖 Read Surah Al-Kahf</string>
 
     <string name="quote_loading">Loading quote...</string>
     <string name="quote_default_reference">- Reference</string>

@@ -6,8 +6,10 @@
         <item name="colorOnPrimary">@color/white</item>
     </style>
     <style name="GlassAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:background">@drawable/bg_liquid_glass_overlay</item>
         <item name="colorSurface">@android:color/transparent</item>
+        <item name="colorBackgroundFloating">@android:color/transparent</item>
         <item name="android:windowElevation">0dp</item>
     </style>
 </resources>
