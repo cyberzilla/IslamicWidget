@@ -17,6 +17,14 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         const val ACTION_SHARE_QUOTE = "com.cyberzilla.islamicwidget.ACTION_SHARE_QUOTE"
     }
 
+    private fun dpToPx(context: Context, dp: Float): Float {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp,
+            context.applicationContext.resources.displayMetrics
+        )
+    }
+
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         updateAllWidgets(context, appWidgetManager, appWidgetIds)
     }
@@ -77,15 +85,14 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_quotes)
 
-            // PERBAIKAN: Warnai background drawable menjadi dark grey (#262626) dan atur alpha-nya
             views.setInt(R.id.quote_bg_image, "setColorFilter", Color.parseColor("#262626"))
             views.setInt(R.id.quote_bg_image, "setImageAlpha", alphaValue)
 
             views.setTextViewText(tvQuoteId, "\"$quoteText\"")
             views.setTextViewText(tvRefId, quoteRef)
 
-            views.setTextViewTextSize(tvQuoteId, TypedValue.COMPLEX_UNIT_DIP, fontSize)
-            views.setTextViewTextSize(tvRefId, TypedValue.COMPLEX_UNIT_DIP, refFontSize)
+            views.setTextViewTextSize(tvQuoteId, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fontSize))
+            views.setTextViewTextSize(tvRefId, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, refFontSize))
 
             views.setDisplayedChild(R.id.quote_flipper, nextChild)
 

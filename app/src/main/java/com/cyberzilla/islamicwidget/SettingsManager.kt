@@ -19,7 +19,7 @@ class SettingsManager(private val context: Context) {
         set(value) = prefs.edit().putString("calculationMethod", value).apply()
 
     var previewScale: Int
-        get() = prefs.getInt("previewScale", 66)
+        get() = prefs.getInt("previewScale", 85)
         set(value) = prefs.edit().putInt("previewScale", value).apply()
 
     var latitude: String?
@@ -51,19 +51,19 @@ class SettingsManager(private val context: Context) {
         set(value) = prefs.edit().putBoolean("showAdditional", value).apply()
 
     var fontSizeClock: Int
-        get() = prefs.getInt("fontSizeClock", 43)
+        get() = prefs.getInt("fontSizeClock", 35)
         set(value) = prefs.edit().putInt("fontSizeClock", value).apply()
 
     var fontSizeDate: Int
-        get() = prefs.getInt("fontSizeDate", 25)
+        get() = prefs.getInt("fontSizeDate", 19)
         set(value) = prefs.edit().putInt("fontSizeDate", value).apply()
 
     var fontSizePrayer: Int
-        get() = prefs.getInt("fontSizePrayer", 21)
+        get() = prefs.getInt("fontSizePrayer", 16)
         set(value) = prefs.edit().putInt("fontSizePrayer", value).apply()
 
     var fontSizeAdditional: Int
-        get() = prefs.getInt("fontSizeAdditional", 20)
+        get() = prefs.getInt("fontSizeAdditional", 15)
         set(value) = prefs.edit().putInt("fontSizeAdditional", value).apply()
 
     var widgetBgRadius: Int
@@ -132,11 +132,11 @@ class SettingsManager(private val context: Context) {
         set(value) = prefs.edit().putBoolean("isAdzanPlaying", value).apply()
 
     var quoteUpdateInterval: Int
-        get() = prefs.getInt("quoteUpdateInterval", 0)
+        get() = prefs.getInt("quoteUpdateInterval", 3)
         set(value) = prefs.edit().putInt("quoteUpdateInterval", value).apply()
 
     var quoteFontSize: Int
-        get() = prefs.getInt("quoteFontSize", 23)
+        get() = prefs.getInt("quoteFontSize", 18)
         set(value) = prefs.edit().putInt("quoteFontSize", value).apply()
 
     var quoteDisplayedChild: Int
@@ -144,7 +144,7 @@ class SettingsManager(private val context: Context) {
         set(value) = prefs.edit().putInt("quoteDisplayedChild", value).apply()
 
     var quoteBgAlpha: Int
-        get() = prefs.getInt("quoteBgAlpha", 153) // Default 60% transparent (~153/255)
+        get() = prefs.getInt("quoteBgAlpha", 24) // Default 60% transparent (~153/255)
         set(value) = prefs.edit().putInt("quoteBgAlpha", value).apply()
 
     fun restoreDefaults() {

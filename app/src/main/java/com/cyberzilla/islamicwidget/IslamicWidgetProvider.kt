@@ -30,10 +30,17 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class IslamicWidgetProvider : AppWidgetProvider() {
+
+    private fun dpToPx(context: Context, dp: Float): Float {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp,
+            context.applicationContext.resources.displayMetrics
+        )
+    }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
@@ -55,28 +62,28 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 views.setDisplayedChild(R.id.master_flipper, if (settings.isAdzanPlaying) 1 else 0)
 
                 if (!settings.isAdzanPlaying) {
-                    views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_DIP, fsClock)
-                    views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_DIP, fsDate - 2f)
-                    views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_DIP, fsDate)
+                    views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsClock))
+                    views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate - 2f))
+                    views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate))
 
                     val textViewsToResize = listOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
-                    for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsPrayer - 2f) }
+                    for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer - 2f)) }
 
                     val timeViewsToResize = listOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
-                    for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsPrayer) }
+                    for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer)) }
 
                     val additionalTextIds = listOf(
                         R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2,
                         R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
                     )
-                    for (id in additionalTextIds) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsAdd) }
+                    for (id in additionalTextIds) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd)) }
 
-                    views.setTextViewTextSize(R.id.tv_sunnah_reminder_flip, TypedValue.COMPLEX_UNIT_DIP, fsAdd)
+                    views.setTextViewTextSize(R.id.tv_sunnah_reminder_flip, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
                 } else {
-                    views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
-                    views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
-                    views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
-                    views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_DIP, fsInfoSub)
+                    views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+                    views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+                    views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+                    views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoSub))
                 }
 
                 appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
@@ -178,10 +185,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         if (settings.isAdzanPlaying) {
             views.setDisplayedChild(R.id.master_flipper, 1)
 
-            views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
-            views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
-            views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_DIP, fsInfoTitle)
-            views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_DIP, fsInfoSub)
+            views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+            views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+            views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+            views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoSub))
 
             views.setTextViewText(R.id.tv_info_adzan_1, localizedContext.getString(R.string.info_adzan_1))
             views.setTextViewText(R.id.tv_info_adzan_2, localizedContext.getString(R.string.info_adzan_2))
@@ -200,15 +207,15 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.label_maghrib, localizedContext.getString(R.string.maghrib))
             views.setTextViewText(R.id.label_isha, localizedContext.getString(R.string.isha))
 
-            views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_DIP, fsClock)
-            views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_DIP, fsDate - 2f)
-            views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_DIP, fsDate)
+            views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsClock))
+            views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate - 2f))
+            views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate))
 
             val textViewsToResize = listOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
-            for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsPrayer - 2f) }
+            for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer - 2f)) }
 
             val timeViewsToResize = listOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
-            for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsPrayer) }
+            for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer)) }
 
             val textColor = try { Color.parseColor(settings.widgetTextColor) } catch (e: Exception) { Color.WHITE }
             views.setTextColor(R.id.clock_widget, textColor)
@@ -223,10 +230,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             )
             for (id in additionalTextIds) {
                 views.setTextColor(id, textColor)
-                views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_DIP, fsAdd)
+                views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
             }
 
-            views.setTextViewTextSize(R.id.tv_sunnah_reminder_flip, TypedValue.COMPLEX_UNIT_DIP, fsAdd)
+            views.setTextViewTextSize(R.id.tv_sunnah_reminder_flip, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
 
             if (is24Hour) {
                 views.setCharSequence(R.id.clock_widget, "setFormat24Hour", "HH:mm")
