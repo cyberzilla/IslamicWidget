@@ -22,9 +22,17 @@ class AdzanService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var originalAlarmVolume: Int = -1
 
+    // PERBAIKAN: WakeLock khusus dan independen di dalam Service
+    private var serviceWakeLock: PowerManager.WakeLock? = null
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Mengunci nyawa CPU sejak detik pertama Service dihidupkan
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
+        serviceWakeLock?.acquire(10 * 60 * 1000L) // Limit aman maksimal 10 menit
+
         val settings = SettingsManager(this)
 
         val isSubuh = intent?.getBooleanExtra("IS_SUBUH", false) ?: false
@@ -106,6 +114,7 @@ class AdzanService : Service() {
 
         try {
             mediaPlayer = MediaPlayer().apply {
+                // MediaPlayer juga diberi kuasa parsial untuk WakeLock
                 setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -187,6 +196,14 @@ class AdzanService : Service() {
                 action = "ACTION_UPDATE_WIDGETS_BROADCAST"
             }
             sendBroadcast(updateIntent)
+        }
+
+        // PERBAIKAN: Membuka gembok CPU setelah Service benar-benar mati
+        SilentModeReceiver.releaseWakeLock()
+        serviceWakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+            }
         }
     }
 }

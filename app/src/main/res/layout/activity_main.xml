@@ -56,6 +56,7 @@
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="12sp"
                     android:textStyle="bold"/>
+
                 <SeekBar
                     android:id="@+id/sb_preview_scale"
                     android:layout_width="0dp"
@@ -64,7 +65,7 @@
                     android:max="100"
                     android:progressTint="?attr/colorPrimary"
                     android:thumbTint="?attr/colorPrimary"
-                    android:progressBackgroundTint="@color/glass_card_stroke"/>
+                    android:progressBackgroundTint="@color/glass_slider_track"/>
             </LinearLayout>
             <TextView
                 android:layout_width="match_parent"
@@ -150,11 +151,18 @@
                                 android:layout_height="wrap_content"
                                 android:inputType="none"
                                 android:textColor="?android:attr/textColorPrimary"
-                                android:popupBackground="@drawable/bg_liquid_glass_overlay" /> </com.google.android.material.textfield.TextInputLayout>
+                                android:popupBackground="@drawable/bg_liquid_glass_dropdown" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/theme_label" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginTop="12dp" android:layout_marginBottom="4dp"/>
                         <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView android:id="@+id/spinner_theme" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" android:popupBackground="@drawable/bg_liquid_glass_overlay"/>
+                            <AutoCompleteTextView
+                                android:id="@+id/spinner_theme"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:textColor="?android:attr/textColorPrimary"
+                                android:popupBackground="@drawable/bg_liquid_glass_dropdown" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
@@ -197,7 +205,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_fs_clock" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="80" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_fs_clock" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="80" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_fs_clock" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
@@ -208,7 +216,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_fs_date" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_fs_date" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_fs_date" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
@@ -219,7 +227,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_fs_prayer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_fs_prayer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_fs_prayer" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
@@ -230,7 +238,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="24dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_fs_additional" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_fs_additional" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_fs_additional" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                         <View android:layout_width="match_parent" android:layout_height="2dp" android:background="?android:attr/textColorSecondary" android:alpha="0.3" android:layout_marginBottom="16dp"/>
@@ -238,7 +246,7 @@
                         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/visual_bg" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="@string/radius" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp"/>
-                            <SeekBar android:id="@+id/sb_radius" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_radius" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_label_radius" android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="12sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp" android:weightSum="2">
@@ -261,12 +269,20 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_calc" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="16dp" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/calc_method" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginBottom="4dp"/>
+
                         <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView android:id="@+id/spinner_calc_method" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" android:popupBackground="@drawable/bg_liquid_glass_overlay"/>
+                            <AutoCompleteTextView
+                                android:id="@+id/spinner_calc_method"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:textColor="?android:attr/textColorPrimary"
+                                android:popupBackground="@drawable/bg_liquid_glass_dropdown"/>
                         </com.google.android.material.textfield.TextInputLayout>
+
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                             <TextView android:layout_width="140dp" android:layout_height="wrap_content" android:text="@string/hijri_offset" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_hijri_offset" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="10" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_hijri_offset" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="10" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_label_hijri" android:layout_width="50dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="12sp" android:gravity="end"/>
                         </LinearLayout>
                         <CheckBox android:id="@+id/cb_day_start" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/day_start_maghrib" android:textColor="?android:attr/textColorPrimary" android:buttonTint="?attr/colorPrimary"/>
@@ -298,67 +314,67 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fajr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_fajr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_fajr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_fajr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_fajr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_fajr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_fajr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/dhuhr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_dhuhr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_dhuhr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_dhuhr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_dhuhr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_dhuhr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_dhuhr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/friday" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_fri_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_fri_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_fri_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_fri_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="180" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
-                            <TextView android:id="@+id/tv_fri_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" gravity="end"/>
+                            <SeekBar android:id="@+id/sb_fri_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="180" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
+                            <TextView android:id="@+id/tv_fri_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/asr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_asr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_asr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_asr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_asr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_asr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_asr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/maghrib" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_maghrib_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_maghrib_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_maghrib_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_maghrib_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_maghrib_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_maghrib_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/isha" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_isha_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_isha_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_isha_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_isha_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_isha_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_isha_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                     </LinearLayout>
@@ -382,7 +398,7 @@
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="@string/volume" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp"/>
-                            <SeekBar android:id="@+id/sb_adzan_vol" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="100" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_adzan_vol" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="100" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_adzan_vol" android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
                         </LinearLayout>
 
@@ -423,7 +439,7 @@
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/quote_minutes_label" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp"/>
-                            <SeekBar android:id="@+id/sb_quote_interval" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_quote_interval" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_quote_interval" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
 
@@ -434,7 +450,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_quote_font" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_quote_font" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_quote_font" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
 
@@ -445,7 +461,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/quote_bg_alpha" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_quote_alpha" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="255" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <SeekBar android:id="@+id/sb_quote_alpha" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="255" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_quote_alpha" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                     </LinearLayout>

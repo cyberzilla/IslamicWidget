@@ -455,7 +455,6 @@ class MainActivity : AppCompatActivity() {
                         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
                         saveSettingsQuietly()
 
-                        // Menyembunyikan loading jika Activity tidak ter-restart
                         findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
                     }, 300)
                 }
@@ -476,7 +475,6 @@ class MainActivity : AppCompatActivity() {
                         applyAppTheme(newTheme)
                         saveSettingsQuietly()
 
-                        // Menyembunyikan loading jika Activity tidak ter-restart
                         findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
                     }, 300)
                 }
@@ -596,40 +594,69 @@ class MainActivity : AppCompatActivity() {
         try { findViewById<Button>(R.id.btn_pick_bg_color)?.backgroundTintList = ColorStateList.valueOf(Color.parseColor(currentBgColor)) } catch (e: Exception) {}
     }
 
+    // =========================================================================================
+    // COLOR PICKER CUSTOM (RGB SLIDER + XML)
+    // =========================================================================================
     private fun showColorPickerDialog(title: String, initialColorHex: String, onColorSelected: (String) -> Unit) {
-        val layout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(50, 50, 50, 50) }
-        var currentColor = try { Color.parseColor(initialColorHex) } catch (e: Exception) { Color.BLACK }
-        val colorPreview = View(this).apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 200); setBackgroundColor(currentColor) }
-        val tvHex = TextView(this).apply { text = getString(R.string.color_hex, initialColorHex); textSize = 16f; textAlignment = android.view.View.TEXT_ALIGNMENT_CENTER; setPadding(0, 20, 0, 20) }
+        val dialogView = layoutInflater.inflate(R.layout.dialog_color_picker, null)
 
-        fun createColorSlider(label: String, initVal: Int, onValChange: (Int) -> Unit): LinearLayout {
-            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER_VERTICAL }
-            val tv = TextView(this@MainActivity).apply { text = label; layoutParams = LinearLayout.LayoutParams(120, ViewGroup.LayoutParams.WRAP_CONTENT) }
-            val sb = SeekBar(this@MainActivity).apply { max = 255; progress = initVal; layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                        onValChange(progress)
-                        val hex = String.format("#%02X%02X%02X%02X", Color.alpha(currentColor), Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor))
-                        colorPreview.setBackgroundColor(currentColor); tvHex.text = getString(R.string.color_hex, hex)
-                    }
-                    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-                })
-            }
-            row.addView(tv); row.addView(sb); return row
+        var currentColor = try { Color.parseColor(initialColorHex) } catch (e: Exception) { Color.BLACK }
+
+        val cardPreview = dialogView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card_color_preview)
+        val tvHex = dialogView.findViewById<TextView>(R.id.tv_hex_code)
+
+        val sbAlpha = dialogView.findViewById<SeekBar>(R.id.sb_alpha)
+        val sbRed = dialogView.findViewById<SeekBar>(R.id.sb_red)
+        val sbGreen = dialogView.findViewById<SeekBar>(R.id.sb_green)
+        val sbBlue = dialogView.findViewById<SeekBar>(R.id.sb_blue)
+
+        val tvAlphaVal = dialogView.findViewById<TextView>(R.id.tv_alpha_val)
+        val tvRedVal = dialogView.findViewById<TextView>(R.id.tv_red_val)
+        val tvGreenVal = dialogView.findViewById<TextView>(R.id.tv_green_val)
+        val tvBlueVal = dialogView.findViewById<TextView>(R.id.tv_blue_val)
+
+        // Fungsi untuk merender warna ke layar
+        fun updateUI() {
+            cardPreview.setCardBackgroundColor(currentColor)
+            tvHex.text = String.format("#%08X", currentColor).uppercase()
+
+            sbAlpha.progress = Color.alpha(currentColor)
+            sbRed.progress = Color.red(currentColor)
+            sbGreen.progress = Color.green(currentColor)
+            sbBlue.progress = Color.blue(currentColor)
+
+            tvAlphaVal.text = sbAlpha.progress.toString()
+            tvRedVal.text = sbRed.progress.toString()
+            tvGreenVal.text = sbGreen.progress.toString()
+            tvBlueVal.text = sbBlue.progress.toString()
         }
 
-        layout.addView(colorPreview); layout.addView(tvHex)
-        layout.addView(createColorSlider(getString(R.string.color_alpha), Color.alpha(currentColor)) { currentColor = Color.argb(it, Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor)) })
-        layout.addView(createColorSlider(getString(R.string.color_red), Color.red(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), it, Color.green(currentColor), Color.blue(currentColor)) })
-        layout.addView(createColorSlider(getString(R.string.color_green), Color.green(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), Color.red(currentColor), it, Color.blue(currentColor)) })
-        layout.addView(createColorSlider(getString(R.string.color_blue), Color.blue(currentColor)) { currentColor = Color.argb(Color.alpha(currentColor), Color.red(currentColor), Color.green(currentColor), it) })
+        // Tampilkan warna awal saat popup baru dibuka
+        updateUI()
 
+        // Listener untuk mendeteksi geseran slider
+        val listener = object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    currentColor = Color.argb(sbAlpha.progress, sbRed.progress, sbGreen.progress, sbBlue.progress)
+                    updateUI()
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        }
+
+        sbAlpha.setOnSeekBarChangeListener(listener)
+        sbRed.setOnSeekBarChangeListener(listener)
+        sbGreen.setOnSeekBarChangeListener(listener)
+        sbBlue.setOnSeekBarChangeListener(listener)
+
+        // Tampilkan Dialog
         MaterialAlertDialogBuilder(this)
             .setTitle(title)
-            .setView(layout)
+            .setView(dialogView)
             .setPositiveButton(getString(R.string.dialog_yes)) { _, _ ->
-                onColorSelected(String.format("#%02X%02X%02X%02X", Color.alpha(currentColor), Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor)))
+                onColorSelected(String.format("#%08X", currentColor).uppercase())
             }
             .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show()
@@ -717,9 +744,8 @@ class MainActivity : AppCompatActivity() {
                         applyAppTheme("SYSTEM")
                         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
                         loadSettingsToUI()
-                        saveSettingsQuietly() // Auto-Save Reset
+                        saveSettingsQuietly()
 
-                        // Menyembunyikan loading jika Activity tidak ter-restart
                         findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
                     }, 300)
                 }
@@ -775,7 +801,7 @@ class MainActivity : AppCompatActivity() {
 
         updateLocationUI()
         updatePreview()
-        saveSettingsQuietly() // Auto-Save untuk GPS baru
+        saveSettingsQuietly()
     }
 
     private fun AutoCompleteTextView.setDropdownItems(items: Array<String>) {

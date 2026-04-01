@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import com.batoulapps.adhan2.Coordinates
 import com.batoulapps.adhan2.Qibla
 import java.util.Locale
@@ -43,6 +44,16 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
     private var tvCenterHeading: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // PERBAIKAN: Memaksa sinkronisasi tema sebelum layar dibuat
+        try {
+            val settingsManager = SettingsManager(this)
+            when (settingsManager.appTheme) {
+                "LIGHT" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                "DARK" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            }
+        } catch (e: Exception) {}
+
         super.onCreate(savedInstanceState)
         window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 

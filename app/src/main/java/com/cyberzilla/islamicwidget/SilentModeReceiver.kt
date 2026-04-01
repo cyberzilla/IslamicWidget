@@ -8,9 +8,36 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
+import android.os.PowerManager
 import android.util.Log
 
 class SilentModeReceiver : BroadcastReceiver() {
+
+    // Fitur Kunci CPU (WakeLock) agar HP tidak tidur saat proses transisi ke Service
+    companion object {
+        private var wakeLock: PowerManager.WakeLock? = null
+
+        fun acquireWakeLock(context: Context) {
+            if (wakeLock == null) {
+                val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                // Menggunakan PARTIAL_WAKE_LOCK: CPU tetap hidup meski layar mati
+                wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanWakeLock")
+            }
+            if (wakeLock?.isHeld == false) {
+                wakeLock?.acquire(10 * 60 * 1000L) // Kunci maksimal 10 menit sebagai pengaman
+            }
+        }
+
+        fun releaseWakeLock() {
+            try {
+                if (wakeLock?.isHeld == true) {
+                    wakeLock?.release()
+                }
+            } catch (e: Exception) {
+                Log.e("SilentModeReceiver", "Gagal melepas WakeLock", e)
+            }
+        }
+    }
 
     override fun onReceive(context: Context, intent: Intent) {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -19,6 +46,9 @@ class SilentModeReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             "ACTION_PLAY_ADZAN" -> {
+                // 1. Kunci CPU sesaat setelah alarm berbunyi
+                acquireWakeLock(context)
+
                 val serviceIntent = Intent(context, AdzanService::class.java).apply {
                     putExtra("IS_SUBUH", intent.getBooleanExtra("IS_SUBUH", false))
                     putExtra("PRAYER_ID", intent.getIntExtra("PRAYER_ID", 0))
@@ -31,6 +61,8 @@ class SilentModeReceiver : BroadcastReceiver() {
                     }
                 } catch (e: Exception) {
                     Log.e("SilentModeReceiver", context.getString(R.string.log_error_play_adzan, e.message))
+                    // Lepas kunci jika service gagal dimulai
+                    releaseWakeLock()
                 }
             }
 

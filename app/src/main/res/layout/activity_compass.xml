@@ -43,7 +43,8 @@
 
                 <FrameLayout
                     android:layout_width="260dp"
-                    android:layout_height="260dp">
+                    android:layout_height="260dp"
+                    android:layoutDirection="ltr">
 
                     <FrameLayout
                         android:id="@+id/fl_compass_dial"
