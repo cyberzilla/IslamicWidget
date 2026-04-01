@@ -1,6 +1,12 @@
 package com.cyberzilla.islamicwidget
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.hardware.Sensor
@@ -14,8 +20,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import com.batoulapps.adhan2.Coordinates
 import com.batoulapps.adhan2.Qibla
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import java.util.Locale
 
 class CompassActivity : AppCompatActivity(), SensorEventListener {
@@ -23,6 +33,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
     private var sensorManager: SensorManager? = null
     private var accelerometer: Sensor? = null
     private var magnetometer: Sensor? = null
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private var gravity = FloatArray(3)
     private var geomagnetic = FloatArray(3)
@@ -44,7 +55,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
     private var tvCenterHeading: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // PERBAIKAN: Memaksa sinkronisasi tema sebelum layar dibuat
+        // Sinkronisasi Tema agar popup tidak bentrok dengan sistem Android
         try {
             val settingsManager = SettingsManager(this)
             when (settingsManager.appTheme) {
@@ -68,6 +79,9 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
             findViewById<ImageView>(R.id.btn_close_compass)?.setOnClickListener { finish() }
 
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+            // 1. Load dari memori terakhir agar tidak blank/loading lama
             val settings = SettingsManager(this)
             val latStr = settings.latitude
             val lonStr = settings.longitude
@@ -86,6 +100,9 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 tvDegree?.text = getString(R.string.default_location)
             }
 
+            // 2. Diam-diam cari lokasi terbaru di background (Auto-Update GPS)
+            fetchLatestLocation()
+
             sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
             accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
             magnetometer = sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
@@ -98,6 +115,53 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
         } catch (e: Exception) {
             Toast.makeText(this, getString(R.string.toast_compass_layout_error), Toast.LENGTH_LONG).show()
             finish()
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun fetchLatestLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                .addOnSuccessListener { location ->
+                    if (location != null && !isDestroyed) {
+                        val coordinates = Coordinates(location.latitude, location.longitude)
+                        qiblaDegree = Qibla(coordinates).direction.toFloat()
+
+                        val title = getString(R.string.compass_title_qibla)
+                        tvDegree?.text = String.format(java.util.Locale.getDefault(), "%s %.1f°", title, qiblaDegree)
+
+                        val settings = SettingsManager(this@CompassActivity)
+                        settings.latitude = location.latitude.toString()
+                        settings.longitude = location.longitude.toString()
+
+                        // --- TAMBAHAN: Translate koordinat baru jadi Nama Kota untuk UI Settings ---
+                        try {
+                            val geocoder = android.location.Geocoder(this@CompassActivity, java.util.Locale.getDefault())
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                geocoder.getFromLocation(location.latitude, location.longitude, 1) { addrs ->
+                                    val address = addrs.firstOrNull()
+                                    val locName = listOfNotNull(address?.thoroughfare, address?.subLocality, address?.locality, address?.subAdminArea, address?.adminArea, address?.countryName).joinToString(", ").ifEmpty { getString(R.string.location_found) }
+                                    settings.locationName = locName
+                                }
+                            } else {
+                                @Suppress("DEPRECATION")
+                                val address = geocoder.getFromLocation(location.latitude, location.longitude, 1)?.firstOrNull()
+                                val locName = listOfNotNull(address?.thoroughfare, address?.subLocality, address?.locality, address?.subAdminArea, address?.adminArea, address?.countryName).joinToString(", ").ifEmpty { getString(R.string.location_found) }
+                                settings.locationName = locName
+                            }
+                        } catch (e: Exception) {}
+                        // -------------------------------------------------------------------------
+
+                        val updateIntent = Intent(this, IslamicWidgetProvider::class.java).apply {
+                            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                            val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
+                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+                        }
+                        sendBroadcast(updateIntent)
+                    }
+                }
         }
     }
 
@@ -146,7 +210,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                     }
                 }
 
-                // Filter data medan magnet
                 if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD && event.values.size >= 3) {
                     if (!isGeomagneticInit) {
                         geomagnetic[0] = event.values[0]
@@ -206,7 +269,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
         } catch (e: Exception) {
-            // Gagal dalam kalkulasi sensor secara periodik dapat diabaikan untuk kestabilan
+            // Gagal kalkulasi sensor secara periodik dapat diabaikan
         }
     }
 

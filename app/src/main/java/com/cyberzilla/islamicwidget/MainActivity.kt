@@ -166,6 +166,9 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.toast_dnd_granted), Toast.LENGTH_SHORT).show()
             }
         }
+
+        updateLocationUI()
+        updatePreview()
     }
 
     override fun onPause() { super.onPause(); stopTestAdzan() }
