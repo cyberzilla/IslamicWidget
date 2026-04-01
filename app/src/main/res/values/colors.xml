@@ -12,4 +12,10 @@
     <color name="text_accent">#3B82F6</color>
 
     <color name="danger_color">#DC2626</color>
+
+    <color name="glass_card_bg">#4DFFFFFF</color>
+    <color name="glass_card_stroke">#80FFFFFF</color>
+    <color name="glass_bottom_btn_bg">#B3FFFFFF</color>
+    <color name="glass_overlay_bg">#F2FFFFFF</color>
 </resources>
+

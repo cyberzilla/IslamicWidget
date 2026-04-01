@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
+    android:background="@drawable/bg_hyperos_main"
     android:fitsSystemWindows="true">
 
     <LinearLayout
@@ -15,12 +15,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="?attr/colorSurface"
+            android:background="@drawable/bg_liquid_glass"
+            android:layout_margin="16dp"
             android:paddingTop="16dp"
             android:paddingBottom="12dp"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:elevation="8dp">
+            android:elevation="0dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -35,7 +36,7 @@
                 android:id="@+id/preview_container"
                 android:layout_width="match_parent"
                 android:layout_height="130dp"
-                android:background="#9CA3AF"
+                android:background="@android:color/transparent"
                 android:clipToOutline="true"
                 android:layout_marginBottom="4dp">
                 <include layout="@layout/widget_islamic_horizontal" />
@@ -63,7 +64,7 @@
                     android:max="100"
                     android:progressTint="?attr/colorPrimary"
                     android:thumbTint="?attr/colorPrimary"
-                    android:progressBackgroundTint="#D1D5DB"/>
+                    android:progressBackgroundTint="@color/glass_card_stroke"/>
             </LinearLayout>
             <TextView
                 android:layout_width="match_parent"
@@ -90,12 +91,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#1F888888"
-                    app:contentPadding="16dp">
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/pin_widget_title" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp" />
 
@@ -108,7 +109,7 @@
                                 android:text="@string/pin_main_widget"
                                 android:textSize="11sp"
                                 android:layout_marginEnd="4dp"
-                                app:cornerRadius="8dp"
+                                app:cornerRadius="16dp"
                                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                                 app:strokeColor="?attr/colorPrimary"
                                 android:textColor="?attr/colorPrimary"/>
@@ -121,7 +122,7 @@
                                 android:text="@string/pin_quote_widget"
                                 android:textSize="11sp"
                                 android:layout_marginStart="4dp"
-                                app:cornerRadius="8dp"
+                                app:cornerRadius="16dp"
                                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                                 app:strokeColor="?attr/colorPrimary"
                                 android:textColor="?attr/colorPrimary"/>
@@ -133,22 +134,27 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#1F888888"
-                    app:contentPadding="16dp">
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_lang_theme" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp" />
 
                         <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView android:id="@+id/spinner_language" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                            <AutoCompleteTextView
+                                android:id="@+id/spinner_language"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:textColor="?android:attr/textColorPrimary"
+                                android:popupBackground="@drawable/bg_liquid_glass_overlay" /> </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/theme_label" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginTop="12dp" android:layout_marginBottom="4dp"/>
                         <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView android:id="@+id/spinner_theme" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" />
+                            <AutoCompleteTextView android:id="@+id/spinner_theme" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" android:popupBackground="@drawable/bg_liquid_glass_overlay"/>
                         </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
@@ -158,17 +164,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#1F888888"
-                    app:contentPadding="16dp">
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_gps" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp" />
                         <TextView android:id="@+id/tv_location_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/memuat" android:textColor="?android:attr/textColorPrimary" android:textSize="18sp" android:textStyle="bold" />
                         <TextView android:id="@+id/tv_lat_lon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Lat: -, Lon: -" android:textColor="?android:attr/textColorSecondary" android:textSize="14sp" android:layout_marginBottom="16dp"/>
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_update_gps" android:layout_width="match_parent" android:layout_height="50dp" android:text="@string/btn_update_gps" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_update_gps" android:layout_width="match_parent" android:layout_height="50dp" app:cornerRadius="16dp" android:text="@string/btn_update_gps" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -176,12 +182,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#1F888888"
-                    app:contentPadding="16dp">
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_visual" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="16dp" />
 
@@ -191,7 +197,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_fs_clock" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="80" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_fs_clock" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="80" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_fs_clock" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
@@ -202,7 +208,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_fs_date" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_fs_date" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_fs_date" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
@@ -213,7 +219,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_fs_prayer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_fs_prayer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_fs_prayer" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.2" android:layout_marginBottom="12dp"/>
@@ -224,7 +230,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="24dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_fs_additional" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_fs_additional" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_fs_additional" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                         <View android:layout_width="match_parent" android:layout_height="2dp" android:background="?android:attr/textColorSecondary" android:alpha="0.3" android:layout_marginBottom="16dp"/>
@@ -232,12 +238,12 @@
                         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/visual_bg" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="@string/radius" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp"/>
-                            <SeekBar android:id="@+id/sb_radius" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_radius" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="40" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_label_radius" android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="12sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp" android:weightSum="2">
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_text_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="@string/btn_text_color" android:textSize="13sp" android:layout_marginEnd="6dp" app:cornerRadius="8dp" app:strokeColor="?android:attr/textColorSecondary" app:strokeWidth="1dp" />
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_bg_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="@string/btn_bg_color" android:textSize="13sp" android:layout_marginStart="6dp" app:cornerRadius="8dp" app:strokeColor="?android:attr/textColorSecondary" app:strokeWidth="1dp"/>
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_text_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="@string/btn_text_color" android:textSize="13sp" android:layout_marginEnd="6dp" app:cornerRadius="16dp" app:strokeColor="?android:attr/textColorSecondary" app:strokeWidth="1dp" />
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_bg_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="@string/btn_bg_color" android:textSize="13sp" android:layout_marginStart="6dp" app:cornerRadius="16dp" app:strokeColor="?android:attr/textColorSecondary" app:strokeWidth="1dp"/>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -246,21 +252,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#1F888888"
-                    app:contentPadding="16dp">
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_calc" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="16dp" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/calc_method" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginBottom="4dp"/>
                         <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView android:id="@+id/spinner_calc_method" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" />
+                            <AutoCompleteTextView android:id="@+id/spinner_calc_method" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" android:textColor="?android:attr/textColorPrimary" android:popupBackground="@drawable/bg_liquid_glass_overlay"/>
                         </com.google.android.material.textfield.TextInputLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                             <TextView android:layout_width="140dp" android:layout_height="wrap_content" android:text="@string/hijri_offset" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_hijri_offset" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="10" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_hijri_offset" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="10" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_label_hijri" android:layout_width="50dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="12sp" android:gravity="end"/>
                         </LinearLayout>
                         <CheckBox android:id="@+id/cb_day_start" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/day_start_maghrib" android:textColor="?android:attr/textColorPrimary" android:buttonTint="?attr/colorPrimary"/>
@@ -278,12 +284,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#1F888888"
-                    app:contentPadding="16dp">
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sec_dnd" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" />
@@ -292,67 +298,67 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fajr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_fajr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_fajr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_fajr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_fajr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_fajr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_fajr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/dhuhr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_dhuhr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_dhuhr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_dhuhr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_dhuhr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_dhuhr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_dhuhr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/friday" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_fri_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_fri_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_fri_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_fri_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="180" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
-                            <TextView android:id="@+id/tv_fri_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
+                            <SeekBar android:id="@+id/sb_fri_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="180" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
+                            <TextView android:id="@+id/tv_fri_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/asr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_asr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_asr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_asr_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_asr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_asr_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_asr_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/maghrib" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_maghrib_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_maghrib_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_maghrib_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_maghrib_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_maghrib_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_maghrib_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/isha" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_isha_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_isha_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_isha_bef" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
-                            <SeekBar android:id="@+id/sb_isha_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_isha_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_isha_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
                     </LinearLayout>
@@ -362,13 +368,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#1F888888"
-                    app:contentPadding="16dp">
-
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sec_audio" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" />
@@ -377,23 +382,23 @@
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="@string/volume" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp"/>
-                            <SeekBar android:id="@+id/sb_adzan_vol" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="100" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_adzan_vol" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="100" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_adzan_vol" android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textSize="12sp" android:textStyle="bold" android:gravity="end"/>
                         </LinearLayout>
 
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/custom_audio_hint" android:textColor="?android:attr/textColorSecondary" android:textSize="11sp" android:layout_marginBottom="12dp"/>
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="2dp" android:weightSum="10">
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_regular" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="@string/btn_adzan_regular" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary" android:layout_marginEnd="4dp"/>
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_test" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorError" android:textColor="?attr/colorError"/>
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_regular" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="@string/btn_adzan_regular" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:cornerRadius="12dp" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary" android:layout_marginEnd="4dp"/>
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_test" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:cornerRadius="12dp" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_regular" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:cornerRadius="12dp" app:strokeColor="?attr/colorError" android:textColor="?attr/colorError"/>
                         </LinearLayout>
                         <TextView android:id="@+id/tv_adzan_regular_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/status_default" android:textSize="11sp" android:textColor="?android:attr/textColorSecondary" android:layout_marginBottom="16dp"/>
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="2dp" android:weightSum="10">
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_subuh" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="@string/btn_adzan_subuh" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary" android:layout_marginEnd="4dp"/>
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_test" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorError" android:textColor="?attr/colorError"/>
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_adzan_subuh" android:layout_width="0dp" android:layout_weight="5" android:layout_height="wrap_content" android:text="@string/btn_adzan_subuh" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:cornerRadius="12dp" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary" android:layout_marginEnd="4dp"/>
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_play_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_test" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:cornerRadius="12dp" app:strokeColor="#10B981" android:textColor="#10B981" android:layout_marginEnd="4dp"/>
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btn_clear_adzan_subuh" android:layout_width="0dp" android:layout_weight="2.5" android:layout_height="wrap_content" android:text="@string/btn_reset" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:cornerRadius="12dp" app:strokeColor="?attr/colorError" android:textColor="?attr/colorError"/>
                         </LinearLayout>
                         <TextView android:id="@+id/tv_adzan_subuh_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/status_default" android:textSize="11sp" android:textColor="?android:attr/textColorSecondary"/>
                     </LinearLayout>
@@ -402,13 +407,13 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="24dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#1F888888"
-                    app:contentPadding="16dp">
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/quote_settings_title" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="16dp" />
 
@@ -418,7 +423,7 @@
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/quote_minutes_label" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp"/>
-                            <SeekBar android:id="@+id/sb_quote_interval" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_quote_interval" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_quote_interval" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
                         </LinearLayout>
 
@@ -429,7 +434,7 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/font_label" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_quote_font" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_quote_font" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="30" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_quote_font" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
 
@@ -440,45 +445,42 @@
                         </LinearLayout>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="@string/quote_bg_alpha" android:textSize="12sp" android:textColor="?android:attr/textColorPrimary"/>
-                            <SeekBar android:id="@+id/sb_quote_alpha" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="255" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="#D1D5DB"/>
+                            <SeekBar android:id="@+id/sb_quote_alpha" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="255" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_card_stroke"/>
                             <TextView android:id="@+id/tv_quote_alpha" android:layout_width="45dp" android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold" android:gravity="end" android:textColor="?android:attr/textColorPrimary"/>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_save_settings"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:text="@string/btn_save"
-                    android:textSize="16sp"
-                    app:cornerRadius="12dp"
-                    app:backgroundTint="?attr/colorPrimary"
-                    android:textColor="@color/white"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_restore"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/btn_restore"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    app:strokeColor="?attr/colorError"
-                    android:textColor="?attr/colorError"
-                    app:cornerRadius="12dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_about"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2"
                     android:layout_marginTop="8dp"
-                    android:text="@string/btn_about"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    app:strokeColor="?android:attr/textColorSecondary"
-                    android:textColor="?android:attr/textColorSecondary"
-                    app:cornerRadius="12dp"
-                    android:layout_marginBottom="32dp"/>
+                    android:layout_marginBottom="32dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_restore"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="56dp"
+                        android:layout_marginEnd="6dp"
+                        android:text="@string/btn_restore"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:textColor="?attr/colorError" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_about"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="56dp"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/btn_about"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        app:backgroundTint="@color/glass_bottom_btn_bg"
+                        android:textColor="?android:attr/textColorPrimary"
+                        app:cornerRadius="16dp"/>
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

@@ -50,7 +50,6 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 class MainActivity : AppCompatActivity() {
@@ -81,6 +80,7 @@ class MainActivity : AppCompatActivity() {
             tempRegularUri = uri.toString()
             findViewById<TextView>(R.id.tv_adzan_regular_status)?.text = getString(R.string.status_custom)
             stopTestAdzan()
+            saveSettingsQuietly()
         }
     }
 
@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
             tempSubuhUri = uri.toString()
             findViewById<TextView>(R.id.tv_adzan_subuh_status)?.text = getString(R.string.status_custom)
             stopTestAdzan()
+            saveSettingsQuietly()
         }
     }
 
@@ -108,6 +109,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked = false
             settingsManager.isAdzanAudioEnabled = false
+            saveSettingsQuietly()
             Toast.makeText(this, getString(R.string.toast_notification_needed), Toast.LENGTH_LONG).show()
         }
     }
@@ -160,6 +162,7 @@ class MainActivity : AppCompatActivity() {
             if (notificationManager.isNotificationPolicyAccessGranted) {
                 findViewById<SwitchCompat>(R.id.switch_auto_silent)?.isChecked = true
                 settingsManager.isAutoSilentEnabled = true
+                saveSettingsQuietly()
                 Toast.makeText(this, getString(R.string.toast_dnd_granted), Toast.LENGTH_SHORT).show()
             }
         }
@@ -194,7 +197,9 @@ class MainActivity : AppCompatActivity() {
                 updatePreview()
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                saveSettingsQuietly() // Auto-Save trigger
+            }
         })
     }
 
@@ -270,7 +275,6 @@ class MainActivity : AppCompatActivity() {
                     val lat = settingsManager.latitude!!.toDouble()
                     val lon = settingsManager.longitude!!.toDouble()
 
-                    // Panggil fungsi terpusat dari IslamicAppUtils
                     val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, calcValues[calcIdx], today)
                     val sunnahTimes = SunnahTimes(prayerTimes)
                     val qibla = Qibla(Coordinates(lat, lon))
@@ -300,7 +304,6 @@ class MainActivity : AppCompatActivity() {
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
-                    // Panggil fungsi terpusat puasa sunnah
                     val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
 
                     if (isShowAdd) {
@@ -450,6 +453,10 @@ class MainActivity : AppCompatActivity() {
                         findViewById<EditText>(R.id.et_date_format)?.setText(settingsManager.dateFormat)
                         findViewById<EditText>(R.id.et_hijri_format)?.setText(settingsManager.hijriFormat)
                         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
+                        saveSettingsQuietly()
+
+                        // Menyembunyikan loading jika Activity tidak ter-restart
+                        findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
                     }, 300)
                 }
             }
@@ -467,6 +474,10 @@ class MainActivity : AppCompatActivity() {
                     Handler(Looper.getMainLooper()).postDelayed({
                         settingsManager.appTheme = newTheme
                         applyAppTheme(newTheme)
+                        saveSettingsQuietly()
+
+                        // Menyembunyikan loading jika Activity tidak ter-restart
+                        findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
                     }, 300)
                 }
             }
@@ -479,13 +490,13 @@ class MainActivity : AppCompatActivity() {
             calcSpinner.isSaveEnabled = false
             calcSpinner.setDropdownItems(calcEntries)
             calcSpinner.setText(calcEntries[calcValues.indexOf(settingsManager.calculationMethod).takeIf { it >= 0 } ?: 0], false)
-            calcSpinner.setOnItemClickListener { _, _, _, _ -> updatePreview() }
+            calcSpinner.setOnItemClickListener { _, _, _, _ -> updatePreview(); saveSettingsQuietly() }
         }
 
-        findViewById<SwitchCompat>(R.id.sw_show_clock)?.apply { isChecked = settingsManager.showClock; setOnCheckedChangeListener { _,_ -> updatePreview() } }
-        findViewById<SwitchCompat>(R.id.sw_show_date)?.apply { isChecked = settingsManager.showDate; setOnCheckedChangeListener { _,_ -> updatePreview() } }
-        findViewById<SwitchCompat>(R.id.sw_show_prayer)?.apply { isChecked = settingsManager.showPrayer; setOnCheckedChangeListener { _,_ -> updatePreview() } }
-        findViewById<SwitchCompat>(R.id.sw_show_additional)?.apply { isChecked = settingsManager.showAdditional; setOnCheckedChangeListener { _,_ -> updatePreview() } }
+        findViewById<SwitchCompat>(R.id.sw_show_clock)?.apply { isChecked = settingsManager.showClock; setOnCheckedChangeListener { _,_ -> updatePreview(); saveSettingsQuietly() } }
+        findViewById<SwitchCompat>(R.id.sw_show_date)?.apply { isChecked = settingsManager.showDate; setOnCheckedChangeListener { _,_ -> updatePreview(); saveSettingsQuietly() } }
+        findViewById<SwitchCompat>(R.id.sw_show_prayer)?.apply { isChecked = settingsManager.showPrayer; setOnCheckedChangeListener { _,_ -> updatePreview(); saveSettingsQuietly() } }
+        findViewById<SwitchCompat>(R.id.sw_show_additional)?.apply { isChecked = settingsManager.showAdditional; setOnCheckedChangeListener { _,_ -> updatePreview(); saveSettingsQuietly() } }
 
         setupSlider(R.id.sb_fs_clock, R.id.tv_fs_clock, 20, 80, settingsManager.fontSizeClock, false, "sp")
         setupSlider(R.id.sb_fs_date, R.id.tv_fs_date, 8, 30, settingsManager.fontSizeDate, false, "sp")
@@ -498,9 +509,13 @@ class MainActivity : AppCompatActivity() {
         currentBgColor = settingsManager.widgetBgColor
         updateColorButtons()
 
-        findViewById<CheckBox>(R.id.cb_day_start)?.apply { isChecked = settingsManager.isDayStartAtMaghrib; setOnCheckedChangeListener { _,_ -> updatePreview() } }
+        findViewById<CheckBox>(R.id.cb_day_start)?.apply { isChecked = settingsManager.isDayStartAtMaghrib; setOnCheckedChangeListener { _,_ -> updatePreview(); saveSettingsQuietly() } }
 
-        val tw = object : TextWatcher { override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}; override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) { updatePreview() }; override fun afterTextChanged(s: Editable?) {} }
+        val tw = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
+            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) { updatePreview() }
+            override fun afterTextChanged(s: Editable?) { saveSettingsQuietly() }
+        }
         findViewById<EditText>(R.id.et_date_format)?.apply { setText(settingsManager.dateFormat); addTextChangedListener(tw) }
         findViewById<EditText>(R.id.et_hijri_format)?.apply { setText(settingsManager.hijriFormat); addTextChangedListener(tw) }
 
@@ -510,6 +525,8 @@ class MainActivity : AppCompatActivity() {
                 if (isChecked && !(getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).isNotificationPolicyAccessGranted) {
                     this.isChecked = false; pendingDndPermission = true
                     startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+                } else {
+                    saveSettingsQuietly()
                 }
             }
         }
@@ -540,8 +557,10 @@ class MainActivity : AppCompatActivity() {
                     }
                     settingsManager.isAdzanAudioEnabled = true
                     showPauseActivityWarningDialog()
+                    saveSettingsQuietly()
                 } else {
                     settingsManager.isAdzanAudioEnabled = false
+                    saveSettingsQuietly()
                 }
             }
         }
@@ -558,11 +577,11 @@ class MainActivity : AppCompatActivity() {
         val btnPlaySub = findViewById<Button>(R.id.btn_play_adzan_subuh)
 
         findViewById<Button>(R.id.btn_pick_adzan_regular)?.setOnClickListener { pickRegularAdzanLauncher.launch("audio/*") }
-        findViewById<Button>(R.id.btn_clear_adzan_regular)?.setOnClickListener { tempRegularUri = null; findViewById<TextView>(R.id.tv_adzan_regular_status)?.text = getString(R.string.status_default); stopTestAdzan() }
+        findViewById<Button>(R.id.btn_clear_adzan_regular)?.setOnClickListener { tempRegularUri = null; findViewById<TextView>(R.id.tv_adzan_regular_status)?.text = getString(R.string.status_default); stopTestAdzan(); saveSettingsQuietly() }
         btnPlayReg?.setOnClickListener { toggleTestAdzan(false, btnPlayReg) }
 
         findViewById<Button>(R.id.btn_pick_adzan_subuh)?.setOnClickListener { pickSubuhAdzanLauncher.launch("audio/*") }
-        findViewById<Button>(R.id.btn_clear_adzan_subuh)?.setOnClickListener { tempSubuhUri = null; findViewById<TextView>(R.id.tv_adzan_subuh_status)?.text = getString(R.string.status_default); stopTestAdzan() }
+        findViewById<Button>(R.id.btn_clear_adzan_subuh)?.setOnClickListener { tempSubuhUri = null; findViewById<TextView>(R.id.tv_adzan_subuh_status)?.text = getString(R.string.status_default); stopTestAdzan(); saveSettingsQuietly() }
         btnPlaySub?.setOnClickListener { toggleTestAdzan(true, btnPlaySub) }
 
         setupSlider(R.id.sb_quote_interval, R.id.tv_quote_interval, 0, 120, settingsManager.quoteUpdateInterval, false, "m")
@@ -609,12 +628,14 @@ class MainActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this)
             .setTitle(title)
             .setView(layout)
-            .setPositiveButton(getString(R.string.dialog_yes)) { _, _ -> onColorSelected(String.format("#%02X%02X%02X%02X", Color.alpha(currentColor), Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor))) }
+            .setPositiveButton(getString(R.string.dialog_yes)) { _, _ ->
+                onColorSelected(String.format("#%02X%02X%02X%02X", Color.alpha(currentColor), Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor)))
+            }
             .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show()
     }
 
-    private fun saveSettingsFromUI() {
+    private fun saveSettingsQuietly() {
         try {
             settingsManager.previewScale = (findViewById<SeekBar>(R.id.sb_preview_scale)?.progress ?: 50) + 50
 
@@ -665,7 +686,6 @@ class MainActivity : AppCompatActivity() {
 
             QuoteUpdateManager.setAutoUpdate(this, newInterval)
 
-            Toast.makeText(this, getString(R.string.toast_saved), Toast.LENGTH_SHORT).show()
             val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
             sendBroadcast(Intent(this, IslamicWidgetProvider::class.java).apply { action = AppWidgetManager.ACTION_APPWIDGET_UPDATE; putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids) })
 
@@ -675,20 +695,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
-        findViewById<Button>(R.id.btn_pin_main_widget)?.setOnClickListener {
-            requestPinWidget(IslamicWidgetProvider::class.java)
-        }
+        findViewById<Button>(R.id.btn_pin_main_widget)?.setOnClickListener { requestPinWidget(IslamicWidgetProvider::class.java) }
+        findViewById<Button>(R.id.btn_pin_quote_widget)?.setOnClickListener { requestPinWidget(QuoteWidgetProvider::class.java) }
 
-        findViewById<Button>(R.id.btn_pin_quote_widget)?.setOnClickListener {
-            requestPinWidget(QuoteWidgetProvider::class.java)
-        }
+        findViewById<Button>(R.id.btn_pick_text_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_text_color), currentTextColor) { selectedHex -> currentTextColor = selectedHex; updateColorButtons(); updatePreview(); saveSettingsQuietly() } }
+        findViewById<Button>(R.id.btn_pick_bg_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_bg_color), currentBgColor) { selectedHex -> currentBgColor = selectedHex; updateColorButtons(); updatePreview(); saveSettingsQuietly() } }
 
-        findViewById<Button>(R.id.btn_pick_text_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_text_color), currentTextColor) { selectedHex -> currentTextColor = selectedHex; updateColorButtons(); updatePreview() } }
-        findViewById<Button>(R.id.btn_pick_bg_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_bg_color), currentBgColor) { selectedHex -> currentBgColor = selectedHex; updateColorButtons(); updatePreview() } }
         findViewById<Button>(R.id.btn_update_gps)?.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) fetchLocation() else requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
         }
-        findViewById<Button>(R.id.btn_save_settings)?.setOnClickListener { saveSettingsFromUI() }
 
         findViewById<Button>(R.id.btn_restore)?.setOnClickListener {
             MaterialAlertDialogBuilder(this)
@@ -702,6 +717,10 @@ class MainActivity : AppCompatActivity() {
                         applyAppTheme("SYSTEM")
                         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
                         loadSettingsToUI()
+                        saveSettingsQuietly() // Auto-Save Reset
+
+                        // Menyembunyikan loading jika Activity tidak ter-restart
+                        findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
                     }, 300)
                 }
                 .setNegativeButton(getString(R.string.dialog_cancel), null)
@@ -756,6 +775,7 @@ class MainActivity : AppCompatActivity() {
 
         updateLocationUI()
         updatePreview()
+        saveSettingsQuietly() // Auto-Save untuk GPS baru
     }
 
     private fun AutoCompleteTextView.setDropdownItems(items: Array<String>) {
