@@ -448,13 +448,35 @@ class MainActivity : AppCompatActivity() {
                     findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
                     Handler(Looper.getMainLooper()).postDelayed({
                         settingsManager.languageCode = code
+
+                        val newDateFormat: String
+                        val newHijriFormat: String
+
                         when (code) {
-                            "id" -> { settingsManager.dateFormat = "id-ID{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "id-ID{dd MMMM yyyy} H" }
-                            "en" -> { settingsManager.dateFormat = "en-US{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "en-US{dd MMMM yyyy} AH" }
-                            "ar" -> { settingsManager.dateFormat = "ar-SA{EEEE, dd MMMM yyyy}"; settingsManager.hijriFormat = "ar-SA{dd MMMM yyyy} هـ" }
+                            "id" -> {
+                                newDateFormat = "id-ID{EEEE, dd MMMM yyyy}"
+                                newHijriFormat = "id-ID{dd MMMM yyyy} H"
+                            }
+                            "en" -> {
+                                newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
+                                newHijriFormat = "en-US{dd MMMM yyyy} AH"
+                            }
+                            "ar" -> {
+                                newDateFormat = "ar-SA{EEEE, dd MMMM yyyy}"
+                                newHijriFormat = "ar-SA{dd MMMM yyyy} هـ"
+                            }
+                            else -> {
+                                newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
+                                newHijriFormat = "en-US{dd MMMM yyyy} AH"
+                            }
                         }
-                        findViewById<EditText>(R.id.et_date_format)?.setText(settingsManager.dateFormat)
-                        findViewById<EditText>(R.id.et_hijri_format)?.setText(settingsManager.hijriFormat)
+
+                        settingsManager.dateFormat = newDateFormat
+                        settingsManager.hijriFormat = newHijriFormat
+
+                        findViewById<EditText>(R.id.et_date_format)?.setText(newDateFormat)
+                        findViewById<EditText>(R.id.et_hijri_format)?.setText(newHijriFormat)
+
                         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
                         saveSettingsQuietly()
 
