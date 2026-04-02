@@ -1,7 +1,7 @@
 <resources>
     <color name="glass_card_bg">#14FFFFFF</color>
-    <color name="glass_card_stroke">#00000000</color>
+    <color name="glass_card_stroke">#26FFFFFF</color>
     <color name="glass_bottom_btn_bg">#1AFFFFFF</color>
-    <color name="glass_overlay_bg">#EB121212</color>
+    <color name="glass_overlay_bg">#A6000000</color>
     <color name="glass_slider_track">#1AFFFFFF</color>
 </resources>

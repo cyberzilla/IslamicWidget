@@ -5,11 +5,14 @@
         <item name="colorPrimaryVariant">@color/primary_variant</item>
         <item name="colorOnPrimary">@color/white</item>
     </style>
+
     <style name="GlassAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:background">@drawable/bg_liquid_glass_overlay</item>
+        <item name="android:windowBackground">@drawable/bg_dialog_glass</item>
         <item name="colorSurface">@android:color/transparent</item>
         <item name="colorBackgroundFloating">@android:color/transparent</item>
+        <item name="backgroundTint">@android:color/transparent</item>
         <item name="android:windowElevation">0dp</item>
+        <item name="elevation">0dp</item>
+        <item name="android:backgroundDimAmount">0.4</item>
     </style>
 </resources>

@@ -14,9 +14,9 @@
     <color name="danger_color">#DC2626</color>
 
     <color name="glass_card_bg">#4DFFFFFF</color>
-    <color name="glass_card_stroke">#80FFFFFF</color>
+    <color name="glass_card_stroke">#66FFFFFF</color>
     <color name="glass_bottom_btn_bg">#B3FFFFFF</color>
-    <color name="glass_overlay_bg">#F2FFFFFF</color>
+    <color name="glass_overlay_bg">#A6FFFFFF</color>
     <color name="glass_slider_track">#33000000</color>
 </resources>
 
