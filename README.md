@@ -1,6 +1,13 @@
 # Islamic Widget
 
-![Islamic Widget Preview](https://via.placeholder.com/800x400.png?text=Preview+Islamic+Widget)
+![Islamic Widget Preview](screen/1.jpg)
+![Islamic Widget Preview](screen/2.jpg)
+![Islamic Widget Preview](screen/3.jpg)
+![Islamic Widget Preview](screen/4.jpg)
+![Islamic Widget Preview](screen/5.jpg)
+![Islamic Widget Preview](screen/6.jpg)
+![Islamic Widget Preview](screen/7.jpg)
+![Islamic Widget Preview](screen/8.jpg)
 
 A comprehensive Islamic Widget application for Android that provides accurate prayer times, a Qibla compass, robust Adzan notifications, and daily Sunnah reminders right on your Home Screen.
 
