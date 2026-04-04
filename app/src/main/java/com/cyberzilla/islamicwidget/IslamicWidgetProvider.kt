@@ -297,6 +297,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                     views.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
+                    // [PERBAIKAN SINKRONISASI]: Jadwalkan update widget tepat setelah azan maghrib dan pukul 00:00
+                    scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
+
                     scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
                     scheduleSilentMode(context, prayerTimes.dhuhr.asDate(), 2, settings)
                     scheduleSilentMode(context, prayerTimes.asr.asDate(), 3, settings)
@@ -347,6 +350,38 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.tv_hijri_date, hijriFormatted)
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
+    }
+
+    // [PERBAIKAN SINKRONISASI]: Fungsi baru untuk memaksa sinkronisasi hari
+    @SuppressLint("ScheduleExactAlarm")
+    private fun scheduleDateChangeUpdate(context: Context, maghribTime: Date, appWidgetId: Int, isDayStartAtMaghrib: Boolean) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, SilentModeReceiver::class.java).apply {
+            action = "ACTION_UPDATE_WIDGETS_BROADCAST"
+        }
+
+        // 1. Jadwalkan update 1 detik setelah Maghrib (pergantian hari Hijriah)
+        if (isDayStartAtMaghrib) {
+            val pendingIntentMaghrib = PendingIntent.getBroadcast(
+                context, appWidgetId + 5000, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            val triggerTime = maghribTime.time + 1000L // Ditambah 1 detik biar aman masuk waktu setelahnya
+            if (Date().time < triggerTime) {
+                try { alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, triggerTime, pendingIntentMaghrib) } catch (e: SecurityException) {}
+            }
+        }
+
+        // 2. Jadwalkan update jam 00:00:01 (pergantian hari Masehi)
+        val pendingIntentMidnight = PendingIntent.getBroadcast(
+            context, appWidgetId + 6000, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val cal = java.util.Calendar.getInstance()
+        cal.add(java.util.Calendar.DAY_OF_YEAR, 1)
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        cal.set(java.util.Calendar.MINUTE, 0)
+        cal.set(java.util.Calendar.SECOND, 1)
+
+        try { alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, cal.timeInMillis, pendingIntentMidnight) } catch (e: SecurityException) {}
     }
 
     @SuppressLint("ScheduleExactAlarm")

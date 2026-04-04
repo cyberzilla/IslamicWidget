@@ -92,7 +92,7 @@
     <string name="dialog_settings">افتح الإعدادات</string>
 
     <string name="notif_title_adzan">حان وقت %1$s</string>
-    <string name="notif_desc_adzan">اسحب أو اضغط على الزر للإيقاف.</string>
+    <string name="notif_desc_adzan">اسحب أو اضغط على الإشعار للإيقاف.</string>
     <string name="notif_action_stop">إيقاف الأذان</string>
     <string name="notif_channel_name">مواقيت الصلاة والأذان</string>
     <string name="notif_channel_desc">إشعار عند تشغيل الأذان</string>

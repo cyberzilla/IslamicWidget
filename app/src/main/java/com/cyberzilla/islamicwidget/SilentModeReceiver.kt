@@ -13,18 +13,16 @@ import android.util.Log
 
 class SilentModeReceiver : BroadcastReceiver() {
 
-    // Fitur Kunci CPU (WakeLock) agar HP tidak tidur saat proses transisi ke Service
     companion object {
         private var wakeLock: PowerManager.WakeLock? = null
 
         fun acquireWakeLock(context: Context) {
             if (wakeLock == null) {
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-                // Menggunakan PARTIAL_WAKE_LOCK: CPU tetap hidup meski layar mati
                 wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanWakeLock")
             }
             if (wakeLock?.isHeld == false) {
-                wakeLock?.acquire(10 * 60 * 1000L) // Kunci maksimal 10 menit sebagai pengaman
+                wakeLock?.acquire(10 * 60 * 1000L)
             }
         }
 
@@ -34,7 +32,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                     wakeLock?.release()
                 }
             } catch (e: Exception) {
-                Log.e("SilentModeReceiver", "Gagal melepas WakeLock", e)
+                Log.e("SilentModeReceiver", "Failed to release WakeLock", e)
             }
         }
     }
@@ -46,7 +44,6 @@ class SilentModeReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             "ACTION_PLAY_ADZAN" -> {
-                // 1. Kunci CPU sesaat setelah alarm berbunyi
                 acquireWakeLock(context)
 
                 val serviceIntent = Intent(context, AdzanService::class.java).apply {
@@ -61,7 +58,6 @@ class SilentModeReceiver : BroadcastReceiver() {
                     }
                 } catch (e: Exception) {
                     Log.e("SilentModeReceiver", context.getString(R.string.log_error_play_adzan, e.message))
-                    // Lepas kunci jika service gagal dimulai
                     releaseWakeLock()
                 }
             }
@@ -70,15 +66,23 @@ class SilentModeReceiver : BroadcastReceiver() {
                 val settings = SettingsManager(context)
                 settings.isAdzanPlaying = false
 
-                val stopServiceIntent = Intent(context, AdzanService::class.java)
-                try {
-                    context.stopService(stopServiceIntent)
-                } catch (e: Exception) {
-                    val errorMsg = try { context.getString(R.string.log_error_stop_adzan) } catch (ex: Exception) { "Gagal menghentikan service adzan" }
-                    Log.e("SilentModeReceiver", errorMsg, e)
-                }
-
+                // Segera update UI Widget agar kembali ke jam biasa
                 forceUpdateAllWidgets(context)
+
+                // [PERBAIKAN FADE-OUT]: Kirim instruksi fade out ke Service
+                val fadeOutIntent = Intent(context, AdzanService::class.java).apply {
+                    action = "ACTION_FADE_OUT"
+                }
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(fadeOutIntent)
+                    } else {
+                        context.startService(fadeOutIntent)
+                    }
+                } catch (e: Exception) {
+                    // Fallback jika gagal mengirim intent
+                    context.stopService(Intent(context, AdzanService::class.java))
+                }
             }
 
             "ACTION_UPDATE_WIDGETS_BROADCAST" -> {

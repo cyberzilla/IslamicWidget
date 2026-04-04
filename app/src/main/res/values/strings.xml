@@ -92,7 +92,7 @@
     <string name="dialog_settings">Buka Pengaturan</string>
 
     <string name="notif_title_adzan">Waktu %1$s Telah Tiba</string>
-    <string name="notif_desc_adzan">Geser atau ketuk tombol untuk mematikan.</string>
+    <string name="notif_desc_adzan">Geser atau ketuk notifikasi untuk mematikan.</string>
     <string name="notif_action_stop">Matikan Adzan</string>
     <string name="notif_channel_name">Jadwal &amp; Adzan</string>
     <string name="notif_channel_desc">Notifikasi saat Adzan berkumandang</string>

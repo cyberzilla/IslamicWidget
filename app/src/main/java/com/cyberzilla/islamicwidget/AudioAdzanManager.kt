@@ -7,6 +7,7 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.widget.Button
 import android.widget.Toast
 
@@ -33,6 +34,8 @@ object AudioAdzanManager {
 
         try {
             testMediaPlayer = MediaPlayer().apply {
+                setWakeMode(context.applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     setAudioAttributes(
                         AudioAttributes.Builder()

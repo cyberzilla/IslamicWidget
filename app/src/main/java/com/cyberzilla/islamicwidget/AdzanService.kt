@@ -12,7 +12,9 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import java.util.Locale
@@ -21,17 +23,27 @@ class AdzanService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
     private var originalAlarmVolume: Int = -1
-
-    // PERBAIKAN: WakeLock khusus dan independen di dalam Service
     private var serviceWakeLock: PowerManager.WakeLock? = null
+
+    private var isFadingOut = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Mengunci nyawa CPU sejak detik pertama Service dihidupkan
+        if (intent?.action == "ACTION_FADE_OUT") {
+            fadeOutAndStop()
+            return START_NOT_STICKY
+        }
+
+        // Reset state jika memulai pemutaran baru
+        isFadingOut = false
+
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
-        serviceWakeLock?.acquire(10 * 60 * 1000L) // Limit aman maksimal 10 menit
+
+        if (serviceWakeLock?.isHeld == false) {
+            serviceWakeLock?.acquire(10 * 60 * 1000L)
+        }
 
         val settings = SettingsManager(this)
 
@@ -57,6 +69,7 @@ class AdzanService : Service() {
         val stopIntent = Intent(this, SilentModeReceiver::class.java).apply {
             action = "ACTION_STOP_ADZAN_BROADCAST"
         }
+
         val stopPendingIntent = PendingIntent.getBroadcast(
             this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -64,23 +77,17 @@ class AdzanService : Service() {
             this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val contentIntent = Intent(this, MainActivity::class.java)
-        val contentPendingIntent = PendingIntent.getActivity(
-            this, 0, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
             .setContentTitle(localizedContext.getString(R.string.notif_title_adzan, prayerName))
             .setContentText(localizedContext.getString(R.string.notif_desc_adzan))
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentIntent(contentPendingIntent)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, localizedContext.getString(R.string.notif_action_stop), stopPendingIntent)
+            .setContentIntent(stopPendingIntent)
             .setDeleteIntent(deletePendingIntent)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
-            .setAutoCancel(false)
+            .setAutoCancel(true)
             .build()
 
         startForeground(1122, notification)
@@ -95,6 +102,37 @@ class AdzanService : Service() {
         playAdzan(isSubuh, settings)
 
         return START_STICKY
+    }
+
+    private fun fadeOutAndStop() {
+        if (isFadingOut || mediaPlayer == null) {
+            stopSelf()
+            return
+        }
+        isFadingOut = true
+        var volume = 1.0f
+        val fadeDuration = 2000L // Berkurang selama 2 detik
+        val fadeSteps = 20
+        val fadeInterval = fadeDuration / fadeSteps
+
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+            override fun run() {
+                volume -= (1.0f / fadeSteps)
+                if (volume <= 0f) {
+                    try { mediaPlayer?.setVolume(0f, 0f) } catch (e: Exception) {}
+                    stopSelf()
+                } else {
+                    try {
+                        mediaPlayer?.setVolume(volume, volume)
+                        handler.postDelayed(this, fadeInterval)
+                    } catch (e: Exception) {
+                        stopSelf()
+                    }
+                }
+            }
+        }
+        handler.post(runnable)
     }
 
     private fun playAdzan(isSubuh: Boolean, settings: SettingsManager) {
@@ -114,7 +152,6 @@ class AdzanService : Service() {
 
         try {
             mediaPlayer = MediaPlayer().apply {
-                // MediaPlayer juga diberi kuasa parsial untuk WakeLock
                 setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -198,7 +235,6 @@ class AdzanService : Service() {
             sendBroadcast(updateIntent)
         }
 
-        // PERBAIKAN: Membuka gembok CPU setelah Service benar-benar mati
         SilentModeReceiver.releaseWakeLock()
         serviceWakeLock?.let {
             if (it.isHeld) {

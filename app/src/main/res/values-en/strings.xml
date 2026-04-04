@@ -92,7 +92,7 @@
     <string name="dialog_settings">Open Settings</string>
 
     <string name="notif_title_adzan">It\'s time for %1$s</string>
-    <string name="notif_desc_adzan">Swipe or tap the button to stop.</string>
+    <string name="notif_desc_adzan">Swipe or tap the notification to stop.</string>
     <string name="notif_action_stop">Stop Adhan</string>
     <string name="notif_channel_name">Prayer Times &amp; Adhan</string>
     <string name="notif_channel_desc">Notification when Adhan plays</string>
