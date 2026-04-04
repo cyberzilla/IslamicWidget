@@ -1,44 +1,40 @@
 # Islamic Widget
 
-A highly customizable, feature-rich Android widget application designed to fulfill the daily needs of Muslims. It provides accurate prayer times, Hijri calendar dates, auto-silent modes, custom Adhan audio, and an inspirational Islamic quotes widget directly on your home screen.
+![Islamic Widget Preview](https://via.placeholder.com/800x400.png?text=Preview+Islamic+Widget)
 
-## 🌟 Key Features
+A comprehensive Islamic Widget application for Android that provides accurate prayer times, a Qibla compass, robust Adzan notifications, and daily Sunnah reminders right on your Home Screen.
 
-### 🕋 Prayer Times & Adhan
-* **Accurate Calculation:** Supports multiple calculation methods (Muslim World League, Egyptian, Umm Al-Qura, Karachi, Moonsighting Committee, Dubai, Qatar, Kuwait, Singapore).
-* **Automatic Location:** GPS-based location detection to calculate accurate prayer times (Fajr, Dhuhr, Asr, Maghrib, Isha) along with Sunrise and the Last Third of the Night.
-* **Adhan Player:** Automatically plays Adhan when prayer time enters.
-* **Custom Adhan Audio:** Support for setting custom MP3 files for Regular Adhan and a specific audio file for Fajr Adhan. Includes a built-in volume slider and test button.
+## ✨ Key Features
 
-### 🔕 Auto-Silent (Do Not Disturb) Mode
-* **Smart Mute:** Automatically puts the phone in Silent/DND mode during prayer times.
-* **Customizable Durations:** Independently configure how many minutes *before* and *after* each prayer (and Jum'ah/Friday prayers) the phone should remain silent.
+### 🕌 Prayer Times & Smart Adzan
+* **Accurate Calculation:** Supports various global prayer time calculation methods (Muslim World League, Egyptian, Karachi, Umm Al-Qura, etc.) based on your GPS coordinates.
+* **Robust Anti-Pause Adzan:** The Adzan audio is guaranteed to play completely even when the screen is off. It includes a Battery Optimization Bypass request for aggressive vendors (e.g., MIUI/HyperOS, ColorOS).
+* **Instant & Smooth Interruptions:** Stop the Adzan sound instantly by tapping the notification on the Lock Screen or simply by pressing the physical Power button. It features a smooth fade-out effect so the audio doesn't stop abruptly.
+* **Auto Friday Mode:** The system automatically skips the Dhuhr Adzan audio on Fridays to prevent disruptions during Jumu'ah prayers at the mosque.
+* **Auto-Silent (Do Not Disturb):** Automatically switches your phone to Vibrate/Silent mode shortly before prayer times and restores the normal volume afterward.
+* **Customizable Adzan Audio:** Use the built-in Adzan recitations (Fajr & Regular) or select your own custom MP3/WAV audio files from local storage.
 
-### 📅 Advanced Hijri Calendar & Reminders
-* **Custom Formatting:** Fully customizable Gregorian and Hijri date formats (e.g., `en-US{EEEE, dd MMMM yyyy}`).
-* **Hijri Offset:** Manually adjust the Hijri date by +/- 2 days.
-* **Maghrib Date Change:** Option to automatically advance the Hijri date after Maghrib.
-* **Sunnah Reminders:** Automatic on-widget reminders for Sunnah practices such as Ayyamul Bidh, Monday-Thursday fasting, Ashura, Arafah, and reading Surah Al-Kahf on Fridays.
+### 🌙 Calendar & Sunnah Reminders
+* **Dynamic Hijri Date:** Includes an adjustable day offset feature (+/- days) and precise automatic day-switching synchronization at Maghrib time.
+* **Sunnah Fasting Reminders:** Real-time text notifications directly on the widget for Monday-Thursday fasting, Ayyamul Bidh, Ashura, Tasu'a, Arafah, Tarwiyah, and the Al-Kahfi reminder on Fridays.
+* **Special Times:** Displays Sunrise time and the Last Third of the Night to help plan Tahajjud prayers.
+* **Precise Localization:** Supports Indonesian, English, and Arabic. (Specifically uses the term **"Ahad"** instead of "Minggu" for the Indonesian locale).
 
-### 🎨 Highly Customizable UI
-* **Dynamic Widget Scale & Sizes:** Adjust the font size of the clock, date, prayer times, and additional info independently.
-* **Color Customization:** Color picker for Widget Text and Background (supports Alpha/Transparency).
-* **Border Radius:** Adjustable background corner radius for a perfect look.
-* **Theme & Language:** Supports System, Light, and Dark themes. Available in English, Indonesian, and Arabic.
-* **Dynamic Launcher Icon:** The app's launcher icon dynamically updates every day to display the current Hijri date.
+### 🕋 Qibla Compass & Islamic Quotes
+* **Accurate Qibla Compass:** Integrated with the device's gyro/magnetometer sensors to accurately point towards the Kaaba directly from a tap on the widget.
+* **Quotes Widget:** Display Quranic verses, Hadiths, or Salaf advice that rotate automatically based on your custom time intervals.
 
-### 📖 Islamic Quotes Widget
-* **Inspirational Quotes:** A secondary widget displaying beautiful Islamic quotes and references.
-* **Glassmorphism UI:** Elegant transparent background with customizable Alpha/Transparency levels.
-* **Auto & Manual Update:** Set an auto-update interval (in minutes) or refresh the quote manually using the refresh button on the widget.
-* **Share Functionality:** Instantly share quotes with friends and family directly from the widget.
+### 🎨 Full UI Customization
+* Freely customize the text color and background color (supports alpha/transparency via a built-in Color Picker).
+* Adjust the widget's corner radius.
+* Modify the overall scale and specific font sizes for the main clock, date texts, and prayer times to perfectly fit your Android Home Screen.
 
-## 🛠️ Technical Details
-* **Language:** Kotlin
-* **Architecture:** Android AppWidgets (RemoteViews), Foreground Services (for Adhan Playback), AlarmManager (for precise background scheduling bypassing Doze mode).
-* **Libraries Used:** * `adhan-java` (by batoulapps) for precise astronomical prayer time calculations.
-    * Google Play Services Location.
-* **Permissions:** Requires Location, Notifications, Alarms & Reminders, Do Not Disturb Access, and Wakelock.
+## ⚙️ Permissions Used
+This app requests several system permissions to provide optimal functionality:
+* **Location (Precise/Approximate):** Used purely locally to calculate accurate prayer times and Qibla direction based on your position.
+* **Notifications & Alarms:** Used to schedule and trigger timely Adzan notifications utilizing Full-Screen Intents.
+* **Do Not Disturb (DND) Access:** Required to execute the Auto-Silent feature during prayer times.
+* **Ignore Battery Optimization:** Crucial for ensuring that Adzan schedules are not forcefully killed by the OS when the app is running in the background.
 
 ## 🚀 Installation & Build
 1. Clone the repository: `git clone https://github.com/cyberzilla/IslamicWidget.git`
