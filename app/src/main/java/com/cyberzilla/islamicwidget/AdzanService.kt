@@ -121,6 +121,7 @@ class AdzanService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(true)
+            .setFullScreenIntent(stopPendingIntent, true)
             .build()
 
         startForeground(1122, notification)
