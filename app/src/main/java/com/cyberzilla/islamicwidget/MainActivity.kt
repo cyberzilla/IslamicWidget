@@ -204,7 +204,7 @@ class MainActivity : AppCompatActivity() {
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                saveSettingsQuietly() // Auto-Save trigger
+                saveSettingsQuietly()
             }
         })
     }
@@ -263,8 +263,10 @@ class MainActivity : AppCompatActivity() {
             findViewById<View>(R.id.container_date)?.visibility = if (isShowDate) View.VISIBLE else View.GONE
             findViewById<View>(R.id.container_prayer)?.visibility = if (isShowPrayer) View.VISIBLE else View.GONE
 
+            val isFriday = LocalDate.now().dayOfWeek == java.time.DayOfWeek.FRIDAY
+
             findViewById<TextView>(R.id.label_fajr)?.text = localizedContext.getString(R.string.fajr)
-            findViewById<TextView>(R.id.label_dhuhr)?.text = localizedContext.getString(R.string.dhuhr)
+            findViewById<TextView>(R.id.label_dhuhr)?.text = if (isFriday) localizedContext.getString(R.string.friday) else localizedContext.getString(R.string.dhuhr)
             findViewById<TextView>(R.id.label_asr)?.text = localizedContext.getString(R.string.asr)
             findViewById<TextView>(R.id.label_maghrib)?.text = localizedContext.getString(R.string.maghrib)
             findViewById<TextView>(R.id.label_isha)?.text = localizedContext.getString(R.string.isha)
@@ -622,9 +624,6 @@ class MainActivity : AppCompatActivity() {
         try { findViewById<Button>(R.id.btn_pick_bg_color)?.backgroundTintList = ColorStateList.valueOf(Color.parseColor(currentBgColor)) } catch (e: Exception) {}
     }
 
-    // =========================================================================================
-    // COLOR PICKER CUSTOM (RGB SLIDER + XML)
-    // =========================================================================================
     private fun showColorPickerDialog(title: String, initialColorHex: String, onColorSelected: (String) -> Unit) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_color_picker, null)
 
@@ -643,7 +642,6 @@ class MainActivity : AppCompatActivity() {
         val tvGreenVal = dialogView.findViewById<TextView>(R.id.tv_green_val)
         val tvBlueVal = dialogView.findViewById<TextView>(R.id.tv_blue_val)
 
-        // Fungsi untuk merender warna ke layar
         fun updateUI() {
             cardPreview.setCardBackgroundColor(currentColor)
             tvHex.text = String.format("#%08X", currentColor).uppercase()
@@ -659,10 +657,8 @@ class MainActivity : AppCompatActivity() {
             tvBlueVal.text = sbBlue.progress.toString()
         }
 
-        // Tampilkan warna awal saat popup baru dibuka
         updateUI()
 
-        // Listener untuk mendeteksi geseran slider
         val listener = object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -679,7 +675,6 @@ class MainActivity : AppCompatActivity() {
         sbGreen.setOnSeekBarChangeListener(listener)
         sbBlue.setOnSeekBarChangeListener(listener)
 
-        // Tampilkan Dialog
         MaterialAlertDialogBuilder(this)
             .setTitle(title)
             .setView(dialogView)

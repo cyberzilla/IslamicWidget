@@ -201,8 +201,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             views.setViewVisibility(R.id.container_date, if (settings.showDate) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.container_prayer, if (settings.showPrayer) View.VISIBLE else View.GONE)
 
+            val isFriday = today.dayOfWeek == DayOfWeek.FRIDAY
+
             views.setTextViewText(R.id.label_fajr, localizedContext.getString(R.string.fajr))
-            views.setTextViewText(R.id.label_dhuhr, localizedContext.getString(R.string.dhuhr))
+            views.setTextViewText(R.id.label_dhuhr, if (isFriday) localizedContext.getString(R.string.friday) else localizedContext.getString(R.string.dhuhr))
             views.setTextViewText(R.id.label_asr, localizedContext.getString(R.string.asr))
             views.setTextViewText(R.id.label_maghrib, localizedContext.getString(R.string.maghrib))
             views.setTextViewText(R.id.label_isha, localizedContext.getString(R.string.isha))
@@ -297,7 +299,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                     views.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
-                    // [PERBAIKAN SINKRONISASI]: Jadwalkan update widget tepat setelah azan maghrib dan pukul 00:00
                     scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
 
                     scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
@@ -325,7 +326,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     }
 
                 } catch (e: Exception) {
-                    // Biarkan jika gagal
                 }
             } else {
                 if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
@@ -352,7 +352,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
 
-    // [PERBAIKAN SINKRONISASI]: Fungsi baru untuk memaksa sinkronisasi hari
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleDateChangeUpdate(context: Context, maghribTime: Date, appWidgetId: Int, isDayStartAtMaghrib: Boolean) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -360,18 +359,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             action = "ACTION_UPDATE_WIDGETS_BROADCAST"
         }
 
-        // 1. Jadwalkan update 1 detik setelah Maghrib (pergantian hari Hijriah)
         if (isDayStartAtMaghrib) {
             val pendingIntentMaghrib = PendingIntent.getBroadcast(
                 context, appWidgetId + 5000, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            val triggerTime = maghribTime.time + 1000L // Ditambah 1 detik biar aman masuk waktu setelahnya
+            val triggerTime = maghribTime.time + 1000L
             if (Date().time < triggerTime) {
                 try { alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, triggerTime, pendingIntentMaghrib) } catch (e: SecurityException) {}
             }
         }
 
-        // 2. Jadwalkan update jam 00:00:01 (pergantian hari Masehi)
         val pendingIntentMidnight = PendingIntent.getBroadcast(
             context, appWidgetId + 6000, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -418,8 +415,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     private fun scheduleSilentMode(context: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
+        val isJumat = isFriday && requestCodeId == 2
 
-        if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time) {
+        if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time && !isJumat) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)

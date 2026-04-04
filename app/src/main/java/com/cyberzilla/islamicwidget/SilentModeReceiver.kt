@@ -66,10 +66,8 @@ class SilentModeReceiver : BroadcastReceiver() {
                 val settings = SettingsManager(context)
                 settings.isAdzanPlaying = false
 
-                // Segera update UI Widget agar kembali ke jam biasa
                 forceUpdateAllWidgets(context)
 
-                // [PERBAIKAN FADE-OUT]: Kirim instruksi fade out ke Service
                 val fadeOutIntent = Intent(context, AdzanService::class.java).apply {
                     action = "ACTION_FADE_OUT"
                 }
@@ -80,7 +78,6 @@ class SilentModeReceiver : BroadcastReceiver() {
                         context.startService(fadeOutIntent)
                     }
                 } catch (e: Exception) {
-                    // Fallback jika gagal mengirim intent
                     context.stopService(Intent(context, AdzanService::class.java))
                 }
             }

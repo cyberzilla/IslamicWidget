@@ -5,8 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -27,6 +29,18 @@ class AdzanService : Service() {
 
     private var isFadingOut = false
 
+    private var isScreenReceiverRegistered = false
+    private var canInterruptFromScreen = false
+
+    private val screenStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action = intent?.action
+            if ((action == Intent.ACTION_SCREEN_OFF || action == Intent.ACTION_SCREEN_ON) && canInterruptFromScreen) {
+                fadeOutAndStop()
+            }
+        }
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -35,8 +49,25 @@ class AdzanService : Service() {
             return START_NOT_STICKY
         }
 
-        // Reset state jika memulai pemutaran baru
         isFadingOut = false
+
+        if (!isScreenReceiverRegistered) {
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_SCREEN_ON)
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(screenStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(screenStateReceiver, filter)
+            }
+            isScreenReceiverRegistered = true
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                canInterruptFromScreen = true
+            }, 1500)
+        }
 
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
@@ -55,9 +86,11 @@ class AdzanService : Service() {
         config.setLocale(selectedLocale)
         val localizedContext = createConfigurationContext(config)
 
+        val isFriday = java.time.LocalDate.now().dayOfWeek == java.time.DayOfWeek.FRIDAY
+
         val prayerName = when(prayerId) {
             1 -> localizedContext.getString(R.string.fajr)
-            2 -> localizedContext.getString(R.string.dhuhr)
+            2 -> if (isFriday) localizedContext.getString(R.string.friday) else localizedContext.getString(R.string.dhuhr)
             3 -> localizedContext.getString(R.string.asr)
             4 -> localizedContext.getString(R.string.maghrib)
             5 -> localizedContext.getString(R.string.isha)
@@ -111,7 +144,7 @@ class AdzanService : Service() {
         }
         isFadingOut = true
         var volume = 1.0f
-        val fadeDuration = 2000L // Berkurang selama 2 detik
+        val fadeDuration = 2000L
         val fadeSteps = 20
         val fadeInterval = fadeDuration / fadeSteps
 
@@ -158,7 +191,7 @@ class AdzanService : Service() {
                     setAudioAttributes(
                         android.media.AudioAttributes.Builder()
                             .setUsage(android.media.AudioAttributes.USAGE_ALARM)
-                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build()
                     )
                 } else {
@@ -221,6 +254,15 @@ class AdzanService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        if (isScreenReceiverRegistered) {
+            try {
+                unregisterReceiver(screenStateReceiver)
+                isScreenReceiverRegistered = false
+                canInterruptFromScreen = false
+            } catch (e: Exception) {}
+        }
+
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null

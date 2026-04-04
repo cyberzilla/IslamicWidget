@@ -27,6 +27,11 @@ object IslamicAppUtils {
                     val pattern = matchResult.groupValues[2]
                     val locale = try { Locale.forLanguageTag(localeTag) } catch (e: Exception) { defaultLocale }
                     var formattedText = DateTimeFormatter.ofPattern(pattern, locale).format(dateObj)
+
+                    if (localeTag.lowercase().startsWith("id")) {
+                        formattedText = formattedText.replace("Minggu", "Ahad", ignoreCase = true)
+                    }
+
                     if (localeTag.lowercase().startsWith("ar")) {
                         val arabicDigits = arrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
                         val builder = StringBuilder()
@@ -38,10 +43,20 @@ object IslamicAppUtils {
                     formattedText
                 }
             } else {
-                DateTimeFormatter.ofPattern(inputStr, defaultLocale).format(dateObj)
+                var formattedText = DateTimeFormatter.ofPattern(inputStr, defaultLocale).format(dateObj)
+
+                if (defaultLocale.language.lowercase() == "id") {
+                    formattedText = formattedText.replace("Minggu", "Ahad", ignoreCase = true)
+                }
+                formattedText
             }
         } catch (e: Exception) {
-            DateTimeFormatter.ofPattern("dd MMMM yyyy", defaultLocale).format(dateObj)
+            var fallbackText = DateTimeFormatter.ofPattern("dd MMMM yyyy", defaultLocale).format(dateObj)
+
+            if (defaultLocale.language.lowercase() == "id") {
+                fallbackText = fallbackText.replace("Minggu", "Ahad", ignoreCase = true)
+            }
+            fallbackText
         }
     }
 
@@ -70,17 +85,14 @@ object IslamicAppUtils {
         val hDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
         val hMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
 
-        // Logika Akurat Syariat: Hari berganti setelah Maghrib
         val islamicDayOfWeek = if (isAfterMaghrib) today.plusDays(1).dayOfWeek else today.dayOfWeek
 
         val sunnahList = mutableListOf<String>()
 
-        // 1. Muharram (Tasu'a & Asyura)
         if (hMonth == 1 && (hDay == 9 || hDay == 10)) {
             sunnahList.add(context.getString(R.string.sunnah_muharram))
         }
 
-        // 2. Dzulhijjah (1-9)
         if (hMonth == 12) {
             when (hDay) {
                 in 1..7 -> sunnahList.add(context.getString(R.string.sunnah_dzulhijjah, hDay))
@@ -89,25 +101,21 @@ object IslamicAppUtils {
             }
         }
 
-        // 3. Ayyamul Bidh (13, 14, 15) - Kecuali 13 Dzulhijjah (Tasyriq)
         if (hDay in 13..15 && !(hMonth == 12 && hDay == 13)) {
             val hariKe = hDay - 12
             sunnahList.add(context.getString(R.string.sunnah_ayyamul_bidh, hariKe))
         }
 
-        // 4. Puasa Senin & Kamis (Menggunakan islamicDayOfWeek)
         if (islamicDayOfWeek == java.time.DayOfWeek.MONDAY) {
             sunnahList.add(context.getString(R.string.sunnah_monday))
         } else if (islamicDayOfWeek == java.time.DayOfWeek.THURSDAY) {
             sunnahList.add(context.getString(R.string.sunnah_thursday))
         }
 
-        // 5. Sunnah Jumat (Al-Kahfi)
         if (islamicDayOfWeek == java.time.DayOfWeek.FRIDAY) {
             sunnahList.add(context.getString(R.string.sunnah_friday))
         }
 
-        // Gabungkan semuanya menggunakan titik bulat (bullet) seperti kode asli Anda
         return sunnahList.joinToString(" • ")
     }
 }
