@@ -156,4 +156,10 @@
     <string name="dir_east">E</string>
     <string name="dir_south">S</string>
     <string name="dir_west">W</string>
+
+    <string name="update_available_msg">New version (%1$s) available! Tap to download &amp; update.</string>
+    <string name="update_download_start">Starting update download...</string>
+    <string name="update_notification_title">%1$s Update</string>
+    <string name="update_download_desc">Downloading version %1$s...</string>
+    <string name="update_install_failed">Failed to trigger automatic installation. Please open the file manually from Downloads.</string>
 </resources>

@@ -156,4 +156,10 @@
     <string name="dir_east">ق</string>
     <string name="dir_south">ج</string>
     <string name="dir_west">غ</string>
+
+    <string name="update_available_msg">إصدار جديد (%1$s) متاح! انقر للتنزيل والتحديث.</string>
+    <string name="update_download_start">بدء تنزيل التحديث...</string>
+    <string name="update_notification_title">تحديث %1$s</string>
+    <string name="update_download_desc">جاري تنزيل الإصدار %1$s...</string>
+    <string name="update_install_failed">فشل بدء التثبيت التلقائي. يرجى فتح الملف يدويًا من التنزيلات.</string>
 </resources>

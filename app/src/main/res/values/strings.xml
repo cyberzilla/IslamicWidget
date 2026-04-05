@@ -156,4 +156,10 @@
     <string name="dir_east">T</string>
     <string name="dir_south">S</string>
     <string name="dir_west">B</string>
+
+    <string name="update_available_msg">Versi baru (%1$s) tersedia! Ketuk untuk mengunduh &amp; memperbarui.</string>
+    <string name="update_download_start">Mulai mengunduh pembaruan...</string>
+    <string name="update_notification_title">%1$s Update</string>
+    <string name="update_download_desc">Mengunduh versi %1$s...</string>
+    <string name="update_install_failed">Gagal memicu instalasi otomatis. Silakan buka file secara manual di folder Download.</string>
 </resources>

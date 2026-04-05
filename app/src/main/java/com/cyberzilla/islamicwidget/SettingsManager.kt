@@ -144,8 +144,20 @@ class SettingsManager(private val context: Context) {
         set(value) = prefs.edit().putInt("quoteDisplayedChild", value).apply()
 
     var quoteBgAlpha: Int
-        get() = prefs.getInt("quoteBgAlpha", 24) // Default 60% transparent (~153/255)
+        get() = prefs.getInt("quoteBgAlpha", 24)
         set(value) = prefs.edit().putInt("quoteBgAlpha", value).apply()
+
+    var latestVersionName: String
+        get() = prefs.getString("latestVersionName", "1.0") ?: "1.0"
+        set(value) = prefs.edit().putString("latestVersionName", value).apply()
+
+    var apkDownloadUrl: String
+        get() = prefs.getString("apkDownloadUrl", "") ?: ""
+        set(value) = prefs.edit().putString("apkDownloadUrl", value).apply()
+
+    var latestDownloadId: Long
+        get() = prefs.getLong("latestDownloadId", -1L)
+        set(value) = prefs.edit().putLong("latestDownloadId", value).apply()
 
     fun restoreDefaults() {
         val currentLat = latitude

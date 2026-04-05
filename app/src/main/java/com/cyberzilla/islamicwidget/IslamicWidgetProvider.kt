@@ -309,7 +309,39 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
-                    val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
+                    // Pengecekan versi update terbaru
+                    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                    val currentVersionName = packageInfo.versionName ?: "1.0"
+                    val isUpdateAvailable = UpdateHelper.isVersionNewer(currentVersionName, settings.latestVersionName)
+
+                    var sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
+
+                    if (isUpdateAvailable) {
+                        // Menggunakan resource string dengan argument formatting agar lebih elegan dan dilokalisasi
+                        val updateMessage = localizedContext.getString(R.string.update_available_msg, settings.latestVersionName)
+                        sunnahInfo = if (sunnahInfo.isNotEmpty()) {
+                            "$sunnahInfo\n\n$updateMessage"
+                        } else {
+                            updateMessage
+                        }
+
+                        val updateIntent = Intent(context, UpdateReceiver::class.java).apply {
+                            action = "ACTION_START_UPDATE_DOWNLOAD"
+                            putExtra("APK_URL", settings.apkDownloadUrl)
+                        }
+
+                        val pendingUpdateIntent = PendingIntent.getBroadcast(
+                            context,
+                            999,
+                            updateIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        )
+
+                        views.setOnClickPendingIntent(R.id.tv_sunnah_reminder_flip, pendingUpdateIntent)
+                    } else {
+                        val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                        views.setOnClickPendingIntent(R.id.tv_sunnah_reminder_flip, nullIntent)
+                    }
 
                     if (settings.showAdditional) {
                         if (sunnahInfo.isNotEmpty()) {

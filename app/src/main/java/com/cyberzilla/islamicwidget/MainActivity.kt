@@ -130,6 +130,9 @@ class MainActivity : AppCompatActivity() {
 
         checkBatteryOptimizations()
 
+        // Memeriksa update otomatis di background
+        UpdateHelper.checkForUpdates(this)
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
