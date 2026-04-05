@@ -150,6 +150,7 @@
                 android:id="@+id/container_additional_flipper"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:measureAllChildren="true"
                 android:autoStart="true"
                 android:flipInterval="4000"
                 android:inAnimation="@anim/slide_up_in"
@@ -173,6 +174,7 @@
             <ViewFlipper
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:measureAllChildren="true"
                 android:autoStart="true"
                 android:flipInterval="2500"
                 android:inAnimation="@anim/slide_up_in"

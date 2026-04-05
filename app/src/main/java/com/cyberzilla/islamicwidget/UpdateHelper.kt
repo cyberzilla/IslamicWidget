@@ -46,13 +46,16 @@ object UpdateHelper {
 
                     handler.post {
                         val settings = SettingsManager(context)
+
+                        val previousKnownVersion = settings.latestVersionName
+
                         settings.latestVersionName = latestVersionName
                         settings.apkDownloadUrl = DIRECT_APK_URL
 
                         val packageInfo: PackageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                         val currentVersionName = packageInfo.versionName ?: "1.0"
 
-                        if (isVersionNewer(currentVersionName, latestVersionName)) {
+                        if (isVersionNewer(currentVersionName, latestVersionName) && previousKnownVersion != latestVersionName) {
                             val intent = Intent(context, IslamicWidgetProvider::class.java).apply {
                                 action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
                                 val widgetManager = AppWidgetManager.getInstance(context)
