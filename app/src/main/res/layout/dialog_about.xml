@@ -22,9 +22,10 @@
         android:textColor="?android:attr/textColorPrimary"/>
 
     <TextView
+        android:id="@+id/tv_app_version"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Version 1.0"
+        android:text="Version..."
         android:textSize="14sp"
         android:textColor="?android:attr/textColorSecondary"
         android:layout_marginBottom="24dp"/>

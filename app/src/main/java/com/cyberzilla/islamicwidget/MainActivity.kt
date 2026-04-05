@@ -814,6 +814,16 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btn_about)?.setOnClickListener {
             val dialogView = layoutInflater.inflate(R.layout.dialog_about, null)
+
+            val versionName = try {
+                val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                packageInfo.versionName ?: "1.0"
+            } catch (e: Exception) {
+                "1.0"
+            }
+
+            dialogView.findViewById<TextView>(R.id.tv_app_version)?.text = "Version $versionName"
+
             val dialog = MaterialAlertDialogBuilder(this)
                 .setView(dialogView)
                 .show()
