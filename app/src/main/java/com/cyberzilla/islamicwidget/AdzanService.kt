@@ -5,11 +5,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.res.Configuration
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
@@ -24,18 +24,17 @@ import java.util.Locale
 class AdzanService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
+    private var audioManager: AudioManager? = null
+    private var audioFocusRequest: AudioFocusRequest? = null
     private var originalAlarmVolume: Int = -1
     private var serviceWakeLock: PowerManager.WakeLock? = null
-
     private var isFadingOut = false
 
-    private var isScreenReceiverRegistered = false
-    private var canInterruptFromScreen = false
-
-    private val screenStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val action = intent?.action
-            if ((action == Intent.ACTION_SCREEN_OFF || action == Intent.ACTION_SCREEN_ON) && canInterruptFromScreen) {
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_LOSS,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
                 fadeOutAndStop()
             }
         }
@@ -44,30 +43,18 @@ class AdzanService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == "ACTION_FADE_OUT") {
+        if (intent == null) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        if (intent.action == "ACTION_FADE_OUT") {
             fadeOutAndStop()
             return START_NOT_STICKY
         }
 
         isFadingOut = false
-
-        if (!isScreenReceiverRegistered) {
-            val filter = IntentFilter().apply {
-                addAction(Intent.ACTION_SCREEN_OFF)
-                addAction(Intent.ACTION_SCREEN_ON)
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(screenStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                registerReceiver(screenStateReceiver, filter)
-            }
-            isScreenReceiverRegistered = true
-
-            Handler(Looper.getMainLooper()).postDelayed({
-                canInterruptFromScreen = true
-            }, 1500)
-        }
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
@@ -78,8 +65,8 @@ class AdzanService : Service() {
 
         val settings = SettingsManager(this)
 
-        val isSubuh = intent?.getBooleanExtra("IS_SUBUH", false) ?: false
-        val prayerId = intent?.getIntExtra("PRAYER_ID", 0) ?: 0
+        val isSubuh = intent.getBooleanExtra("IS_SUBUH", false)
+        val prayerId = intent.getIntExtra("PRAYER_ID", 0)
 
         val selectedLocale = Locale.forLanguageTag(settings.languageCode)
         val config = Configuration(resources.configuration)
@@ -121,7 +108,6 @@ class AdzanService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(true)
-            .setFullScreenIntent(stopPendingIntent, true)
             .build()
 
         startForeground(1122, notification)
@@ -135,7 +121,7 @@ class AdzanService : Service() {
 
         playAdzan(isSubuh, settings)
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun fadeOutAndStop() {
@@ -145,11 +131,10 @@ class AdzanService : Service() {
         }
         isFadingOut = true
         var volume = 1.0f
-        val fadeDuration = 2000L
         val fadeSteps = 20
-        val fadeInterval = fadeDuration / fadeSteps
-
+        val fadeInterval = 2000L / fadeSteps
         val handler = Handler(Looper.getMainLooper())
+
         val runnable = object : Runnable {
             override fun run() {
                 volume -= (1.0f / fadeSteps)
@@ -160,9 +145,7 @@ class AdzanService : Service() {
                     try {
                         mediaPlayer?.setVolume(volume, volume)
                         handler.postDelayed(this, fadeInterval)
-                    } catch (e: Exception) {
-                        stopSelf()
-                    }
+                    } catch (e: Exception) { stopSelf() }
                 }
             }
         }
@@ -170,16 +153,37 @@ class AdzanService : Service() {
     }
 
     private fun playAdzan(isSubuh: Boolean, settings: SettingsManager) {
+        val focusResult = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val attr = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+
+            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+                .setAudioAttributes(attr)
+                .setAcceptsDelayedFocusGain(false)
+                .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                .build()
+
+            audioManager?.requestAudioFocus(audioFocusRequest!!)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager?.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_ALARM, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+        }
+
+        if (focusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            stopSelf()
+            return
+        }
+
         val customUriString = if (isSubuh) settings.customAdzanSubuhUri else settings.customAdzanRegularUri
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         try {
             if (originalAlarmVolume == -1) {
-                originalAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+                originalAlarmVolume = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
             }
-            val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
-            val targetVolume = (maxVolume * settings.adzanVolume) / 100
-            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, targetVolume, 0)
+            val maxVol = audioManager?.getStreamMaxVolume(AudioManager.STREAM_ALARM) ?: 0
+            audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, (maxVol * settings.adzanVolume) / 100, 0)
         } catch (e: SecurityException) {}
 
         mediaPlayer?.release()
@@ -190,9 +194,9 @@ class AdzanService : Service() {
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     setAudioAttributes(
-                        android.media.AudioAttributes.Builder()
-                            .setUsage(android.media.AudioAttributes.USAGE_ALARM)
-                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build()
                     )
                 } else {
@@ -219,18 +223,14 @@ class AdzanService : Service() {
                 sendBroadcast(stopIntent)
             }
         } catch (e: Exception) {
-            val stopIntent = Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
-                action = "ACTION_STOP_ADZAN_BROADCAST"
-            }
-            sendBroadcast(stopIntent)
+            stopSelf()
         }
     }
 
     private fun restoreOriginalVolume() {
         if (originalAlarmVolume != -1) {
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
             try {
-                audioManager.setStreamVolume(AudioManager.STREAM_ALARM, originalAlarmVolume, 0)
+                audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, originalAlarmVolume, 0)
                 originalAlarmVolume = -1
             } catch (e: SecurityException) {}
         }
@@ -256,33 +256,26 @@ class AdzanService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
-        if (isScreenReceiverRegistered) {
-            try {
-                unregisterReceiver(screenStateReceiver)
-                isScreenReceiverRegistered = false
-                canInterruptFromScreen = false
-            } catch (e: Exception) {}
-        }
-
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
+
         restoreOriginalVolume()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocusRequest?.let { audioManager?.abandonAudioFocusRequest(it) }
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager?.abandonAudioFocus(audioFocusChangeListener)
+        }
 
         val settings = SettingsManager(this)
         if (settings.isAdzanPlaying) {
             settings.isAdzanPlaying = false
-            val updateIntent = Intent(this, SilentModeReceiver::class.java).apply {
-                action = "ACTION_UPDATE_WIDGETS_BROADCAST"
-            }
-            sendBroadcast(updateIntent)
+            sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply { action = "ACTION_UPDATE_WIDGETS_BROADCAST" })
         }
 
         SilentModeReceiver.releaseWakeLock()
-        serviceWakeLock?.let {
-            if (it.isHeld) {
-                it.release()
-            }
-        }
+        serviceWakeLock?.let { if (it.isHeld) it.release() }
     }
 }

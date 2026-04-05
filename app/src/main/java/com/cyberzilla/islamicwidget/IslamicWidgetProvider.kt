@@ -414,16 +414,25 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleSilentMode(context: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val isFriday = LocalDate.now().dayOfWeek == DayOfWeek.FRIDAY
+
+        val cal = java.util.Calendar.getInstance()
+        cal.time = prayerTime
+        val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
         val isJumat = isFriday && requestCodeId == 2
 
-        if (settings.isAdzanAudioEnabled && Date().time <= prayerTime.time && !isJumat) {
+        val now = Date().time
+
+        val RC_MUTE = 10000 + requestCodeId
+        val RC_UNMUTE = 20000 + requestCodeId
+        val RC_ADZAN = 30000 + requestCodeId
+
+        if (settings.isAdzanAudioEnabled && now <= prayerTime.time && !isJumat) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)
                 putExtra("PRAYER_ID", requestCodeId)
             }
-            val adzanPendingIntent = PendingIntent.getBroadcast(context, requestCodeId + 200, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            val adzanPendingIntent = PendingIntent.getBroadcast(context, RC_ADZAN, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             try {
                 val alarmInfo = AlarmManager.AlarmClockInfo(prayerTime.time, adzanPendingIntent)
@@ -451,18 +460,21 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val muteTimeMillis = prayerTime.time - silentBeforeMillis
         val unmuteTimeMillis = prayerTime.time + silentAfterMillis
 
-        if (Date().time > unmuteTimeMillis) return
+        if (now > unmuteTimeMillis) return
 
         val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
-        val mutePendingIntent = PendingIntent.getBroadcast(context, requestCodeId, muteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val mutePendingIntent = PendingIntent.getBroadcast(context, RC_MUTE, muteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
-        val unmutePendingIntent = PendingIntent.getBroadcast(context, requestCodeId + 100, unmuteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val unmutePendingIntent = PendingIntent.getBroadcast(context, RC_UNMUTE, unmuteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         try {
-            if (Date().time <= muteTimeMillis) {
+            if (now <= muteTimeMillis) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteTimeMillis, mutePendingIntent)
+            } else if (now in (muteTimeMillis + 1)..unmuteTimeMillis) {
+                context.sendBroadcast(muteIntent)
             }
+
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
         } catch (e: SecurityException) {}
     }

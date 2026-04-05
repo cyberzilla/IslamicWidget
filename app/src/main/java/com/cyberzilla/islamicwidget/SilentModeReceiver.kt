@@ -65,7 +65,6 @@ class SilentModeReceiver : BroadcastReceiver() {
             "ACTION_STOP_ADZAN_BROADCAST" -> {
                 val settings = SettingsManager(context)
                 settings.isAdzanPlaying = false
-
                 forceUpdateAllWidgets(context)
 
                 val fadeOutIntent = Intent(context, AdzanService::class.java).apply {
@@ -88,37 +87,45 @@ class SilentModeReceiver : BroadcastReceiver() {
 
             "ACTION_MUTE" -> {
                 if (!notificationManager.isNotificationPolicyAccessGranted) return
-                try {
-                    val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    val currentRingerMode = audioManager.ringerMode
 
-                    prefs.edit()
-                        .putInt("PREF_PREV_MEDIA_VOL", currentMediaVol)
-                        .putInt("PREF_PREV_RINGER_MODE", currentRingerMode)
-                        .apply()
+                val isMuted = prefs.getBoolean("IS_MUTED_BY_APP", false)
+                if (!isMuted) {
+                    try {
+                        val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                        val currentRingerMode = audioManager.ringerMode
 
-                    audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+                        prefs.edit()
+                            .putInt("PREF_PREV_MEDIA_VOL", currentMediaVol)
+                            .putInt("PREF_PREV_RINGER_MODE", currentRingerMode)
+                            .putBoolean("IS_MUTED_BY_APP", true)
+                            .apply()
 
-                } catch (e: SecurityException) {
-                    Log.e("SilentModeReceiver", context.getString(R.string.log_error_mute, e.message))
+                        audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+                    } catch (e: SecurityException) {
+                        Log.e("SilentModeReceiver", context.getString(R.string.log_error_mute, e.message))
+                    }
                 }
             }
 
             "ACTION_UNMUTE" -> {
                 if (!notificationManager.isNotificationPolicyAccessGranted) return
-                try {
-                    val prevMediaVol = prefs.getInt("PREF_PREV_MEDIA_VOL", -1)
-                    val prevRingerMode = prefs.getInt("PREF_PREV_RINGER_MODE", AudioManager.RINGER_MODE_NORMAL)
 
-                    audioManager.ringerMode = prevRingerMode
+                val isMuted = prefs.getBoolean("IS_MUTED_BY_APP", false)
+                if (isMuted) {
+                    try {
+                        val prevMediaVol = prefs.getInt("PREF_PREV_MEDIA_VOL", -1)
+                        val prevRingerMode = prefs.getInt("PREF_PREV_RINGER_MODE", AudioManager.RINGER_MODE_NORMAL)
 
-                    if (prevMediaVol != -1) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevMediaVol, 0)
+                        audioManager.ringerMode = prevRingerMode
+                        if (prevMediaVol != -1) {
+                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevMediaVol, 0)
+                        }
+
+                        prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
+                    } catch (e: SecurityException) {
+                        Log.e("SilentModeReceiver", context.getString(R.string.log_error_unmute, e.message))
                     }
-
-                } catch (e: SecurityException) {
-                    Log.e("SilentModeReceiver", context.getString(R.string.log_error_unmute, e.message))
                 }
             }
         }
