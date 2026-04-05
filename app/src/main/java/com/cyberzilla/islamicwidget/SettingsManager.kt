@@ -131,6 +131,18 @@ class SettingsManager(private val context: Context) {
         get() = prefs.getBoolean("isAdzanPlaying", false)
         set(value) = prefs.edit().putBoolean("isAdzanPlaying", value).apply()
 
+    /**
+     * BUG FIX #11: Menyimpan volume alarm asli ke SharedPreferences, bukan hanya variabel lokal.
+     * Jika AdzanService di-crash paksa oleh sistem sebelum onDestroy() dipanggil, volume alarm
+     * device user akan permanen berubah karena variabel lokal (originalAlarmVolume) ikut hilang
+     * bersama proses. Dengan menyimpan ke SharedPreferences, nilai ini tetap ada dan bisa
+     * di-restore saat service berikutnya dijalankan.
+     * Nilai -1 berarti tidak ada backup (volume belum pernah diubah oleh adzan).
+     */
+    var adzanOriginalVolumeBackup: Int
+        get() = prefs.getInt("adzanOriginalVolumeBackup", -1)
+        set(value) = prefs.edit().putInt("adzanOriginalVolumeBackup", value).apply()
+
     var quoteUpdateInterval: Int
         get() = prefs.getInt("quoteUpdateInterval", 3)
         set(value) = prefs.edit().putInt("quoteUpdateInterval", value).apply()

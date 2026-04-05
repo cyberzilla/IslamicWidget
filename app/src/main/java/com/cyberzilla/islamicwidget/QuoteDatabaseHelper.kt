@@ -36,16 +36,17 @@ class QuoteDatabaseHelper(private val context: Context) : SQLiteOpenHelper(conte
     fun getRandomQuote(): Pair<String, String>? {
         val db = readableDatabase
 
-        // Membaca bahasa langsung dari setting yang diset di UI aplikasi
         val settingsManager = SettingsManager(context)
         var lang = settingsManager.languageCode
 
-        // Fallback jika tidak dikenali
         if (lang != "id" && lang != "en" && lang != "ar") {
             lang = "en"
         }
 
-        val cursor = db.rawQuery("SELECT quote, reference FROM quotes WHERE lang = ? ORDER BY RANDOM() LIMIT 1", arrayOf(lang))
+        val cursor = db.rawQuery(
+            "SELECT quote, reference FROM quotes WHERE lang = ? ORDER BY RANDOM() LIMIT 1",
+            arrayOf(lang)
+        )
         var result: Pair<String, String>? = null
 
         if (cursor.moveToFirst()) {
@@ -54,7 +55,10 @@ class QuoteDatabaseHelper(private val context: Context) : SQLiteOpenHelper(conte
             result = Pair(quote, reference)
         }
         cursor.close()
-        db.close()
+        // BUG FIX #5: Dihapus db.close() — SQLiteOpenHelper mengelola lifecycle
+        // koneksi database secara internal. Memanggil db.close() secara manual
+        // menyebabkan IllegalStateException jika fungsi ini dipanggil berulang
+        // (misalnya saat ada beberapa widget yang di-update bersamaan).
         return result
     }
 }

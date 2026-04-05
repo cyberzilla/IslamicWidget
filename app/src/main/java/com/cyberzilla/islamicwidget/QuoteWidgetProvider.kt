@@ -38,6 +38,15 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         when (intent.action) {
             ACTION_RANDOM_QUOTE -> {
                 updateAllWidgets(context, appWidgetManager, appWidgetIds)
+
+                // BUG FIX #10 (chain alarm): Setelah alarm terpicu dan widget di-update,
+                // jadwalkan alarm berikutnya agar pola "chain exact alarm" terjaga.
+                // Ini menggantikan peran setRepeating() yang tidak exact di Android 6+.
+                val settings = SettingsManager(context)
+                val interval = settings.quoteUpdateInterval
+                if (interval > 0) {
+                    QuoteUpdateManager.setAutoUpdate(context, interval)
+                }
             }
             ACTION_SHARE_QUOTE -> {
                 val quote = intent.getStringExtra("EXTRA_QUOTE") ?: return
@@ -72,7 +81,6 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         val fontSize = settingsManager.quoteFontSize.toFloat()
         val refFontSize = (fontSize - 3f).coerceAtLeast(10f)
 
-        // Ambil nilai Alpha dari pengaturan
         val alphaValue = settingsManager.quoteBgAlpha
 
         val currentChild = settingsManager.quoteDisplayedChild

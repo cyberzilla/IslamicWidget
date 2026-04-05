@@ -2,6 +2,7 @@ package com.cyberzilla.islamicwidget
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -74,6 +75,19 @@ class MainActivity : AppCompatActivity() {
     private var tempRegularUri: String? = null
     private var tempSubuhUri: String? = null
     private var doubleBackToExitPressedOnce = false
+
+    // BUG FIX #9: Handler dan Runnable untuk debounce updatePreview().
+    // updatePreview() dipanggil setiap piksel pergerakan SeekBar (bisa ratusan kali/detik).
+    // Karena fungsi ini menghitung jadwal sholat (operasi berat), ini menyebabkan lag UI.
+    // Debounce 100ms memastikan updatePreview() hanya dieksekusi sekali setelah user
+    // berhenti menggeser slider, bukan setiap frame pergerakan.
+    private val previewDebounceHandler = Handler(Looper.getMainLooper())
+    private val previewDebounceRunnable = Runnable { updatePreview() }
+
+    private fun schedulePreviewUpdate() {
+        previewDebounceHandler.removeCallbacks(previewDebounceRunnable)
+        previewDebounceHandler.postDelayed(previewDebounceRunnable, 100)
+    }
 
     private val pickRegularAdzanLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
@@ -176,7 +190,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() { super.onPause(); stopTestAdzan() }
-    override fun onDestroy() { super.onDestroy(); stopTestAdzan() }
+    override fun onDestroy() {
+        super.onDestroy()
+        stopTestAdzan()
+        // BUG FIX #9: Batalkan debounce handler saat activity destroyed
+        previewDebounceHandler.removeCallbacks(previewDebounceRunnable)
+    }
 
     private fun setupSlider(seekBarId: Int, textViewId: Int, min: Int, max: Int, initialValue: Int, isFormatScale: Boolean = false, suffix: String = "") {
         val seekBar = findViewById<SeekBar>(seekBarId) ?: return
@@ -201,7 +220,12 @@ class MainActivity : AppCompatActivity() {
                     val displayValue = if (seekBarId == R.id.sb_hijri_offset && actualValue > 0) "+$actualValue" else "$actualValue"
                     textView.text = "$displayValue$suffix"
                 }
-                updatePreview()
+                // BUG FIX #9: Ganti updatePreview() langsung dengan schedulePreviewUpdate().
+                // Sebelumnya updatePreview() (yang berisi kalkulasi jadwal sholat) dipanggil
+                // setiap piksel pergerakan seekbar, menyebabkan lag UI yang signifikan.
+                // schedulePreviewUpdate() menunggu 100ms setelah user berhenti menggeser
+                // sebelum menjalankan updatePreview(), sehingga UI tetap responsif.
+                schedulePreviewUpdate()
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
@@ -320,16 +344,14 @@ class MainActivity : AppCompatActivity() {
                         if (sunnahInfo.isNotEmpty() || isUpdateAvailable) {
                             findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
                             flipper?.visibility = View.VISIBLE
-                            flipper?.removeAllViews() // Kosongkan layout lama
+                            flipper?.removeAllViews()
 
-                            // 1. Info Normal Preview
                             val normalView = layoutInflater.inflate(R.layout.item_flipper_normal, flipper, false)
                             normalView.findViewById<TextView>(R.id.tv_sunrise_flip)?.apply { text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}" }
                             normalView.findViewById<TextView>(R.id.tv_last_third_flip)?.apply { text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}" }
                             normalView.findViewById<TextView>(R.id.tv_qibla_flip)?.apply { text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction) }
                             flipper?.addView(normalView)
 
-                            // 2. Info Sunnah Preview
                             if (sunnahInfo.isNotEmpty()) {
                                 val sunnahView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
                                 sunnahView.text = sunnahInfo
@@ -337,7 +359,6 @@ class MainActivity : AppCompatActivity() {
                                 flipper?.addView(sunnahView)
                             }
 
-                            // 3. Info Update Preview
                             if (isUpdateAvailable) {
                                 val updateMsg = localizedContext.getString(R.string.update_available_msg, settingsManager.latestVersionName)
                                 val updateView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
@@ -391,14 +412,12 @@ class MainActivity : AppCompatActivity() {
                 findViewById<TextView>(id)?.apply { setTextColor(textColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
             }
 
-            // Atur properti teks di dalam Flipper dinamis yang baru disuntikkan
             val flipper = findViewById<ViewFlipper>(R.id.container_additional_flipper)
             if (flipper != null && flipper.childCount > 0) {
                 for (i in 0 until flipper.childCount) {
                     val child = flipper.getChildAt(i)
                     if (child is TextView && child.id == R.id.tv_item_text) {
                         child.setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd)
-                        // Warna sudah diatur di saat inflate (Emas untuk Sunnah, Hijau untuk Update)
                     }
                 }
             }
@@ -799,6 +818,14 @@ class MainActivity : AppCompatActivity() {
 
                     findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
                     Handler(Looper.getMainLooper()).postDelayed({
+
+                        // BUG FIX #6: Batalkan semua alarm yang sudah terjadwal SEBELUM reset.
+                        // Sebelumnya, restoreDefaults() hanya menghapus SharedPreferences,
+                        // tapi alarm AlarmManager yang sudah berjalan (mute, unmute, adzan, quote)
+                        // TIDAK dibatalkan. Ini menyebabkan alarm lama tetap aktif dengan setting
+                        // lama meskipun user sudah menekan Reset.
+                        cancelAllScheduledAlarms()
+
                         settingsManager.restoreDefaults()
                         applyAppTheme("SYSTEM")
                         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
@@ -835,21 +862,74 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * BUG FIX #6: Batalkan semua alarm yang terjadwal sebelum reset settings.
+     * Membatalkan alarm mute/unmute (prayerId 1-5), adzan (prayerId 1-5), dan quote interval.
+     */
+    private fun cancelAllScheduledAlarms() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        // Batalkan alarm silent mode dan adzan untuk semua waktu sholat
+        for (prayerId in 1..5) {
+            val rcMute = 10000 + prayerId
+            val rcUnmute = 20000 + prayerId
+            val rcAdzan = 30000 + prayerId
+
+            val muteIntent = Intent(this, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+            val unmuteIntent = Intent(this, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
+            val adzanIntent = Intent(this, SilentModeReceiver::class.java).apply { action = "ACTION_PLAY_ADZAN" }
+
+            PendingIntent.getBroadcast(this, rcMute, muteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
+            PendingIntent.getBroadcast(this, rcUnmute, unmuteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
+            PendingIntent.getBroadcast(this, rcAdzan, adzanIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
+        }
+
+        // Batalkan alarm auto-update quote
+        val quoteIntent = Intent(this, QuoteWidgetProvider::class.java).apply {
+            action = QuoteWidgetProvider.ACTION_RANDOM_QUOTE
+        }
+        PendingIntent.getBroadcast(this, 1001, quoteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
+    }
+
     @SuppressLint("MissingPermission")
     private fun fetchLocation() {
         Toast.makeText(this, getString(R.string.toast_searching_location), Toast.LENGTH_SHORT).show()
-        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null).addOnSuccessListener { location ->
-            if (location != null) {
-                settingsManager.latitude = location.latitude.toString()
-                settingsManager.longitude = location.longitude.toString()
-                try {
-                    val geocoder = Geocoder(this, Locale.getDefault())
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        geocoder.getFromLocation(location.latitude, location.longitude, 1) { addrs -> runOnUiThread { updateAddr(addrs.firstOrNull()) } }
-                    } else { @Suppress("DEPRECATION") updateAddr(geocoder.getFromLocation(location.latitude, location.longitude, 1)?.firstOrNull()) }
-                } catch(e: Exception) { updateAddr(null) }
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    settingsManager.latitude = location.latitude.toString()
+                    settingsManager.longitude = location.longitude.toString()
+                    try {
+                        val geocoder = Geocoder(this, Locale.getDefault())
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            geocoder.getFromLocation(location.latitude, location.longitude, 1) { addrs ->
+                                runOnUiThread { updateAddr(addrs.firstOrNull()) }
+                            }
+                        } else {
+                            @Suppress("DEPRECATION")
+                            updateAddr(geocoder.getFromLocation(location.latitude, location.longitude, 1)?.firstOrNull())
+                        }
+                    } catch(e: Exception) { updateAddr(null) }
+                } else {
+                    // BUG FIX #8: Berikan feedback ke user jika GPS mengembalikan null.
+                    // Sebelumnya tidak ada feedback sama sekali jika lokasi tidak ditemukan
+                    // (misalnya karena indoor atau GPS tidak aktif), sehingga user bingung
+                    // kenapa lokasi tidak berubah meskipun sudah menekan tombol Update GPS.
+                    Toast.makeText(
+                        this,
+                        getString(R.string.toast_location_not_found),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
-        }
+            .addOnFailureListener { exception ->
+                // BUG FIX #8: Tangani error GPS (misalnya permission dicabut saat proses berjalan)
+                Toast.makeText(
+                    this,
+                    getString(R.string.toast_location_error, exception.localizedMessage ?: ""),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
     }
 
     private fun updateAddr(address: Address?) {

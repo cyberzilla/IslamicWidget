@@ -82,6 +82,8 @@
     <string name="default_location">Lokasi belum diatur</string>
     <string name="location_found">Lokasi Ditemukan</string>
     <string name="location_not_found">Belum Ada Lokasi</string>
+    <string name="toast_location_not_found">Lokasi tidak ditemukan. Pastikan GPS aktif dan coba lagi.</string>
+    <string name="toast_location_error">Gagal mendapatkan lokasi: %s</string>
 
     <string name="btn_stop">Stop</string>
 

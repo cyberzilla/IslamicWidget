@@ -105,8 +105,44 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     ) {
         UpdateHelper.checkForUpdates(context)
 
+        // BUG FIX #3: Pindahkan penjadwalan alarm (silent mode & adzan) ke sini,
+        // SEBELUM loop per-widget. Sebelumnya scheduleSilentMode() dipanggil di dalam
+        // updateAppWidget() yang dieksekusi untuk SETIAP widget, menyebabkan alarm yang
+        // sama ditimpa berulang kali (N kali untuk N widget). Selain inefisien, ini
+        // berpotensi race condition pada device dengan banyak widget.
+        // Dengan memanggilnya sekali di onUpdate(), penjadwalan hanya terjadi satu kali
+        // per siklus update, terlepas dari berapa banyak widget yang terpasang.
+        scheduleAllPrayers(context)
+
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
+
+    /**
+     * BUG FIX #3: Method baru yang memusatkan semua penjadwalan alarm sholat.
+     * Dipanggil sekali dari onUpdate() dan sekali dari BootReceiver,
+     * bukan dari setiap updateAppWidget().
+     */
+    private fun scheduleAllPrayers(context: Context) {
+        val settings = SettingsManager(context)
+        val latString = settings.latitude
+        val lonString = settings.longitude
+        if (latString == null || lonString == null) return
+
+        try {
+            val lat = latString.toDouble()
+            val lon = lonString.toDouble()
+            val today = LocalDate.now()
+            val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
+
+            scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
+            scheduleSilentMode(context, prayerTimes.dhuhr.asDate(), 2, settings)
+            scheduleSilentMode(context, prayerTimes.asr.asDate(), 3, settings)
+            scheduleSilentMode(context, prayerTimes.maghrib.asDate(), 4, settings)
+            scheduleSilentMode(context, prayerTimes.isha.asDate(), 5, settings)
+        } catch (e: Exception) {
+            // Gagal hitung jadwal sholat, lewati penjadwalan
         }
     }
 
@@ -159,6 +195,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val rectF = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
         canvas.drawRoundRect(rectF, radiusPx, radiusPx, paint)
         views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
+        // BUG FIX #7: Recycle bitmap setelah dikirim ke RemoteViews.
+        // RemoteViews membuat salinan internalnya sendiri, sehingga bitmap asli
+        // sudah tidak dibutuhkan dan harus dilepas untuk mencegah memory leak.
+        // Tanpa ini, setiap kali widget di-update (bisa tiap 30 menit), bitmap baru
+        // dibuat dan yang lama tidak pernah dibebaskan dari memori.
+        bgBitmap.recycle()
 
         val today = LocalDate.now()
         var hijriDate = HijrahDate.from(today)
@@ -292,11 +334,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
                     scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
 
-                    scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
-                    scheduleSilentMode(context, prayerTimes.dhuhr.asDate(), 2, settings)
-                    scheduleSilentMode(context, prayerTimes.asr.asDate(), 3, settings)
-                    scheduleSilentMode(context, prayerTimes.maghrib.asDate(), 4, settings)
-                    scheduleSilentMode(context, prayerTimes.isha.asDate(), 5, settings)
+                    // BUG FIX #3: scheduleSilentMode & adzan TIDAK lagi dipanggil di sini.
+                    // Dipindah ke scheduleAllPrayers() yang dipanggil SEKALI di onUpdate().
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
@@ -310,10 +349,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                             views.setViewVisibility(R.id.container_additional_normal, View.GONE)
                             views.setViewVisibility(R.id.container_additional_flipper, View.VISIBLE)
 
-                            // Kosongkan flipper sebelum menambahkan item baru
                             views.removeAllViews(R.id.container_additional_flipper)
 
-                            // 1. Tambahkan Baris Info Normal (Terbit, 1/3 Malam, Kiblat)
                             val normalView = RemoteViews(context.packageName, R.layout.item_flipper_normal)
                             normalView.setTextViewText(R.id.tv_sunrise_flip, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
                             normalView.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
@@ -327,7 +364,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                             normalView.setOnClickPendingIntent(R.id.tv_qibla_flip, compassPendingIntent)
                             views.addView(R.id.container_additional_flipper, normalView)
 
-                            // 2. Tambahkan Baris Info Sunnah (Jika ada)
                             if (sunnahInfo.isNotEmpty()) {
                                 val sunnahView = RemoteViews(context.packageName, R.layout.item_flipper_text)
                                 sunnahView.setTextViewText(R.id.tv_item_text, sunnahInfo)
@@ -339,7 +375,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                                 views.addView(R.id.container_additional_flipper, sunnahView)
                             }
 
-                            // 3. Tambahkan Baris Info Pembaruan (Jika ada versi baru)
                             if (isUpdateAvailable) {
                                 val updateMessage = localizedContext.getString(R.string.update_available_msg, settings.latestVersionName)
                                 val updateView = RemoteViews(context.packageName, R.layout.item_flipper_text)
@@ -456,7 +491,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     private fun scheduleSilentMode(context: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        val cal = java.util.Calendar.getInstance()
+        // BUG FIX #4: Tambahkan TimeZone.getDefault() secara eksplisit ke Calendar.
+        // Tanpa ini, Calendar menggunakan timezone default yang bisa tidak konsisten
+        // jika sistem sedang dalam proses transisi DST atau pada device tertentu.
+        // Ini memastikan pengecekan hari Jumat menggunakan waktu lokal yang benar.
+        val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
         cal.time = prayerTime
         val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
         val isJumat = isFriday && requestCodeId == 2

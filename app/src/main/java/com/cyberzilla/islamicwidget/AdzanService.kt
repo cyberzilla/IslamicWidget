@@ -26,9 +26,15 @@ class AdzanService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var audioManager: AudioManager? = null
     private var audioFocusRequest: AudioFocusRequest? = null
-    private var originalAlarmVolume: Int = -1
     private var serviceWakeLock: PowerManager.WakeLock? = null
     private var isFadingOut = false
+
+    // BUG FIX #12: Simpan referensi Handler dan Runnable agar bisa dibatalkan
+    // di onDestroy() jika service di-kill saat fade sedang berjalan.
+    // Tanpa ini, callback fade akan terus berjalan dan mencoba memanggil
+    // mediaPlayer yang sudah di-release, menyebabkan crash.
+    private var fadeHandler: Handler? = null
+    private var fadeRunnable: Runnable? = null
 
     private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
@@ -64,6 +70,17 @@ class AdzanService : Service() {
         }
 
         val settings = SettingsManager(this)
+
+        // BUG FIX #11: Restore volume alarm jika ada sisa backup dari service yang crash sebelumnya.
+        // Ini menangani kasus di mana AdzanService di-kill paksa oleh sistem sebelum onDestroy()
+        // sempat dipanggil, sehingga volume alarm device tidak permanen berubah.
+        val leftoverVolume = settings.adzanOriginalVolumeBackup
+        if (leftoverVolume != -1) {
+            try {
+                audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, leftoverVolume, 0)
+            } catch (e: SecurityException) {}
+            settings.adzanOriginalVolumeBackup = -1
+        }
 
         val isSubuh = intent.getBooleanExtra("IS_SUBUH", false)
         val prayerId = intent.getIntExtra("PRAYER_ID", 0)
@@ -133,9 +150,11 @@ class AdzanService : Service() {
         var volume = 1.0f
         val fadeSteps = 20
         val fadeInterval = 2000L / fadeSteps
-        val handler = Handler(Looper.getMainLooper())
 
-        val runnable = object : Runnable {
+        // BUG FIX #12: Simpan referensi ke Handler dan Runnable sebagai field class
+        // sehingga bisa dibatalkan di onDestroy() jika service di-kill saat fade berjalan.
+        fadeHandler = Handler(Looper.getMainLooper())
+        fadeRunnable = object : Runnable {
             override fun run() {
                 volume -= (1.0f / fadeSteps)
                 if (volume <= 0f) {
@@ -144,12 +163,12 @@ class AdzanService : Service() {
                 } else {
                     try {
                         mediaPlayer?.setVolume(volume, volume)
-                        handler.postDelayed(this, fadeInterval)
+                        fadeHandler?.postDelayed(this, fadeInterval)
                     } catch (e: Exception) { stopSelf() }
                 }
             }
         }
-        handler.post(runnable)
+        fadeHandler?.post(fadeRunnable!!)
     }
 
     private fun playAdzan(isSubuh: Boolean, settings: SettingsManager) {
@@ -179,8 +198,14 @@ class AdzanService : Service() {
         val customUriString = if (isSubuh) settings.customAdzanSubuhUri else settings.customAdzanRegularUri
 
         try {
-            if (originalAlarmVolume == -1) {
-                originalAlarmVolume = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
+            // BUG FIX #11: Simpan volume asli ke SharedPreferences (via SettingsManager),
+            // bukan hanya ke variabel lokal. Ini memastikan volume bisa di-restore
+            // meskipun service di-crash paksa oleh sistem sebelum onDestroy() dipanggil.
+            if (settings.adzanOriginalVolumeBackup == -1) {
+                val currentVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
+                if (currentVol != -1) {
+                    settings.adzanOriginalVolumeBackup = currentVol
+                }
             }
             val maxVol = audioManager?.getStreamMaxVolume(AudioManager.STREAM_ALARM) ?: 0
             audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, (maxVol * settings.adzanVolume) / 100, 0)
@@ -228,11 +253,14 @@ class AdzanService : Service() {
     }
 
     private fun restoreOriginalVolume() {
-        if (originalAlarmVolume != -1) {
+        // BUG FIX #11: Restore dari SettingsManager, lalu hapus backup-nya.
+        val settings = SettingsManager(this)
+        val savedVolume = settings.adzanOriginalVolumeBackup
+        if (savedVolume != -1) {
             try {
-                audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, originalAlarmVolume, 0)
-                originalAlarmVolume = -1
+                audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, savedVolume, 0)
             } catch (e: SecurityException) {}
+            settings.adzanOriginalVolumeBackup = -1
         }
     }
 
@@ -255,6 +283,13 @@ class AdzanService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // BUG FIX #12: Batalkan fade handler sebelum release mediaPlayer.
+        // Ini mencegah callback Runnable yang masih berjalan mencoba mengakses
+        // mediaPlayer yang sudah di-release, yang akan menyebabkan crash.
+        fadeRunnable?.let { fadeHandler?.removeCallbacks(it) }
+        fadeHandler = null
+        fadeRunnable = null
 
         mediaPlayer?.stop()
         mediaPlayer?.release()

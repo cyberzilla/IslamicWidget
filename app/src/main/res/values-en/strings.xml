@@ -82,6 +82,8 @@
     <string name="default_location">Location not set</string>
     <string name="location_found">Location Found</string>
     <string name="location_not_found">No Location Found</string>
+    <string name="toast_location_not_found">Location not found. Please ensure GPS is enabled and try again.</string>
+    <string name="toast_location_error">Failed to get location: %s</string>
 
     <string name="btn_stop">Stop</string>
 

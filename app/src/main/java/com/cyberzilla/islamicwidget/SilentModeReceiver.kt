@@ -134,20 +134,36 @@ class SilentModeReceiver : BroadcastReceiver() {
     private fun forceUpdateAllWidgets(context: Context) {
         val appWidgetManager = AppWidgetManager.getInstance(context)
 
+        // BUG FIX #1: Mengganti action dari ACTION_UPDATE_ADZAN_STATE ke ACTION_APPWIDGET_UPDATE.
+        //
+        // Sebelumnya, forceUpdateAllWidgets mengirim ACTION_UPDATE_ADZAN_STATE ke IslamicWidgetProvider.
+        // Action ini hanya memicu partial update (ukuran font dan flipper) di onReceive,
+        // TANPA memanggil updateAppWidget(). Akibatnya:
+        //   - Jadwal sholat tidak dihitung ulang untuk hari berikutnya
+        //   - scheduleSilentMode() tidak pernah dipanggil ulang
+        //   - Alarm mute/unmute untuk hari berikutnya tidak pernah dijadwalkan
+        //
+        // Dengan ACTION_APPWIDGET_UPDATE, super.onReceive() di AppWidgetProvider akan
+        // memanggil onUpdate() → scheduleAllPrayers() + updateAppWidget() untuk setiap widget,
+        // sehingga alarm dijadwalkan ulang dengan benar setiap harinya.
         val islamicWidget = ComponentName(context, IslamicWidgetProvider::class.java)
         val islamicIds = appWidgetManager.getAppWidgetIds(islamicWidget)
-        val updateIslamic = Intent(context, IslamicWidgetProvider::class.java).apply {
-            action = "com.cyberzilla.islamicwidget.ACTION_UPDATE_ADZAN_STATE"
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, islamicIds)
+        if (islamicIds.isNotEmpty()) {
+            val updateIslamic = Intent(context, IslamicWidgetProvider::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, islamicIds)
+            }
+            context.sendBroadcast(updateIslamic)
         }
-        context.sendBroadcast(updateIslamic)
 
         val quotesWidget = ComponentName(context, QuoteWidgetProvider::class.java)
         val quotesIds = appWidgetManager.getAppWidgetIds(quotesWidget)
-        val updateQuotes = Intent(context, QuoteWidgetProvider::class.java).apply {
-            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quotesIds)
+        if (quotesIds.isNotEmpty()) {
+            val updateQuotes = Intent(context, QuoteWidgetProvider::class.java).apply {
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quotesIds)
+            }
+            context.sendBroadcast(updateQuotes)
         }
-        context.sendBroadcast(updateQuotes)
     }
 }

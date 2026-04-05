@@ -82,6 +82,8 @@
     <string name="default_location">الموقع غير محدد</string>
     <string name="location_found">تم العثور على الموقع</string>
     <string name="location_not_found">لا يوجد موقع</string>
+    <string name="toast_location_not_found">لم يتم العثور على الموقع. يرجى التأكد من تفعيل نظام GPS والمحاولة مرة أخرى.</string>
+    <string name="toast_location_error">فشل الحصول على الموقع: %s</string>
 
     <string name="btn_stop">إيقاف</string>
 
