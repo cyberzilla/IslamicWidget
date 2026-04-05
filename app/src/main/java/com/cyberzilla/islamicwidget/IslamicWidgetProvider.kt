@@ -73,12 +73,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer)) }
 
                     val additionalTextIds = listOf(
-                        R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2,
-                        R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
+                        R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2
                     )
                     for (id in additionalTextIds) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd)) }
-
-                    views.setTextViewTextSize(R.id.tv_sunnah_reminder_flip, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
                 } else {
                     views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
                     views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
@@ -106,6 +103,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
+        UpdateHelper.checkForUpdates(context)
+
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
@@ -227,15 +226,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             for (id in timeViewsToResize) { views.setTextColor(id, textColor) }
 
             val additionalTextIds = listOf(
-                R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2,
-                R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip
+                R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2
             )
             for (id in additionalTextIds) {
                 views.setTextColor(id, textColor)
                 views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
             }
-
-            views.setTextViewTextSize(R.id.tv_sunnah_reminder_flip, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
 
             if (is24Hour) {
                 views.setCharSequence(R.id.clock_widget, "setFormat24Hour", "HH:mm")
@@ -261,7 +257,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.tv_qibla, compassPendingIntent)
-            views.setOnClickPendingIntent(R.id.tv_qibla_flip, compassPendingIntent)
 
             if (latString != null && lonString != null) {
                 try {
@@ -295,10 +290,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.tv_last_third, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                     views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
-                    views.setTextViewText(R.id.tv_sunrise_flip, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
-                    views.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
-                    views.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
-
                     scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
 
                     scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
@@ -309,45 +300,63 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
-                    // Pengecekan versi update terbaru
                     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                     val currentVersionName = packageInfo.versionName ?: "1.0"
                     val isUpdateAvailable = UpdateHelper.isVersionNewer(currentVersionName, settings.latestVersionName)
-
-                    var sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
-
-                    if (isUpdateAvailable) {
-                        // Menggunakan resource string dengan argument formatting agar lebih elegan dan dilokalisasi
-                        val updateMessage = localizedContext.getString(R.string.update_available_msg, settings.latestVersionName)
-                        sunnahInfo = if (sunnahInfo.isNotEmpty()) {
-                            "$sunnahInfo\n\n$updateMessage"
-                        } else {
-                            updateMessage
-                        }
-
-                        val updateIntent = Intent(context, UpdateReceiver::class.java).apply {
-                            action = "ACTION_START_UPDATE_DOWNLOAD"
-                            putExtra("APK_URL", settings.apkDownloadUrl)
-                        }
-
-                        val pendingUpdateIntent = PendingIntent.getBroadcast(
-                            context,
-                            999,
-                            updateIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                        )
-
-                        views.setOnClickPendingIntent(R.id.tv_sunnah_reminder_flip, pendingUpdateIntent)
-                    } else {
-                        val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                        views.setOnClickPendingIntent(R.id.tv_sunnah_reminder_flip, nullIntent)
-                    }
+                    val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
 
                     if (settings.showAdditional) {
-                        if (sunnahInfo.isNotEmpty()) {
+                        if (sunnahInfo.isNotEmpty() || isUpdateAvailable) {
                             views.setViewVisibility(R.id.container_additional_normal, View.GONE)
                             views.setViewVisibility(R.id.container_additional_flipper, View.VISIBLE)
-                            views.setTextViewText(R.id.tv_sunnah_reminder_flip, sunnahInfo)
+
+                            // Kosongkan flipper sebelum menambahkan item baru
+                            views.removeAllViews(R.id.container_additional_flipper)
+
+                            // 1. Tambahkan Baris Info Normal (Terbit, 1/3 Malam, Kiblat)
+                            val normalView = RemoteViews(context.packageName, R.layout.item_flipper_normal)
+                            normalView.setTextViewText(R.id.tv_sunrise_flip, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
+                            normalView.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
+                            normalView.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
+
+                            val flipTextIds = listOf(R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip)
+                            for (id in flipTextIds) {
+                                normalView.setTextColor(id, textColor)
+                                normalView.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                            }
+                            normalView.setOnClickPendingIntent(R.id.tv_qibla_flip, compassPendingIntent)
+                            views.addView(R.id.container_additional_flipper, normalView)
+
+                            // 2. Tambahkan Baris Info Sunnah (Jika ada)
+                            if (sunnahInfo.isNotEmpty()) {
+                                val sunnahView = RemoteViews(context.packageName, R.layout.item_flipper_text)
+                                sunnahView.setTextViewText(R.id.tv_item_text, sunnahInfo)
+                                sunnahView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                                sunnahView.setTextColor(R.id.tv_item_text, Color.parseColor("#FFC107"))
+
+                                val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                                sunnahView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
+                                views.addView(R.id.container_additional_flipper, sunnahView)
+                            }
+
+                            // 3. Tambahkan Baris Info Pembaruan (Jika ada versi baru)
+                            if (isUpdateAvailable) {
+                                val updateMessage = localizedContext.getString(R.string.update_available_msg, settings.latestVersionName)
+                                val updateView = RemoteViews(context.packageName, R.layout.item_flipper_text)
+                                updateView.setTextViewText(R.id.tv_item_text, updateMessage)
+                                updateView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                                updateView.setTextColor(R.id.tv_item_text, Color.parseColor("#4CAF50"))
+
+                                val updateIntent = Intent(context, UpdateReceiver::class.java).apply {
+                                    action = "ACTION_START_UPDATE_DOWNLOAD"
+                                    putExtra("APK_URL", settings.apkDownloadUrl)
+                                }
+                                val pendingUpdateIntent = PendingIntent.getBroadcast(
+                                    context, 999, updateIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                                )
+                                updateView.setOnClickPendingIntent(R.id.tv_item_text, pendingUpdateIntent)
+                                views.addView(R.id.container_additional_flipper, updateView)
+                            }
                         } else {
                             views.setViewVisibility(R.id.container_additional_normal, View.VISIBLE)
                             views.setViewVisibility(R.id.container_additional_flipper, View.GONE)

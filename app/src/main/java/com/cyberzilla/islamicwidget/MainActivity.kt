@@ -129,8 +129,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         checkBatteryOptimizations()
-
-        // Memeriksa update otomatis di background
         UpdateHelper.checkForUpdates(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -309,26 +307,51 @@ class MainActivity : AppCompatActivity() {
                     findViewById<TextView>(R.id.tv_last_third)?.text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}"
                     findViewById<TextView>(R.id.tv_qibla)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction)
 
-                    findViewById<TextView>(R.id.tv_sunrise_flip)?.text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}"
-                    findViewById<TextView>(R.id.tv_last_third_flip)?.text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}"
-                    findViewById<TextView>(R.id.tv_qibla_flip)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction)
-
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
                     val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
+                    val flipper = findViewById<ViewFlipper>(R.id.container_additional_flipper)
+
+                    val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                    val currentVersionName = packageInfo.versionName ?: "1.0"
+                    val isUpdateAvailable = UpdateHelper.isVersionNewer(currentVersionName, settingsManager.latestVersionName)
 
                     if (isShowAdd) {
-                        if (sunnahInfo.isNotEmpty()) {
+                        if (sunnahInfo.isNotEmpty() || isUpdateAvailable) {
                             findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
-                            findViewById<View>(R.id.container_additional_flipper)?.visibility = View.VISIBLE
-                            findViewById<TextView>(R.id.tv_sunnah_reminder_flip)?.text = sunnahInfo
+                            flipper?.visibility = View.VISIBLE
+                            flipper?.removeAllViews() // Kosongkan layout lama
+
+                            // 1. Info Normal Preview
+                            val normalView = layoutInflater.inflate(R.layout.item_flipper_normal, flipper, false)
+                            normalView.findViewById<TextView>(R.id.tv_sunrise_flip)?.apply { text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}" }
+                            normalView.findViewById<TextView>(R.id.tv_last_third_flip)?.apply { text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}" }
+                            normalView.findViewById<TextView>(R.id.tv_qibla_flip)?.apply { text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction) }
+                            flipper?.addView(normalView)
+
+                            // 2. Info Sunnah Preview
+                            if (sunnahInfo.isNotEmpty()) {
+                                val sunnahView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
+                                sunnahView.text = sunnahInfo
+                                sunnahView.setTextColor(Color.parseColor("#FFC107"))
+                                flipper?.addView(sunnahView)
+                            }
+
+                            // 3. Info Update Preview
+                            if (isUpdateAvailable) {
+                                val updateMsg = localizedContext.getString(R.string.update_available_msg, settingsManager.latestVersionName)
+                                val updateView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
+                                updateView.text = updateMsg
+                                updateView.setTextColor(Color.parseColor("#4CAF50"))
+                                flipper?.addView(updateView)
+                            }
                         } else {
                             findViewById<View>(R.id.container_additional_normal)?.visibility = View.VISIBLE
-                            findViewById<View>(R.id.container_additional_flipper)?.visibility = View.GONE
+                            flipper?.visibility = View.GONE
                         }
                     } else {
                         findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
-                        findViewById<View>(R.id.container_additional_flipper)?.visibility = View.GONE
+                        flipper?.visibility = View.GONE
                     }
 
                 } catch (e: Exception) { setDummyPreviewTimes(activeLangCode) }
@@ -368,7 +391,17 @@ class MainActivity : AppCompatActivity() {
                 findViewById<TextView>(id)?.apply { setTextColor(textColor); setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
             }
 
-            findViewById<TextView>(R.id.tv_sunnah_reminder_flip)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd) }
+            // Atur properti teks di dalam Flipper dinamis yang baru disuntikkan
+            val flipper = findViewById<ViewFlipper>(R.id.container_additional_flipper)
+            if (flipper != null && flipper.childCount > 0) {
+                for (i in 0 until flipper.childCount) {
+                    val child = flipper.getChildAt(i)
+                    if (child is TextView && child.id == R.id.tv_item_text) {
+                        child.setTextSize(TypedValue.COMPLEX_UNIT_SP, fsAdd)
+                        // Warna sudah diatur di saat inflate (Emas untuk Sunnah, Hijau untuk Update)
+                    }
+                }
+            }
 
         } catch (e: Exception) {}
     }
