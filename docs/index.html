@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="id" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Islamic Widget - Asisten Ibadah Pintar</title>
+
+    <link rel="icon" type="image/svg+xml" href="../icons/default.svg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#10B981', secondary: '#047857', dark: '#1F2937' },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        arabic: ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .lang-ar { font-family: 'Cairo', sans-serif; }
+        .transition-all { transition: all 0.3s ease; }
+        /* Animasi Lightbox */
+        #lightbox { transition: opacity 0.3s ease; }
+        #lightbox-img { transition: transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased selection:bg-primary selection:text-white relative">
+
+<nav class="bg-white shadow-sm fixed w-full z-50 top-0">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center gap-3">
+                <img src="../icons/default.svg" alt="Islamic Widget Logo" class="w-8 h-8 object-contain drop-shadow-sm">
+                <span class="font-bold text-xl text-dark" id="nav-brand">Islamic Widget</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <select id="language-switcher" class="bg-gray-100 border-none rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-primary outline-none cursor-pointer">
+                    <option value="id">🇮🇩 Indonesia</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="ar">🇸🇦 العربية</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<section class="pt-28 pb-16 sm:pt-32 sm:pb-24 lg:pb-32 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-12">
+        <div class="w-full lg:w-1/2 text-center lg:text-start" id="hero-text-container">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-primary font-medium text-sm mb-6">
+                <i class="fa-solid fa-star"></i> <span id="hero-badge">Aplikasi Android Terbaru</span>
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-dark leading-tight mb-6" id="hero-title">
+                Ibadah Khusyuk, Tanpa Khawatir HP Berbunyi.
+            </h1>
+            <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0" id="hero-desc">
+                Widget Islami komprehensif dengan fitur Auto-Silent pintar saat waktu sholat, Adzan anti-mati, dan pengingat Sunnah harian langsung di Home Screen Anda.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <a href="https://github.com/cyberzilla/IslamicWidget/blob/main/app/release/app-release.apk" target="_blank" class="px-8 py-3.5 bg-primary hover:bg-secondary text-white rounded-xl font-semibold shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-android text-xl"></i> <span id="btn-download">Download APK</span>
+                </a>
+                <a href="https://github.com/cyberzilla/IslamicWidget" target="_blank" class="px-8 py-3.5 bg-white border border-gray-200 hover:border-gray-300 text-dark rounded-xl font-semibold shadow-sm transition-all flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-github text-xl"></i> <span id="btn-github">Source Code</span>
+                </a>
+            </div>
+        </div>
+        <div class="w-full lg:w-1/2 relative">
+
+            <div class="relative mx-auto w-64 sm:w-72 md:w-80 rounded-[2.5rem] border-[8px] border-gray-900 shadow-2xl bg-white overflow-hidden aspect-[9/19] group cursor-pointer">
+                <img src="../screen/1.jpg" alt="App Preview" class="w-full h-full object-cover lightbox-trigger group-hover:scale-105 transition-transform duration-500">
+
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+                    <div class="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-gray-800 shadow-lg">
+                        <i class="fa-solid fa-magnifying-glass-plus text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] aspect-square bg-gradient-to-tr from-emerald-100 to-teal-50 rounded-full blur-3xl -z-10 opacity-70"></div>
+        </div>
+    </div>
+</section>
+
+<section class="py-20 bg-emerald-50" id="showcase">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-4" id="showcase-title">Tampilan Aplikasi</h2>
+            <p class="text-gray-600" id="showcase-subtitle">Eksplorasi antarmuka modern, intuitif, dan penuh fitur dari Islamic Widget langsung dari perangkat Anda.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+            <div class="p-6 rounded-2xl bg-white border border-gray-100 flex flex-col items-center group cursor-pointer">
+                <div class="relative w-40 sm:w-48 aspect-[9/19] rounded-xl border-[4px] border-gray-900 shadow-xl overflow-hidden mb-6 bg-white">
+                    <img src="../screen/1.jpg" alt="Screenshot 1" class="w-full h-full object-cover lightbox-trigger group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <span class="text-sm font-semibold text-gray-500" id="s1-cap">Preview 1</span>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white border border-gray-100 flex flex-col items-center group cursor-pointer">
+                <div class="relative w-40 sm:w-48 aspect-[9/19] rounded-xl border-[4px] border-gray-900 shadow-xl overflow-hidden mb-6 bg-white">
+                    <img src="../screen/2.jpg" alt="Screenshot 2" class="w-full h-full object-cover lightbox-trigger group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <span class="text-sm font-semibold text-gray-500" id="s2-cap">Preview 2</span>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white border border-gray-100 flex flex-col items-center group cursor-pointer">
+                <div class="relative w-40 sm:w-48 aspect-[9/19] rounded-xl border-[4px] border-gray-900 shadow-xl overflow-hidden mb-6 bg-white">
+                    <img src="../screen/3.jpg" alt="Screenshot 3" class="w-full h-full object-cover lightbox-trigger group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <span class="text-sm font-semibold text-gray-500" id="s3-cap">Preview 3</span>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white border border-gray-100 flex flex-col items-center group cursor-pointer">
+                <div class="relative w-40 sm:w-48 aspect-[9/19] rounded-xl border-[4px] border-gray-900 shadow-xl overflow-hidden mb-6 bg-white">
+                    <img src="../screen/4.jpg" alt="Screenshot 4" class="w-full h-full object-cover lightbox-trigger group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <span class="text-sm font-semibold text-gray-500" id="s4-cap">Preview 4</span>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white border border-gray-100 flex flex-col items-center group cursor-pointer">
+                <div class="relative w-40 sm:w-48 aspect-[9/19] rounded-xl border-[4px] border-gray-900 shadow-xl overflow-hidden mb-6 bg-white">
+                    <img src="../screen/5.jpg" alt="Screenshot 5" class="w-full h-full object-cover lightbox-trigger group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <span class="text-sm font-semibold text-gray-500" id="s5-cap">Preview 5</span>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white border border-gray-100 flex flex-col items-center group cursor-pointer">
+                <div class="relative w-40 sm:w-48 aspect-[9/19] rounded-xl border-[4px] border-gray-900 shadow-xl overflow-hidden mb-6 bg-white">
+                    <img src="../screen/6.jpg" alt="Screenshot 6" class="w-full h-full object-cover lightbox-trigger group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <span class="text-sm font-semibold text-gray-500" id="s6-cap">Preview 6</span>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white border border-gray-100 flex flex-col items-center group cursor-pointer">
+                <div class="relative w-40 sm:w-48 aspect-[9/19] rounded-xl border-[4px] border-gray-900 shadow-xl overflow-hidden mb-6 bg-white">
+                    <img src="../screen/7.jpg" alt="Screenshot 7" class="w-full h-full object-cover lightbox-trigger group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <span class="text-sm font-semibold text-gray-500" id="s7-cap">Preview 7</span>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white border border-gray-100 flex flex-col items-center group cursor-pointer">
+                <div class="relative w-40 sm:w-48 aspect-[9/19] rounded-xl border-[4px] border-gray-900 shadow-xl overflow-hidden mb-6 bg-white">
+                    <img src="../screen/8.jpg" alt="Screenshot 8" class="w-full h-full object-cover lightbox-trigger group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <span class="text-sm font-semibold text-gray-500" id="s8-cap">Preview 8</span>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="py-20 bg-white" id="features">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl font-bold text-dark mb-4" id="feat-title">Dirancang Untuk Ketenangan Ibadah Anda</h2>
+            <p class="text-gray-600" id="feat-subtitle">Setiap fitur dibangun dengan cermat untuk memastikan Anda tetap terhubung dengan ibadah tanpa gangguan teknologi.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="p-8 rounded-2xl bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-100 transition-all group">
+                <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary text-xl mb-6 group-hover:scale-110 transition-all">
+                    <i class="fa-solid fa-volume-xmark"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark mb-3" id="f1-title">Auto-Silent Cerdas</h3>
+                <p class="text-gray-600 leading-relaxed" id="f1-desc">Otomatis mengubah HP menjadi mode hening saat waktu sholat tiba, dan mengembalikannya ke volume normal setelah selesai.</p>
+            </div>
+            <div class="p-8 rounded-2xl bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-100 transition-all group">
+                <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary text-xl mb-6 group-hover:scale-110 transition-all">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark mb-3" id="f2-title">Adzan Anti-Bungkam</h3>
+                <p class="text-gray-600 leading-relaxed" id="f2-desc">Audio adzan dijamin berkumandang tuntas meskipun layar mati, menembus batasan optimasi baterai OS modern.</p>
+            </div>
+            <div class="p-8 rounded-2xl bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-100 transition-all group">
+                <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary text-xl mb-6 group-hover:scale-110 transition-all">
+                    <i class="fa-solid fa-power-off"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark mb-3" id="f3-title">Interupsi Elegan</h3>
+                <p class="text-gray-600 leading-relaxed" id="f3-desc">Matikan adzan seketika hanya dengan menekan tombol Power fisik. Suara akan mengecil perlahan (fade-out) tanpa mengejutkan.</p>
+            </div>
+            <div class="p-8 rounded-2xl bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-100 transition-all group">
+                <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary text-xl mb-6 group-hover:scale-110 transition-all">
+                    <i class="fa-solid fa-mosque"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark mb-3" id="f4-title">Mode Jumat</h3>
+                <p class="text-gray-600 leading-relaxed" id="f4-desc">Sistem otomatis melewati pemutaran audio adzan pada hari Jumat agar tidak mengganggu ibadah Anda di dalam masjid.</p>
+            </div>
+            <div class="p-8 rounded-2xl bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-100 transition-all group">
+                <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary text-xl mb-6 group-hover:scale-110 transition-all">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark mb-3" id="f5-title">Pengingat Sunnah</h3>
+                <p class="text-gray-600 leading-relaxed" id="f5-desc">Menampilkan teks notifikasi langsung di widget untuk puasa Ayyamul Bidh, Senin-Kamis, Asyura, hingga pengingat Al-Kahfi.</p>
+            </div>
+            <div class="p-8 rounded-2xl bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-100 transition-all group">
+                <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-primary text-xl mb-6 group-hover:scale-110 transition-all">
+                    <i class="fa-solid fa-compass"></i>
+                </div>
+                <h3 class="text-xl font-bold text-dark mb-3" id="f6-title">Kiblat & Kutipan Islami</h3>
+                <p class="text-gray-600 leading-relaxed" id="f6-desc">Akses cepat ke kompas arah Kiblat yang presisi dan nikmati ayat serta hadits yang berganti otomatis sepanjang hari.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="bg-dark text-gray-300 py-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <img src="../icons/default.svg" alt="Islamic Widget Logo" class="w-6 h-6 object-contain opacity-80">
+            <span class="font-bold text-white">Islamic Widget</span>
+        </div>
+        <p class="text-sm" id="footer-text">&copy; 2026 Cyberzilla. All rights reserved.</p>
+    </div>
+</footer>
+
+<div id="lightbox" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 opacity-0">
+    <button id="lightbox-close" class="absolute top-6 right-6 text-white/80 hover:text-white transition-colors text-4xl focus:outline-none w-12 h-12 flex items-center justify-center bg-black/50 rounded-full">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+    <img id="lightbox-img" src="" alt="Enlarged Preview" class="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl scale-95">
+</div>
+
+<script>
+    // --- LIGHTBOX LOGIC ---
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxClose = document.getElementById('lightbox-close');
+    const triggers = document.querySelectorAll('.lightbox-trigger');
+
+    const openLightbox = (src) => {
+        lightboxImg.src = src;
+        lightbox.classList.remove('hidden');
+        // Sedikit delay agar transisi CSS berjalan mulus
+        setTimeout(() => {
+            lightbox.classList.remove('opacity-0');
+            lightboxImg.classList.remove('scale-95');
+            lightboxImg.classList.add('scale-100');
+        }, 10);
+    };
+
+    const closeLightbox = () => {
+        lightbox.classList.add('opacity-0');
+        lightboxImg.classList.remove('scale-100');
+        lightboxImg.classList.add('scale-95');
+        setTimeout(() => {
+            lightbox.classList.add('hidden');
+        }, 300); // Harus sesuai dengan durasi CSS transition
+    };
+
+    triggers.forEach(img => {
+        img.addEventListener('click', (e) => {
+            // Mencegah trigger parent (jika ada) terpanggil dua kali
+            e.stopPropagation();
+            openLightbox(img.src);
+        });
+    });
+
+    // Trigger lightbox dari div container-nya (khusus grid bawaan)
+    document.querySelectorAll('.group.cursor-pointer').forEach(container => {
+        container.addEventListener('click', () => {
+            const img = container.querySelector('.lightbox-trigger');
+            if(img) openLightbox(img.src);
+        });
+    });
+
+    lightboxClose.addEventListener('click', closeLightbox);
+
+    // Tutup lightbox jika area luar gambar diklik
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) {
+            closeLightbox();
+        }
+    });
+
+    // --- TRANSLATION LOGIC ---
+    const translations = {
+        id: {
+            navBrand: "Islamic Widget", heroBadge: "Aplikasi Android Terbaru",
+            heroTitle: "Ibadah Khusyuk, Tanpa Khawatir HP Berbunyi.",
+            heroDesc: "Widget Islami komprehensif dengan fitur Auto-Silent pintar saat waktu sholat, Adzan anti-mati, dan pengingat Sunnah harian langsung di Home Screen Anda.",
+            btnDownload: "Download APK", btnGithub: "Source Code",
+
+            showcaseTitle: "Tampilan Aplikasi", showcaseSubtitle: "Eksplorasi antarmuka modern, intuitif, dan penuh fitur dari Islamic Widget langsung dari perangkat Anda.",
+            s1Cap: "Layar Utama", s2Cap: "Pengaturan Dasar", s3Cap: "Konfigurasi Lanjut", s4Cap: "Jadwal Sholat", s5Cap: "Kalender & Puasa", s6Cap: "Kiblat Presisi", s7Cap: "Daftar Sunnah", s8Cap: "Kutipan Harian",
+
+            featTitle: "Dirancang Untuk Ketenangan Ibadah Anda",
+            featSubtitle: "Setiap fitur dibangun dengan cermat untuk memastikan Anda tetap terhubung dengan ibadah tanpa gangguan teknologi.",
+            f1Title: "Auto-Silent Cerdas", f1Desc: "Otomatis mengubah HP menjadi mode hening saat waktu sholat tiba, dan mengembalikannya ke volume normal setelah selesai.",
+            f2Title: "Adzan Anti-Bungkam", f2Desc: "Audio adzan dijamin berkumandang tuntas meskipun layar mati, menembus batasan optimasi baterai OS modern.",
+            f3Title: "Interupsi Elegan", f3Desc: "Matikan adzan seketika hanya dengan menekan tombol Power fisik. Suara akan mengecil perlahan (fade-out) tanpa mengejutkan.",
+            f4Title: "Mode Jumat", f4Desc: "Sistem otomatis melewati pemutaran audio adzan pada hari Jumat agar tidak mengganggu ibadah Anda di dalam masjid.",
+            f5Title: "Pengingat Sunnah", f5Desc: "Menampilkan teks notifikasi langsung di widget untuk puasa Ayyamul Bidh, Senin-Kamis, Asyura, hingga pengingat Al-Kahfi.",
+            f6Title: "Kiblat & Kutipan Islami", f6Desc: "Akses cepat ke kompas arah Kiblat yang presisi dan nikmati ayat serta hadits yang berganti otomatis sepanjang hari.",
+            footerText: "&copy; 2026 Cyberzilla. All rights reserved."
+        },
+        en: {
+            navBrand: "Islamic Widget", heroBadge: "Latest Android App",
+            heroTitle: "Pray Peacefully, Without Phone Interruptions.",
+            heroDesc: "A comprehensive Islamic widget featuring smart Auto-Silent during prayers, anti-pause Adzan, and daily Sunnah reminders right on your Home Screen.",
+            btnDownload: "Download APK", btnGithub: "Source Code",
+
+            showcaseTitle: "App Showcase", showcaseSubtitle: "Explore Islamic Widget's modern, intuitive, and feature-rich interface directly from your device.",
+            s1Cap: "Main Screen", s2Cap: "Basic Settings", s3Cap: "Advanced Config", s4Cap: "Prayer Times", s5Cap: "Calendar & Fasting", s6Cap: "Precise Qibla", s7Cap: "Sunnah List", s8Cap: "Daily Quote",
+
+            featTitle: "Designed for Your Spiritual Peace",
+            featSubtitle: "Every feature is carefully crafted to ensure you stay connected with your worship without technological distractions.",
+            f1Title: "Smart Auto-Silent", f1Desc: "Automatically switches your phone to silent mode when prayer time arrives, and restores normal volume afterward.",
+            f2Title: "Robust Adzan", f2Desc: "The Adzan audio is guaranteed to play completely even when the screen is off, bypassing modern OS battery restrictions.",
+            f3Title: "Elegant Interruption", f3Desc: "Stop the Adzan instantly just by pressing the physical Power button. The sound will smoothly fade out.",
+            f4Title: "Friday Mode", f4Desc: "The system automatically skips the Adzan audio on Fridays to prevent disruptions during your worship at the mosque.",
+            f5Title: "Sunnah Reminders", f5Desc: "Displays text notifications directly on the widget for Ayyamul Bidh fasting, Monday-Thursday, Ashura, and Al-Kahfi reminders.",
+            f6Title: "Qibla & Islamic Quotes", f6Desc: "Quick access to a precise Qibla compass and enjoy Quranic verses and Hadiths that change automatically throughout the day.",
+            footerText: "&copy; 2026 Cyberzilla. All rights reserved."
+        },
+        ar: {
+            navBrand: "الأداة الإسلامية", heroBadge: "أحدث تطبيق أندرويد",
+            heroTitle: "صَلِّ بخشوع، دون قلق من رنين هاتفك.",
+            heroDesc: "أداة إسلامية شاملة تتميز بالوضع الصامت التلقائي الذكي وقت الصلاة، وأذان لا ينقطع، وتذكيرات بالسنن اليومية مباشرة على شاشتك الرئيسية.",
+            btnDownload: "تحميل التطبيق", btnGithub: "شفرة المصدر",
+
+            showcaseTitle: "معرض التطبيق", showcaseSubtitle: "استكشف واجهة 'الأداة الإسلامية' العصرية، البديهية، والغنية بالميزات مباشرة من جهازك.",
+            s1Cap: "الشاشة الرئيسية", s2Cap: "الإعدادات الأساسية", s3Cap: "تكوينات متقدمة", s4Cap: "مواقيت الصلاة", s5Cap: "التقويم والصيام", s6Cap: "القبلة الدقيقة", s7Cap: "قائمة السنن", s8Cap: "اقتباس يومي",
+
+            featTitle: "صُمم لسكينة عبادتك",
+            featSubtitle: "تم تصميم كل ميزة بعناية لضمان بقائك متصلاً بعبادتك دون تشتيت التكنولوجيا.",
+            f1Title: "وضع صامت ذكي", f1Desc: "يحول هاتفك تلقائيًا إلى الوضع الصامت عند دخول وقت الصلاة، ويعيد الحجم الطبيعي للصوت بعد الانتهاء.",
+            f2Title: "أذان لا ينقطع", f2Desc: "نضمن تشغيل الأذان بالكامل حتى وإن كانت الشاشة مغلقة، متجاوزاً قيود البطارية في الأنظمة الحديثة.",
+            f3Title: "إيقاف أنيق", f3Desc: "أوقف الأذان فوراً بمجرد الضغط على زر الطاقة. سيخفت الصوت تدريجياً دون إزعاج.",
+            f4Title: "وضع الجمعة", f4Desc: "يتخطى النظام تشغيل الأذان تلقائيًا يوم الجمعة لتجنب التشويش أثناء وجودك في المسجد.",
+            f5Title: "تذكير بالسنن", f5Desc: "يعرض إشعارات نصية مباشرة للأيام البيض، صيام الاثنين والخميس، عاشوراء، وتذكير سورة الكهف.",
+            f6Title: "القبلة واقتباسات", f6Desc: "وصول سريع لبوصلة دقيقة للقبلة واستمتع بآيات وأحاديث تتغير تلقائياً طوال اليوم.",
+            footerText: "&copy; ٢٠٢٦ سايبرزيلا. جميع الحقوق محفوظة."
+        }
+    };
+
+    const switcher = document.getElementById('language-switcher');
+
+    switcher.addEventListener('change', (e) => {
+        const lang = e.target.value;
+        const t = translations[lang];
+
+        if(lang === 'ar') {
+            document.documentElement.dir = 'rtl';
+            document.body.classList.add('lang-ar');
+            document.getElementById('hero-text-container').classList.replace('lg:text-start', 'lg:text-right');
+        } else {
+            document.documentElement.dir = 'ltr';
+            document.body.classList.remove('lang-ar');
+            document.getElementById('hero-text-container').classList.replace('lg:text-right', 'lg:text-start');
+        }
+
+        document.getElementById('nav-brand').innerHTML = t.navBrand;
+        document.getElementById('hero-badge').innerHTML = t.heroBadge;
+        document.getElementById('hero-title').innerHTML = t.heroTitle;
+        document.getElementById('hero-desc').innerHTML = t.heroDesc;
+        document.getElementById('btn-download').innerHTML = t.btnDownload;
+        document.getElementById('btn-github').innerHTML = t.btnGithub;
+
+        document.getElementById('showcase-title').innerHTML = t.showcaseTitle;
+        document.getElementById('showcase-subtitle').innerHTML = t.showcaseSubtitle;
+        document.getElementById('s1-cap').innerHTML = t.s1Cap;
+        document.getElementById('s2-cap').innerHTML = t.s2Cap;
+        document.getElementById('s3-cap').innerHTML = t.s3Cap;
+        document.getElementById('s4-cap').innerHTML = t.s4Cap;
+        document.getElementById('s5-cap').innerHTML = t.s5Cap;
+        document.getElementById('s6-cap').innerHTML = t.s6Cap;
+        document.getElementById('s7-cap').innerHTML = t.s7Cap;
+        document.getElementById('s8-cap').innerHTML = t.s8Cap;
+
+        document.getElementById('feat-title').innerHTML = t.featTitle;
+        document.getElementById('feat-subtitle').innerHTML = t.featSubtitle;
+
+        document.getElementById('f1-title').innerHTML = t.f1Title; document.getElementById('f1-desc').innerHTML = t.f1Desc;
+        document.getElementById('f2-title').innerHTML = t.f2Title; document.getElementById('f2-desc').innerHTML = t.f2Desc;
+        document.getElementById('f3-title').innerHTML = t.f3Title; document.getElementById('f3-desc').innerHTML = t.f3Desc;
+        document.getElementById('f4-title').innerHTML = t.f4Title; document.getElementById('f4-desc').innerHTML = t.f4Desc;
+        document.getElementById('f5-title').innerHTML = t.f5Title; document.getElementById('f5-desc').innerHTML = t.f5Desc;
+        document.getElementById('f6-title').innerHTML = t.f6Title; document.getElementById('f6-desc').innerHTML = t.f6Desc;
+
+        document.getElementById('footer-text').innerHTML = t.footerText;
+    });
+</script>
+</body>
+</html>
