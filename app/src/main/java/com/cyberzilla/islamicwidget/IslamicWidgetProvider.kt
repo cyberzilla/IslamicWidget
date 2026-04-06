@@ -83,7 +83,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoSub))
                 }
 
-                appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+                //appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
             }
         }
     }
@@ -121,16 +121,44 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val lat = latString.toDouble()
             val lon = lonString.toDouble()
             val today = LocalDate.now()
-            val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
+            val tomorrow = today.plusDays(1)
 
-            scheduleSilentMode(context, prayerTimes.fajr.asDate(), 1, settings)
-            scheduleSilentMode(context, prayerTimes.dhuhr.asDate(), 2, settings)
-            scheduleSilentMode(context, prayerTimes.asr.asDate(), 3, settings)
-            scheduleSilentMode(context, prayerTimes.maghrib.asDate(), 4, settings)
-            scheduleSilentMode(context, prayerTimes.isha.asDate(), 5, settings)
-        } catch (e: Exception) {
-            // Gagal hitung jadwal sholat, lewati penjadwalan
-        }
+            val todayPT = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
+            val tomorrowPT = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, tomorrow)
+            val now = System.currentTimeMillis()
+
+            // Helper: ambil after-millis per prayer ID
+            fun getAfterMillis(id: Int): Long {
+                val isFriday = today.dayOfWeek == java.time.DayOfWeek.FRIDAY
+                return when (id) {
+                    1 -> settings.fajrAfter
+                    2 -> if (isFriday) settings.fridayAfter else settings.dhuhrAfter
+                    3 -> settings.asrAfter
+                    4 -> settings.maghribAfter
+                    5 -> settings.ishaAfter
+                    else -> 0
+                } * 60 * 1000L
+            }
+
+            val prayerPairs = listOf(
+                Triple(todayPT.fajr.asDate(), tomorrowPT.fajr.asDate(), 1),
+                Triple(todayPT.dhuhr.asDate(), tomorrowPT.dhuhr.asDate(), 2),
+                Triple(todayPT.asr.asDate(), tomorrowPT.asr.asDate(), 3),
+                Triple(todayPT.maghrib.asDate(), tomorrowPT.maghrib.asDate(), 4),
+                Triple(todayPT.isha.asDate(), tomorrowPT.isha.asDate(), 5),
+            )
+
+            for ((todayTime, tomorrowTime, id) in prayerPairs) {
+                val unmuteToday = todayTime.time + getAfterMillis(id)
+                if (now > unmuteToday) {
+                    // Waktu sholat hari ini sudah lewat → jadwalkan untuk esok
+                    scheduleSilentMode(context, tomorrowTime, id, settings)
+                } else {
+                    // Waktu sholat hari ini belum lewat → jadwalkan hari ini
+                    scheduleSilentMode(context, todayTime, id, settings)
+                }
+            }
+        } catch (e: Exception) {}
     }
 
     private fun updateAppWidget(
@@ -182,7 +210,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val rectF = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
         canvas.drawRoundRect(rectF, radiusPx, radiusPx, paint)
         views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
-        bgBitmap.recycle()
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+        try { bgBitmap.recycle() } catch (e: Exception) {}
 
         val today = LocalDate.now()
         var hijriDate = HijrahDate.from(today)
@@ -446,7 +475,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                                 putExtra("APK_URL", settings.apkDownloadUrl)
                             }
                             val pendingUpdateIntent = PendingIntent.getBroadcast(
-                                context, 999, updateIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                                context,
+                                appWidgetId + 9000,
+                                updateIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                             )
                             updateView.setOnClickPendingIntent(R.id.tv_item_text, pendingUpdateIntent)
                             views.addView(R.id.container_additional_flipper, updateView)

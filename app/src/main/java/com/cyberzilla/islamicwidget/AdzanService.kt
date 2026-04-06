@@ -35,15 +35,41 @@ class AdzanService : Service() {
     // mediaPlayer yang sudah di-release, menyebabkan crash.
     private var fadeHandler: Handler? = null
     private var fadeRunnable: Runnable? = null
+    private var pausedPosition = 0
 
     private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
-            AudioManager.AUDIOFOCUS_LOSS,
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                // Telepon sudah diangkat / loss permanen → stop adzan
                 fadeOutAndStop()
             }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                // Dering telepon / WA call masuk → pause, nanti resume otomatis
+                pauseAdzan()
+            }
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                // Focus kembali (telepon tidak diangkat / selesai) → resume
+                resumeAdzan()
+            }
         }
+    }
+
+    private fun pauseAdzan() {
+        try {
+            if (mediaPlayer?.isPlaying == true) {
+                pausedPosition = mediaPlayer?.currentPosition ?: 0
+                mediaPlayer?.pause()
+            }
+        } catch (e: Exception) {}
+    }
+
+    private fun resumeAdzan() {
+        try {
+            if (mediaPlayer != null && !isFadingOut) {
+                mediaPlayer?.seekTo(pausedPosition)
+                mediaPlayer?.start()
+            }
+        } catch (e: Exception) {}
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
