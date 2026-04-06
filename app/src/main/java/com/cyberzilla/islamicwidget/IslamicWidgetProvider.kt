@@ -104,14 +104,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         UpdateHelper.checkForUpdates(context)
-
-        // BUG FIX #3: Pindahkan penjadwalan alarm (silent mode & adzan) ke sini,
-        // SEBELUM loop per-widget. Sebelumnya scheduleSilentMode() dipanggil di dalam
-        // updateAppWidget() yang dieksekusi untuk SETIAP widget, menyebabkan alarm yang
-        // sama ditimpa berulang kali (N kali untuk N widget). Selain inefisien, ini
-        // berpotensi race condition pada device dengan banyak widget.
-        // Dengan memanggilnya sekali di onUpdate(), penjadwalan hanya terjadi satu kali
-        // per siklus update, terlepas dari berapa banyak widget yang terpasang.
         scheduleAllPrayers(context)
 
         for (appWidgetId in appWidgetIds) {
@@ -119,11 +111,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    /**
-     * BUG FIX #3: Method baru yang memusatkan semua penjadwalan alarm sholat.
-     * Dipanggil sekali dari onUpdate() dan sekali dari BootReceiver,
-     * bukan dari setiap updateAppWidget().
-     */
     private fun scheduleAllPrayers(context: Context) {
         val settings = SettingsManager(context)
         val latString = settings.latitude
@@ -195,11 +182,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val rectF = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
         canvas.drawRoundRect(rectF, radiusPx, radiusPx, paint)
         views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
-        // BUG FIX #7: Recycle bitmap setelah dikirim ke RemoteViews.
-        // RemoteViews membuat salinan internalnya sendiri, sehingga bitmap asli
-        // sudah tidak dibutuhkan dan harus dilepas untuk mencegah memory leak.
-        // Tanpa ini, setiap kali widget di-update (bisa tiap 30 menit), bitmap baru
-        // dibuat dan yang lama tidak pernah dibebaskan dari memori.
         bgBitmap.recycle()
 
         val today = LocalDate.now()
@@ -264,8 +246,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             views.setTextColor(R.id.clock_widget, textColor)
             views.setTextColor(R.id.tv_gregorian_date, textColor)
             views.setTextColor(R.id.tv_hijri_date, textColor)
-            for (id in textViewsToResize) { views.setTextColor(id, textColor) }
-            for (id in timeViewsToResize) { views.setTextColor(id, textColor) }
 
             val additionalTextIds = listOf(
                 R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2
@@ -332,10 +312,39 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.tv_last_third, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                     views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
-                    scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
+                    // --- FITUR HIGHLIGHT NEXT SHOLAT ---
+                    val now = Date()
+                    val highlightColor = Color.parseColor("#FFC107")
+                    val defaultColor = textColor
 
-                    // BUG FIX #3: scheduleSilentMode & adzan TIDAK lagi dipanggil di sini.
-                    // Dipindah ke scheduleAllPrayers() yang dipanggil SEKALI di onUpdate().
+                    val prayerDates = arrayOf(
+                        prayerTimes.fajr.asDate(),
+                        prayerTimes.dhuhr.asDate(),
+                        prayerTimes.asr.asDate(),
+                        prayerTimes.maghrib.asDate(),
+                        prayerTimes.isha.asDate()
+                    )
+
+                    val labels = arrayOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
+                    val times = arrayOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
+
+                    var nextPrayerIndex = -1
+                    for (i in prayerDates.indices) {
+                        if (now.before(prayerDates[i])) {
+                            nextPrayerIndex = i
+                            break
+                        }
+                    }
+                    if (nextPrayerIndex == -1) nextPrayerIndex = 0 // Jika sudah lewat Isya, highlight Subuh besok
+
+                    for (i in labels.indices) {
+                        val colorToUse = if (i == nextPrayerIndex) highlightColor else defaultColor
+                        views.setTextColor(labels[i], colorToUse)
+                        views.setTextColor(times[i], colorToUse)
+                    }
+                    // -----------------------------------
+
+                    scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
@@ -345,56 +354,102 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
 
                     if (settings.showAdditional) {
-                        if (sunnahInfo.isNotEmpty() || isUpdateAvailable) {
-                            views.setViewVisibility(R.id.container_additional_normal, View.GONE)
-                            views.setViewVisibility(R.id.container_additional_flipper, View.VISIBLE)
+                        // Karena kita punya quotes harian, kita selalu menyalakan flipper
+                        views.setViewVisibility(R.id.container_additional_normal, View.GONE)
+                        views.setViewVisibility(R.id.container_additional_flipper, View.VISIBLE)
 
-                            views.removeAllViews(R.id.container_additional_flipper)
+                        views.removeAllViews(R.id.container_additional_flipper)
 
-                            val normalView = RemoteViews(context.packageName, R.layout.item_flipper_normal)
-                            normalView.setTextViewText(R.id.tv_sunrise_flip, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
-                            normalView.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
-                            normalView.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
+                        // 1. Info Normal Default
+                        val normalView = RemoteViews(context.packageName, R.layout.item_flipper_normal)
+                        normalView.setTextViewText(R.id.tv_sunrise_flip, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
+                        normalView.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
+                        normalView.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
 
-                            val flipTextIds = listOf(R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip)
-                            for (id in flipTextIds) {
-                                normalView.setTextColor(id, textColor)
-                                normalView.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                        val flipTextIds = listOf(R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip)
+                        for (id in flipTextIds) {
+                            normalView.setTextColor(id, textColor)
+                            normalView.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                        }
+                        normalView.setOnClickPendingIntent(R.id.tv_qibla_flip, compassPendingIntent)
+                        views.addView(R.id.container_additional_flipper, normalView)
+
+                        // 2. FITUR QUOTES (Chunking otomatis)
+                        try {
+                            var fullQuote = "Barangsiapa yang menempuh suatu jalan untuk mencari ilmu, maka Allah akan mudahkan baginya jalan menuju surga. (HR. Muslim)"
+                            try {
+                                val quoteHelper = QuoteDatabaseHelper(context)
+                                val quotePair = quoteHelper.getRandomQuote()
+
+                                if (quotePair != null) {
+                                    fullQuote = "${quotePair.first} - ${quotePair.second}"
+                                }
+                            } catch (e: Exception) {}
+
+                            val maxLengthPerSlide = 55 // Batas karakter per slide
+                            val words = fullQuote.split(" ")
+                            var currentSlideText = ""
+
+                            for (word in words) {
+                                if (currentSlideText.length + word.length + 1 <= maxLengthPerSlide) {
+                                    currentSlideText += if (currentSlideText.isEmpty()) word else " $word"
+                                } else {
+                                    val quoteView = RemoteViews(context.packageName, R.layout.item_flipper_text)
+                                    quoteView.setTextViewText(R.id.tv_item_text, currentSlideText)
+                                    quoteView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                                    quoteView.setTextColor(R.id.tv_item_text, Color.parseColor("#81D4FA"))
+
+                                    val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                                    quoteView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
+
+                                    views.addView(R.id.container_additional_flipper, quoteView)
+                                    currentSlideText = word // Sisipkan kata baru untuk slide selanjutnya
+                                }
                             }
-                            normalView.setOnClickPendingIntent(R.id.tv_qibla_flip, compassPendingIntent)
-                            views.addView(R.id.container_additional_flipper, normalView)
 
-                            if (sunnahInfo.isNotEmpty()) {
-                                val sunnahView = RemoteViews(context.packageName, R.layout.item_flipper_text)
-                                sunnahView.setTextViewText(R.id.tv_item_text, sunnahInfo)
-                                sunnahView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
-                                sunnahView.setTextColor(R.id.tv_item_text, Color.parseColor("#FFC107"))
+                            // Masukkan sisa teks terakhir
+                            if (currentSlideText.isNotEmpty()) {
+                                val quoteView = RemoteViews(context.packageName, R.layout.item_flipper_text)
+                                quoteView.setTextViewText(R.id.tv_item_text, currentSlideText)
+                                quoteView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                                quoteView.setTextColor(R.id.tv_item_text, Color.parseColor("#81D4FA"))
 
                                 val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                                sunnahView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
-                                views.addView(R.id.container_additional_flipper, sunnahView)
-                            }
+                                quoteView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
 
-                            if (isUpdateAvailable) {
-                                val updateMessage = localizedContext.getString(R.string.update_available_msg, settings.latestVersionName)
-                                val updateView = RemoteViews(context.packageName, R.layout.item_flipper_text)
-                                updateView.setTextViewText(R.id.tv_item_text, updateMessage)
-                                updateView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
-                                updateView.setTextColor(R.id.tv_item_text, Color.parseColor("#4CAF50"))
-
-                                val updateIntent = Intent(context, UpdateReceiver::class.java).apply {
-                                    action = "ACTION_START_UPDATE_DOWNLOAD"
-                                    putExtra("APK_URL", settings.apkDownloadUrl)
-                                }
-                                val pendingUpdateIntent = PendingIntent.getBroadcast(
-                                    context, 999, updateIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                                )
-                                updateView.setOnClickPendingIntent(R.id.tv_item_text, pendingUpdateIntent)
-                                views.addView(R.id.container_additional_flipper, updateView)
+                                views.addView(R.id.container_additional_flipper, quoteView)
                             }
-                        } else {
-                            views.setViewVisibility(R.id.container_additional_normal, View.VISIBLE)
-                            views.setViewVisibility(R.id.container_additional_flipper, View.GONE)
+                        } catch (e: Exception) {}
+
+                        // 3. Info Puasa Sunnah
+                        if (sunnahInfo.isNotEmpty()) {
+                            val sunnahView = RemoteViews(context.packageName, R.layout.item_flipper_text)
+                            sunnahView.setTextViewText(R.id.tv_item_text, sunnahInfo)
+                            sunnahView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                            sunnahView.setTextColor(R.id.tv_item_text, Color.parseColor("#FFC107"))
+
+                            val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                            sunnahView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
+                            views.addView(R.id.container_additional_flipper, sunnahView)
+                        }
+
+                        // 4. Info Update
+                        if (isUpdateAvailable) {
+                            val updateMessage = localizedContext.getString(R.string.update_available_msg, settings.latestVersionName)
+                            val updateView = RemoteViews(context.packageName, R.layout.item_flipper_text)
+                            updateView.setTextViewText(R.id.tv_item_text, updateMessage)
+                            updateView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                            updateView.setTextColor(R.id.tv_item_text, Color.parseColor("#4CAF50"))
+
+                            val updateIntent = Intent(context, UpdateReceiver::class.java).apply {
+                                action = "ACTION_START_UPDATE_DOWNLOAD"
+                                putExtra("APK_URL", settings.apkDownloadUrl)
+                            }
+                            val pendingUpdateIntent = PendingIntent.getBroadcast(
+                                context, 999, updateIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                            )
+                            updateView.setOnClickPendingIntent(R.id.tv_item_text, pendingUpdateIntent)
+                            views.addView(R.id.container_additional_flipper, updateView)
                         }
                     } else {
                         views.setViewVisibility(R.id.container_additional_normal, View.GONE)
@@ -491,10 +546,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     private fun scheduleSilentMode(context: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // BUG FIX #4: Tambahkan TimeZone.getDefault() secara eksplisit ke Calendar.
-        // Tanpa ini, Calendar menggunakan timezone default yang bisa tidak konsisten
-        // jika sistem sedang dalam proses transisi DST atau pada device tertentu.
-        // Ini memastikan pengecekan hari Jumat menggunakan waktu lokal yang benar.
         val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
         cal.time = prayerTime
         val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY

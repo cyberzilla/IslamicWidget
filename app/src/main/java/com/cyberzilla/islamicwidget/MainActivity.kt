@@ -9,6 +9,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -75,6 +76,8 @@ class MainActivity : AppCompatActivity() {
     private var tempRegularUri: String? = null
     private var tempSubuhUri: String? = null
     private var doubleBackToExitPressedOnce = false
+    private lateinit var prefListener: SharedPreferences.OnSharedPreferenceChangeListener
+
 
     // BUG FIX #9: Handler dan Runnable untuk debounce updatePreview().
     // updatePreview() dipanggil setiap piksel pergerakan SeekBar (bisa ratusan kali/detik).
@@ -141,6 +144,29 @@ class MainActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val sharedPreferences = getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            val relevantKeys = listOf(
+                "fajrBefore", "fajrAfter",
+                "dhuhrBefore", "dhuhrAfter",
+                "fridayBefore", "fridayAfter",
+                "asrBefore", "asrAfter",
+                "maghribBefore", "maghribAfter",
+                "ishaBefore", "ishaAfter",
+                "isAutoSilentEnabled"
+            )
+            if (key in relevantKeys) {
+                // Paksa widget untuk mereset dan menjadwalkan ulang AlarmManager saat itu juga
+                val ids = AppWidgetManager.getInstance(applicationContext).getAppWidgetIds(ComponentName(applicationContext, IslamicWidgetProvider::class.java))
+                val updateIntent = Intent(applicationContext, IslamicWidgetProvider::class.java).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+                }
+                sendBroadcast(updateIntent)
+            }
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(prefListener)
 
         checkBatteryOptimizations()
         UpdateHelper.checkForUpdates(this)

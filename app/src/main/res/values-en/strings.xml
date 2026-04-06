@@ -77,7 +77,6 @@
     <string name="dialog_yes">Yes</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="dialog_close">Close</string>
-    <string name="dialog_about_message">Islamic Widget\nVersion 1.0\n\nDeveloped by cyberzilla</string>
 
     <string name="default_location">Location not set</string>
     <string name="location_found">Location Found</string>

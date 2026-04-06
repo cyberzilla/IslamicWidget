@@ -77,7 +77,6 @@
     <string name="dialog_yes">نعم</string>
     <string name="dialog_cancel">إلغاء</string>
     <string name="dialog_close">إغلاق</string>
-    <string name="dialog_about_message">الويدجت الإسلامي\nالإصدار 1.0\n\nتطوير cyberzilla</string>
 
     <string name="default_location">الموقع غير محدد</string>
     <string name="location_found">تم العثور على الموقع</string>
