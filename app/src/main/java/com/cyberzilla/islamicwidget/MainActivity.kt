@@ -367,34 +367,68 @@ class MainActivity : AppCompatActivity() {
                     val isUpdateAvailable = UpdateHelper.isVersionNewer(currentVersionName, settingsManager.latestVersionName)
 
                     if (isShowAdd) {
-                        if (sunnahInfo.isNotEmpty() || isUpdateAvailable) {
-                            findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
-                            flipper?.visibility = View.VISIBLE
-                            flipper?.removeAllViews()
+                        // Karena kita punya quotes harian, kita selalu menyalakan flipper
+                        findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
+                        flipper?.visibility = View.VISIBLE
+                        flipper?.removeAllViews()
 
-                            val normalView = layoutInflater.inflate(R.layout.item_flipper_normal, flipper, false)
-                            normalView.findViewById<TextView>(R.id.tv_sunrise_flip)?.apply { text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}" }
-                            normalView.findViewById<TextView>(R.id.tv_last_third_flip)?.apply { text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}" }
-                            normalView.findViewById<TextView>(R.id.tv_qibla_flip)?.apply { text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction) }
-                            flipper?.addView(normalView)
+                        // 1. Info Normal Default
+                        val normalView = layoutInflater.inflate(R.layout.item_flipper_normal, flipper, false)
+                        normalView.findViewById<TextView>(R.id.tv_sunrise_flip)?.apply { text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}" }
+                        normalView.findViewById<TextView>(R.id.tv_last_third_flip)?.apply { text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}" }
+                        normalView.findViewById<TextView>(R.id.tv_qibla_flip)?.apply { text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction) }
+                        flipper?.addView(normalView)
 
-                            if (sunnahInfo.isNotEmpty()) {
-                                val sunnahView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
-                                sunnahView.text = sunnahInfo
-                                sunnahView.setTextColor(Color.parseColor("#FFC107"))
-                                flipper?.addView(sunnahView)
+                        // 2. FITUR QUOTES UNTUK PREVIEW (Sama seperti di WidgetProvider)
+                        try {
+                            var fullQuote = "Barangsiapa yang menempuh suatu jalan untuk mencari ilmu, maka Allah akan mudahkan baginya jalan menuju surga. - HR. Muslim"
+                            try {
+                                val quoteHelper = QuoteDatabaseHelper(this@MainActivity)
+                                val quotePair = quoteHelper.getRandomQuote()
+                                if (quotePair != null) {
+                                    fullQuote = "${quotePair.first} - ${quotePair.second}"
+                                }
+                            } catch (e: Exception) {}
+
+                            val maxLengthPerSlide = 55
+                            val words = fullQuote.split(" ")
+                            var currentSlideText = ""
+
+                            for (word in words) {
+                                if (currentSlideText.length + word.length + 1 <= maxLengthPerSlide) {
+                                    currentSlideText += if (currentSlideText.isEmpty()) word else " $word"
+                                } else {
+                                    val quoteView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
+                                    quoteView.text = currentSlideText
+                                    quoteView.setTextColor(Color.parseColor("#81D4FA")) // Warna biru agar seragam dengan widget
+                                    flipper?.addView(quoteView)
+                                    currentSlideText = word
+                                }
                             }
 
-                            if (isUpdateAvailable) {
-                                val updateMsg = localizedContext.getString(R.string.update_available_msg, settingsManager.latestVersionName)
-                                val updateView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
-                                updateView.text = updateMsg
-                                updateView.setTextColor(Color.parseColor("#4CAF50"))
-                                flipper?.addView(updateView)
+                            if (currentSlideText.isNotEmpty()) {
+                                val quoteView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
+                                quoteView.text = currentSlideText
+                                quoteView.setTextColor(Color.parseColor("#81D4FA"))
+                                flipper?.addView(quoteView)
                             }
-                        } else {
-                            findViewById<View>(R.id.container_additional_normal)?.visibility = View.VISIBLE
-                            flipper?.visibility = View.GONE
+                        } catch (e: Exception) {}
+
+                        // 3. Info Puasa Sunnah
+                        if (sunnahInfo.isNotEmpty()) {
+                            val sunnahView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
+                            sunnahView.text = sunnahInfo
+                            sunnahView.setTextColor(Color.parseColor("#FFC107"))
+                            flipper?.addView(sunnahView)
+                        }
+
+                        // 4. Info Update
+                        if (isUpdateAvailable) {
+                            val updateMsg = localizedContext.getString(R.string.update_available_msg, settingsManager.latestVersionName)
+                            val updateView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
+                            updateView.text = updateMsg
+                            updateView.setTextColor(Color.parseColor("#4CAF50"))
+                            flipper?.addView(updateView)
                         }
                     } else {
                         findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
