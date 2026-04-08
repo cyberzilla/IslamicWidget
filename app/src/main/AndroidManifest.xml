@@ -169,8 +169,9 @@
 
         <service
             android:name=".AdzanService"
+            android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
+            android:foregroundServiceType="mediaPlayback|shortService" />
 
         <receiver
             android:name=".QuoteWidgetProvider"
