@@ -29,13 +29,33 @@ class AdzanService : Service() {
     private var serviceWakeLock: PowerManager.WakeLock? = null
     private var isFadingOut = false
 
-    // BUG FIX #12: Simpan referensi Handler dan Runnable agar bisa dibatalkan
-    // di onDestroy() jika service di-kill saat fade sedang berjalan.
-    // Tanpa ini, callback fade akan terus berjalan dan mencoba memanggil
-    // mediaPlayer yang sudah di-release, menyebabkan crash.
     private var fadeHandler: Handler? = null
     private var fadeRunnable: Runnable? = null
     private var pausedPosition = 0
+
+    // BUG FIX #13: Catat waktu pertama kali adzan mulai diputar.
+    // Diset SEKALI di onStartCommand() dan tidak pernah di-reset,
+    // sehingga siklus pause→resume→pause→resume berulang akibat alarm snooze
+    // tidak bisa "mengakali" batas waktu ini.
+    private var adzanStartedAtMillis = 0L
+
+    // BUG FIX #13: Safety timeout Handler sebagai lapisan pengaman kedua,
+    // memastikan service pasti mati setelah MAX_SERVICE_DURATION_MS
+    // meskipun AUDIOFOCUS_GAIN tidak pernah datang.
+    private var safetyHandler: Handler? = null
+    private var safetyRunnable: Runnable? = null
+
+    companion object {
+        // Maksimum usia adzan sejak pertama mulai diputar.
+        // Jika resume diminta setelah melewati batas ini, adzan di-stop.
+        // Nilai ini harus cukup untuk memutar adzan penuh + toleransi interrupt wajar
+        // (misal: telepon masuk singkat yang tidak diangkat).
+        private const val MAX_ADZAN_AGE_MS = 10 * 60 * 1000L // 10 menit
+
+        // Safety timeout absolut — service dipaksa mati setelah durasi ini
+        // sejak pertama mulai, sebagai jaring pengaman terakhir.
+        private const val MAX_SERVICE_DURATION_MS = 15 * 60 * 1000L // 15 menit
+    }
 
     private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
@@ -44,12 +64,12 @@ class AdzanService : Service() {
                 fadeOutAndStop()
             }
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                // Dering telepon / WA call masuk → pause, nanti resume otomatis
+                // Dering telepon / alarm snooze masuk → pause sementara
                 pauseAdzan()
             }
             AudioManager.AUDIOFOCUS_GAIN -> {
-                // Focus kembali (telepon tidak diangkat / selesai) → resume
-                resumeAdzan()
+                // Focus kembali → cek usia adzan sebelum resume
+                resumeAdzanIfStillRelevant()
             }
         }
     }
@@ -63,8 +83,20 @@ class AdzanService : Service() {
         } catch (e: Exception) {}
     }
 
-    private fun resumeAdzan() {
+    // BUG FIX #13: Resume hanya diizinkan jika usia adzan (dihitung sejak
+    // pertama mulai, bukan sejak di-pause) belum melewati MAX_ADZAN_AGE_MS.
+    // Ini mencegah skenario alarm snooze berulang yang terus me-reset timer:
+    //   pause (snooze 1) → resume → pause (snooze 2) → resume → dst.
+    // Karena adzanStartedAtMillis tidak pernah di-reset, setelah 10 menit
+    // adzan PASTI di-stop, tidak peduli berapa kali siklus pause-resume terjadi.
+    private fun resumeAdzanIfStillRelevant() {
         try {
+            val adzanAge = System.currentTimeMillis() - adzanStartedAtMillis
+            if (adzanAge > MAX_ADZAN_AGE_MS) {
+                // Adzan sudah terlalu tua → waktu sholat kemungkinan sudah lewat → stop
+                stopSelf()
+                return
+            }
             if (mediaPlayer != null && !isFadingOut) {
                 mediaPlayer?.seekTo(pausedPosition)
                 mediaPlayer?.start()
@@ -98,8 +130,6 @@ class AdzanService : Service() {
         val settings = SettingsManager(this)
 
         // BUG FIX #11: Restore volume alarm jika ada sisa backup dari service yang crash sebelumnya.
-        // Ini menangani kasus di mana AdzanService di-kill paksa oleh sistem sebelum onDestroy()
-        // sempat dipanggil, sehingga volume alarm device tidak permanen berubah.
         val leftoverVolume = settings.adzanOriginalVolumeBackup
         if (leftoverVolume != -1) {
             try {
@@ -162,7 +192,20 @@ class AdzanService : Service() {
         }
         sendBroadcast(updateIntent)
 
+        // BUG FIX #13: Catat waktu mulai SEKALI di sini, sebelum playAdzan().
+        // Tidak boleh di-reset di tempat lain manapun.
+        adzanStartedAtMillis = System.currentTimeMillis()
+
         playAdzan(isSubuh, settings)
+
+        // BUG FIX #13: Safety timeout absolut — paksa stop setelah MAX_SERVICE_DURATION_MS
+        // sejak adzan mulai, sebagai lapisan pengaman terakhir jika
+        // AUDIOFOCUS_GAIN tidak pernah datang sama sekali.
+        safetyHandler = Handler(Looper.getMainLooper())
+        safetyRunnable = Runnable {
+            if (!isFadingOut) stopSelf()
+        }
+        safetyHandler?.postDelayed(safetyRunnable!!, MAX_SERVICE_DURATION_MS)
 
         return START_NOT_STICKY
     }
@@ -224,9 +267,7 @@ class AdzanService : Service() {
         val customUriString = if (isSubuh) settings.customAdzanSubuhUri else settings.customAdzanRegularUri
 
         try {
-            // BUG FIX #11: Simpan volume asli ke SharedPreferences (via SettingsManager),
-            // bukan hanya ke variabel lokal. Ini memastikan volume bisa di-restore
-            // meskipun service di-crash paksa oleh sistem sebelum onDestroy() dipanggil.
+            // BUG FIX #11: Simpan volume asli ke SharedPreferences (via SettingsManager).
             if (settings.adzanOriginalVolumeBackup == -1) {
                 val currentVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
                 if (currentVol != -1) {
@@ -310,9 +351,12 @@ class AdzanService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
+        // BUG FIX #13: Batalkan safety timeout agar tidak trigger setelah service mati.
+        safetyRunnable?.let { safetyHandler?.removeCallbacks(it) }
+        safetyHandler = null
+        safetyRunnable = null
+
         // BUG FIX #12: Batalkan fade handler sebelum release mediaPlayer.
-        // Ini mencegah callback Runnable yang masih berjalan mencoba mengakses
-        // mediaPlayer yang sudah di-release, yang akan menyebabkan crash.
         fadeRunnable?.let { fadeHandler?.removeCallbacks(it) }
         fadeHandler = null
         fadeRunnable = null
