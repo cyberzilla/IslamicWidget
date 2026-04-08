@@ -163,4 +163,6 @@
     <string name="update_notification_title">تحديث %1$s</string>
     <string name="update_download_desc">جاري تنزيل الإصدار %1$s...</string>
     <string name="update_install_failed">فشل بدء التثبيت التلقائي. يرجى فتح الملف يدويًا من التنزيلات.</string>
+
+    <string name="reminder_fasting_tomorrow">تذكير: غداً %1$s</string>
 </resources>

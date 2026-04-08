@@ -78,12 +78,6 @@ class MainActivity : AppCompatActivity() {
     private var doubleBackToExitPressedOnce = false
     private lateinit var prefListener: SharedPreferences.OnSharedPreferenceChangeListener
 
-
-    // BUG FIX #9: Handler dan Runnable untuk debounce updatePreview().
-    // updatePreview() dipanggil setiap piksel pergerakan SeekBar (bisa ratusan kali/detik).
-    // Karena fungsi ini menghitung jadwal sholat (operasi berat), ini menyebabkan lag UI.
-    // Debounce 100ms memastikan updatePreview() hanya dieksekusi sekali setelah user
-    // berhenti menggeser slider, bukan setiap frame pergerakan.
     private val previewDebounceHandler = Handler(Looper.getMainLooper())
     private val previewDebounceRunnable = Runnable { updatePreview() }
 
@@ -157,7 +151,6 @@ class MainActivity : AppCompatActivity() {
                 "isAutoSilentEnabled"
             )
             if (key in relevantKeys) {
-                // Paksa widget untuk mereset dan menjadwalkan ulang AlarmManager saat itu juga
                 val ids = AppWidgetManager.getInstance(applicationContext).getAppWidgetIds(ComponentName(applicationContext, IslamicWidgetProvider::class.java))
                 val updateIntent = Intent(applicationContext, IslamicWidgetProvider::class.java).apply {
                     action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
@@ -219,7 +212,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopTestAdzan()
-        // BUG FIX #9: Batalkan debounce handler saat activity destroyed
         previewDebounceHandler.removeCallbacks(previewDebounceRunnable)
     }
 
@@ -246,11 +238,6 @@ class MainActivity : AppCompatActivity() {
                     val displayValue = if (seekBarId == R.id.sb_hijri_offset && actualValue > 0) "+$actualValue" else "$actualValue"
                     textView.text = "$displayValue$suffix"
                 }
-                // BUG FIX #9: Ganti updatePreview() langsung dengan schedulePreviewUpdate().
-                // Sebelumnya updatePreview() (yang berisi kalkulasi jadwal sholat) dipanggil
-                // setiap piksel pergerakan seekbar, menyebabkan lag UI yang signifikan.
-                // schedulePreviewUpdate() menunggu 100ms setelah user berhenti menggeser
-                // sebelum menjalankan updatePreview(), sehingga UI tetap responsif.
                 schedulePreviewUpdate()
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -338,11 +325,13 @@ class MainActivity : AppCompatActivity() {
                     val sunnahTimes = SunnahTimes(prayerTimes)
                     val qibla = Qibla(Coordinates(lat, lon))
 
+                    val currentTime = Date()
                     var isAfterMaghrib = false
-                    if (findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && Date().after(prayerTimes.maghrib.asDate())) {
+                    if (findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && currentTime.after(prayerTimes.maghrib.asDate())) {
                         totalHijriOffset += 1L
                         isAfterMaghrib = true
                     }
+                    val isBeforeFajr = currentTime.before(prayerTimes.fajr.asDate())
 
                     val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
                     timeFormatter.timeZone = TimeZone.getDefault()
@@ -359,7 +348,7 @@ class MainActivity : AppCompatActivity() {
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
-                    val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
+                    val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib, isBeforeFajr)
                     val flipper = findViewById<ViewFlipper>(R.id.container_additional_flipper)
 
                     val packageInfo = packageManager.getPackageInfo(packageName, 0)
@@ -367,7 +356,6 @@ class MainActivity : AppCompatActivity() {
                     val isUpdateAvailable = UpdateHelper.isVersionNewer(currentVersionName, settingsManager.latestVersionName)
 
                     if (isShowAdd) {
-                        // Karena kita punya quotes harian, kita selalu menyalakan flipper
                         findViewById<View>(R.id.container_additional_normal)?.visibility = View.GONE
                         flipper?.visibility = View.VISIBLE
                         flipper?.removeAllViews()
@@ -379,7 +367,7 @@ class MainActivity : AppCompatActivity() {
                         normalView.findViewById<TextView>(R.id.tv_qibla_flip)?.apply { text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction) }
                         flipper?.addView(normalView)
 
-                        // 2. FITUR QUOTES UNTUK PREVIEW (Sama seperti di WidgetProvider)
+                        // 2. FITUR QUOTES UNTUK PREVIEW
                         try {
                             var fullQuote = "Barangsiapa yang menempuh suatu jalan untuk mencari ilmu, maka Allah akan mudahkan baginya jalan menuju surga. - HR. Muslim"
                             try {
@@ -400,7 +388,7 @@ class MainActivity : AppCompatActivity() {
                                 } else {
                                     val quoteView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
                                     quoteView.text = currentSlideText
-                                    quoteView.setTextColor(Color.parseColor("#81D4FA")) // Warna biru agar seragam dengan widget
+                                    quoteView.setTextColor(Color.parseColor("#81D4FA"))
                                     flipper?.addView(quoteView)
                                     currentSlideText = word
                                 }
@@ -878,12 +866,6 @@ class MainActivity : AppCompatActivity() {
 
                     findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
                     Handler(Looper.getMainLooper()).postDelayed({
-
-                        // BUG FIX #6: Batalkan semua alarm yang sudah terjadwal SEBELUM reset.
-                        // Sebelumnya, restoreDefaults() hanya menghapus SharedPreferences,
-                        // tapi alarm AlarmManager yang sudah berjalan (mute, unmute, adzan, quote)
-                        // TIDAK dibatalkan. Ini menyebabkan alarm lama tetap aktif dengan setting
-                        // lama meskipun user sudah menekan Reset.
                         cancelAllScheduledAlarms()
 
                         settingsManager.restoreDefaults()
@@ -922,14 +904,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * BUG FIX #6: Batalkan semua alarm yang terjadwal sebelum reset settings.
-     * Membatalkan alarm mute/unmute (prayerId 1-5), adzan (prayerId 1-5), dan quote interval.
-     */
     private fun cancelAllScheduledAlarms() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // Batalkan alarm silent mode dan adzan untuk semua waktu sholat
         for (prayerId in 1..5) {
             val rcMute = 10000 + prayerId
             val rcUnmute = 20000 + prayerId
@@ -944,7 +921,6 @@ class MainActivity : AppCompatActivity() {
             PendingIntent.getBroadcast(this, rcAdzan, adzanIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
         }
 
-        // Batalkan alarm auto-update quote
         val quoteIntent = Intent(this, QuoteWidgetProvider::class.java).apply {
             action = QuoteWidgetProvider.ACTION_RANDOM_QUOTE
         }
@@ -971,10 +947,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     } catch(e: Exception) { updateAddr(null) }
                 } else {
-                    // BUG FIX #8: Berikan feedback ke user jika GPS mengembalikan null.
-                    // Sebelumnya tidak ada feedback sama sekali jika lokasi tidak ditemukan
-                    // (misalnya karena indoor atau GPS tidak aktif), sehingga user bingung
-                    // kenapa lokasi tidak berubah meskipun sudah menekan tombol Update GPS.
                     Toast.makeText(
                         this,
                         getString(R.string.toast_location_not_found),
@@ -983,7 +955,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .addOnFailureListener { exception ->
-                // BUG FIX #8: Tangani error GPS (misalnya permission dicabut saat proses berjalan)
                 Toast.makeText(
                     this,
                     getString(R.string.toast_location_error, exception.localizedMessage ?: ""),

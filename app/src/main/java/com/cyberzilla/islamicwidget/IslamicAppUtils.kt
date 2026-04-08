@@ -81,7 +81,7 @@ object IslamicAppUtils {
         return PrayerTimes(coordinates, dateComponents, method.parameters)
     }
 
-    fun getSunnahFastingInfo(context: Context, hijriDate: HijrahDate, today: LocalDate, isAfterMaghrib: Boolean): String {
+    fun getSunnahFastingInfo(context: Context, hijriDate: HijrahDate, today: LocalDate, isAfterMaghrib: Boolean, isBeforeFajr: Boolean): String {
         val hDay = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
         val hMonth = hijriDate.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
 
@@ -116,6 +116,14 @@ object IslamicAppUtils {
             sunnahList.add(context.getString(R.string.sunnah_friday))
         }
 
-        return sunnahList.joinToString(" • ")
+        if (sunnahList.isEmpty()) return ""
+
+        val joinedInfo = sunnahList.joinToString(" • ")
+
+        return if (isAfterMaghrib || isBeforeFajr) {
+            context.getString(R.string.reminder_fasting_tomorrow, joinedInfo)
+        } else {
+            joinedInfo
+        }
     }
 }

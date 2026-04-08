@@ -127,7 +127,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val tomorrowPT = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, tomorrow)
             val now = System.currentTimeMillis()
 
-            // Helper: ambil after-millis per prayer ID
             fun getAfterMillis(id: Int): Long {
                 val isFriday = today.dayOfWeek == java.time.DayOfWeek.FRIDAY
                 return when (id) {
@@ -151,10 +150,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             for ((todayTime, tomorrowTime, id) in prayerPairs) {
                 val unmuteToday = todayTime.time + getAfterMillis(id)
                 if (now > unmuteToday) {
-                    // Waktu sholat hari ini sudah lewat → jadwalkan untuk esok
                     scheduleSilentMode(context, tomorrowTime, id, settings)
                 } else {
-                    // Waktu sholat hari ini belum lewat → jadwalkan hari ini
                     scheduleSilentMode(context, todayTime, id, settings)
                 }
             }
@@ -318,15 +315,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     val sunnahTimes = SunnahTimes(prayerTimes)
                     val qibla = Qibla(Coordinates(lat, lon))
 
+                    val currentTime = Date()
                     var isAfterMaghrib = false
                     if (settings.isDayStartAtMaghrib) {
-                        val currentTime = Date()
                         val maghribTime = prayerTimes.maghrib.asDate()
                         if (currentTime.after(maghribTime)) {
                             totalHijriOffset += 1L
                             isAfterMaghrib = true
                         }
                     }
+                    val isBeforeFajr = currentTime.before(prayerTimes.fajr.asDate())
 
                     val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
                     timeFormatter.timeZone = TimeZone.getDefault()
@@ -364,7 +362,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                             break
                         }
                     }
-                    if (nextPrayerIndex == -1) nextPrayerIndex = 0 // Jika sudah lewat Isya, highlight Subuh besok
+                    if (nextPrayerIndex == -1) nextPrayerIndex = 0
 
                     for (i in labels.indices) {
                         val colorToUse = if (i == nextPrayerIndex) highlightColor else defaultColor
@@ -373,17 +371,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     }
                     // -----------------------------------
 
-                    scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
+                    scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), prayerTimes.fajr.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
                     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                     val currentVersionName = packageInfo.versionName ?: "1.0"
                     val isUpdateAvailable = UpdateHelper.isVersionNewer(currentVersionName, settings.latestVersionName)
-                    val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib)
+                    val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib, isBeforeFajr)
 
                     if (settings.showAdditional) {
-                        // Karena kita punya quotes harian, kita selalu menyalakan flipper
                         views.setViewVisibility(R.id.container_additional_normal, View.GONE)
                         views.setViewVisibility(R.id.container_additional_flipper, View.VISIBLE)
 
@@ -415,7 +412,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                                 }
                             } catch (e: Exception) {}
 
-                            val maxLengthPerSlide = 55 // Batas karakter per slide
+                            val maxLengthPerSlide = 55
                             val words = fullQuote.split(" ")
                             var currentSlideText = ""
 
@@ -432,11 +429,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                                     quoteView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
 
                                     views.addView(R.id.container_additional_flipper, quoteView)
-                                    currentSlideText = word // Sisipkan kata baru untuk slide selanjutnya
+                                    currentSlideText = word
                                 }
                             }
 
-                            // Masukkan sisa teks terakhir
                             if (currentSlideText.isNotEmpty()) {
                                 val quoteView = RemoteViews(context.packageName, R.layout.item_flipper_text)
                                 quoteView.setTextViewText(R.id.tv_item_text, currentSlideText)
@@ -516,7 +512,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     }
 
     @SuppressLint("ScheduleExactAlarm")
-    private fun scheduleDateChangeUpdate(context: Context, maghribTime: Date, appWidgetId: Int, isDayStartAtMaghrib: Boolean) {
+    private fun scheduleDateChangeUpdate(context: Context, maghribTime: Date, fajrTime: Date, appWidgetId: Int, isDayStartAtMaghrib: Boolean) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, SilentModeReceiver::class.java).apply {
             action = "ACTION_UPDATE_WIDGETS_BROADCAST"
@@ -530,6 +526,14 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             if (Date().time < triggerTime) {
                 try { alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, triggerTime, pendingIntentMaghrib) } catch (e: SecurityException) {}
             }
+        }
+
+        val pendingIntentFajr = PendingIntent.getBroadcast(
+            context, appWidgetId + 7000, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val fajrTriggerTime = fajrTime.time + 1000L
+        if (Date().time < fajrTriggerTime) {
+            try { alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, fajrTriggerTime, pendingIntentFajr) } catch (e: SecurityException) {}
         }
 
         val pendingIntentMidnight = PendingIntent.getBroadcast(
