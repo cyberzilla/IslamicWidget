@@ -15,6 +15,7 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
@@ -45,6 +46,15 @@ class AdzanService : Service() {
     private var safetyHandler: Handler? = null
     private var safetyRunnable: Runnable? = null
 
+    // BUG FIX #15: Dedicated HandlerThread untuk AudioFocus callback.
+    // Sebelumnya listener berjalan di Main Thread (default Android), sehingga
+    // saat screen off dan Main Looper di-throttle oleh OEM, callback AUDIOFOCUS_GAIN
+    // baru diproses ketika screen on kembali — menyebabkan adzan diam di background.
+    // Dengan background thread, callback diproses segera tanpa bergantung
+    // pada aktivitas Main Looper, terlepas dari state layar.
+    private var audioFocusThread: HandlerThread? = null
+    private var audioFocusHandler: Handler? = null
+
     companion object {
         // Maksimum usia adzan sejak pertama mulai diputar.
         // Jika resume diminta setelah melewati batas ini, adzan di-stop.
@@ -63,12 +73,46 @@ class AdzanService : Service() {
                 // Telepon sudah diangkat / loss permanen → stop adzan
                 fadeOutAndStop()
             }
+
+            // BUG FIX #14: AUDIOFOCUS_LOSS_TRANSIENT TIDAK lagi mem-pause adzan.
+            //
+            // Akar masalah "adzan berhenti saat screen off":
+            // Ketika layar mati, Android AudioPolicy (terutama di OEM seperti
+            // MIUI, ColorOS, OneUI) melakukan rekonfigurasi audio routing ke
+            // low-power state. Selama transisi singkat ini, sistem mendispatch
+            // AUDIOFOCUS_LOSS_TRANSIENT ke SEMUA audio focus holder — termasuk
+            // stream USAGE_ALARM — meskipun tidak ada interrupt nyata sama sekali
+            // (tidak ada telepon masuk, tidak ada alarm lain).
+            //
+            // Sebelumnya: LOSS_TRANSIENT → pauseAdzan() → adzan berhenti.
+            // Kemudian AUDIOFOCUS_GAIN seharusnya dikirim, tapi karena Main Looper
+            // di-throttle (bug #15), callback baru tiba saat screen on → resume.
+            // Hasilnya: adzan seolah "pause saat screen off, lanjut saat screen on".
+            //
+            // Solusi: Adzan adalah alarm syar'i — secara semantik TIDAK BOLEH
+            // tunduk pada transient loss dari sistem. LOSS_TRANSIENT hanya relevan
+            // untuk app musik/podcast yang wajar dihentikan sementara.
+            // Untuk LOSS_TRANSIENT, adzan cukup didiamkan (tidak pause, tidak resume).
+            // Jika ada telepon masuk (loss permanen), AUDIOFOCUS_LOSS yang akan trigger.
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                // Dering telepon / alarm snooze masuk → pause sementara
-                pauseAdzan()
+                // Sengaja dibiarkan kosong — adzan tetap berjalan.
+                // Loss transient dari rekonfigurasi sistem (screen off, notifikasi
+                // singkat, dll.) tidak dianggap sebagai alasan yang valid
+                // untuk menghentikan adzan sementara.
             }
+
+            // BUG FIX #14 (lanjutan): Sama seperti LOSS_TRANSIENT, LOSS_TRANSIENT_CAN_DUCK
+            // (ducking volume) juga diabaikan. Adzan adalah alarm dan tidak perlu
+            // mengecilkan volume untuk "memberi jalan" pada suara sistem lain.
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                // Sengaja diabaikan — volume adzan tidak dikecilkan (no ducking).
+            }
+
             AudioManager.AUDIOFOCUS_GAIN -> {
-                // Focus kembali → cek usia adzan sebelum resume
+                // Focus kembali → cek usia adzan sebelum resume.
+                // Dengan fix #14, blok ini sekarang hanya relevan setelah
+                // AUDIOFOCUS_LOSS permanen yang kemudian focus kembali
+                // (skenario sangat jarang, tapi tetap ditangani dengan aman).
                 resumeAdzanIfStillRelevant()
             }
         }
@@ -127,6 +171,14 @@ class AdzanService : Service() {
             serviceWakeLock?.acquire(10 * 60 * 1000L)
         }
 
+        // BUG FIX #15: Inisialisasi HandlerThread untuk AudioFocus callback.
+        // Thread ini harus dimulai sebelum playAdzan() agar Handler sudah siap
+        // ketika AudioFocusRequest dibuat di dalam playAdzan().
+        audioFocusThread = HandlerThread("AdzanAudioFocusThread").also {
+            it.start()
+            audioFocusHandler = Handler(it.looper)
+        }
+
         val settings = SettingsManager(this)
 
         // BUG FIX #11: Restore volume alarm jika ada sisa backup dari service yang crash sebelumnya.
@@ -180,7 +232,16 @@ class AdzanService : Service() {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
-            .setAutoCancel(true)
+            // BUG FIX #17: Hapus setAutoCancel(true) — ini kontradiktif dengan setOngoing(true).
+            // setOngoing(true)  → notifikasi tidak bisa di-swipe/dismiss oleh user.
+            // setAutoCancel(true) → notifikasi otomatis hilang saat di-tap.
+            // Kombinasi keduanya menyebabkan perilaku ambigu di beberapa versi Android/OEM:
+            // ada yang menginterpretasi autoCancel sebagai izin dismiss saat screen off,
+            // yang berpotensi memicu deleteIntent (ACTION_STOP_ADZAN_BROADCAST) secara
+            // tidak terduga dan mematikan adzan tanpa interaksi user.
+            // Karena ini adalah alarm aktif, notifikasi hanya boleh hilang melalui
+            // contentIntent (tap user) atau deleteIntent (swipe, yang sebenarnya
+            // tidak bisa dilakukan karena ongoing=true). Tidak perlu autoCancel.
             .build()
 
         startForeground(1122, notification)
@@ -201,7 +262,10 @@ class AdzanService : Service() {
         // BUG FIX #13: Safety timeout absolut — paksa stop setelah MAX_SERVICE_DURATION_MS
         // sejak adzan mulai, sebagai lapisan pengaman terakhir jika
         // AUDIOFOCUS_GAIN tidak pernah datang sama sekali.
-        safetyHandler = Handler(Looper.getMainLooper())
+        // BUG FIX #15 (lanjutan): Safety handler dipindahkan ke audioFocusHandler
+        // (background thread) agar postDelayed tetap akurat saat screen off,
+        // tidak bergantung pada kelancaran Main Looper.
+        safetyHandler = audioFocusHandler
         safetyRunnable = Runnable {
             if (!isFadingOut) stopSelf()
         }
@@ -222,6 +286,8 @@ class AdzanService : Service() {
 
         // BUG FIX #12: Simpan referensi ke Handler dan Runnable sebagai field class
         // sehingga bisa dibatalkan di onDestroy() jika service di-kill saat fade berjalan.
+        // fadeHandler tetap menggunakan Main Looper karena operasi ini singkat (2 detik)
+        // dan MediaPlayer.setVolume() aman dipanggil dari thread manapun.
         fadeHandler = Handler(Looper.getMainLooper())
         fadeRunnable = object : Runnable {
             override fun run() {
@@ -249,8 +315,22 @@ class AdzanService : Service() {
 
             audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
                 .setAudioAttributes(attr)
-                .setAcceptsDelayedFocusGain(false)
-                .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                // BUG FIX #16: Ubah setAcceptsDelayedFocusGain dari false → true.
+                // Dengan false, jika sistem tidak bisa langsung memberikan audio focus
+                // (misalnya karena sedang ada transisi audio routing saat screen off),
+                // request akan langsung ditolak dan service berhenti.
+                // Dengan true, jika focus tidak bisa diberikan saat ini, sistem akan
+                // mengantrikan request dan mengirim AUDIOFOCUS_GAIN begitu focus tersedia.
+                // Ini penting sebagai safety net pada skenario edge case timing.
+                .setAcceptsDelayedFocusGain(true)
+                // BUG FIX #15: Daftarkan listener dengan audioFocusHandler (background thread),
+                // bukan default Main Thread. Ini memastikan callback AUDIOFOCUS_LOSS dan
+                // AUDIOFOCUS_GAIN diproses segera, bahkan saat Main Looper di-throttle
+                // oleh OEM ketika screen off. Tanpa ini, AUDIOFOCUS_GAIN yang dikirim
+                // sistem saat screen masih off akan "tergenang" di Main Looper queue
+                // dan baru dieksekusi setelah screen on — inilah akar penyebab adzan
+                // diam saat screen off meskipun tidak ada interrupt yang sebenarnya.
+                .setOnAudioFocusChangeListener(audioFocusChangeListener, audioFocusHandler!!)
                 .build()
 
             audioManager?.requestAudioFocus(audioFocusRequest!!)
@@ -382,5 +462,11 @@ class AdzanService : Service() {
 
         SilentModeReceiver.releaseWakeLock()
         serviceWakeLock?.let { if (it.isHeld) it.release() }
+
+        // BUG FIX #15: Quit HandlerThread saat service destroy untuk mencegah
+        // memory leak — thread background harus selalu dihentikan secara eksplisit.
+        audioFocusThread?.quitSafely()
+        audioFocusThread = null
+        audioFocusHandler = null
     }
 }
