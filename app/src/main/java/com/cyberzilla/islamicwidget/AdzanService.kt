@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
@@ -33,9 +34,11 @@ class AdzanService : Service() {
     private var safetyHandler: Handler? = null
     private var safetyRunnable: Runnable? = null
 
+    // FIX BUG ADZAN PAUSE: Simpan referensi AudioFocusRequest untuk abandon saat onDestroy
+    private var audioFocusRequest: AudioFocusRequest? = null
+
     companion object {
-        // Safety timeout absolut — paksa service mati setelah durasi ini
-        private const val MAX_SERVICE_DURATION_MS = 15 * 60 * 1000L // 15 menit
+        private const val MAX_SERVICE_DURATION_MS = 15 * 60 * 1000L
     }
 
     override fun onBind(intent: Intent?): android.os.IBinder? = null
@@ -56,14 +59,12 @@ class AdzanService : Service() {
 
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
-
         if (serviceWakeLock?.isHeld == false) {
             serviceWakeLock?.acquire(16 * 60 * 1000L)
         }
 
         val settings = SettingsManager(this)
 
-        // Restore volume alarm jika ada sisa backup
         val leftoverVolume = settings.adzanOriginalVolumeBackup
         if (leftoverVolume != -1) {
             try {
@@ -81,8 +82,7 @@ class AdzanService : Service() {
         val localizedContext = createConfigurationContext(config)
 
         val isFriday = java.time.LocalDate.now().dayOfWeek == java.time.DayOfWeek.FRIDAY
-
-        val prayerName = when(prayerId) {
+        val prayerName = when (prayerId) {
             1 -> localizedContext.getString(R.string.fajr)
             2 -> if (isFriday) localizedContext.getString(R.string.friday) else localizedContext.getString(R.string.dhuhr)
             3 -> localizedContext.getString(R.string.asr)
@@ -96,7 +96,6 @@ class AdzanService : Service() {
         val stopIntent = Intent(this, SilentModeReceiver::class.java).apply {
             action = "ACTION_STOP_ADZAN_BROADCAST"
         }
-
         val stopPendingIntent = PendingIntent.getBroadcast(
             this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -116,30 +115,85 @@ class AdzanService : Service() {
             .setOngoing(true)
             .build()
 
-        // METODE DARI PROJECT SEDERHANA: Deklarasi tipe Service untuk Android 14+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(1122, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
         } else {
             startForeground(1122, notification)
         }
 
-        settings.isAdzanPlaying = true
+        // FIX BUG ADZAN PAUSE:
+        // Request AudioFocus dengan AUDIOFOCUS_GAIN agar sistem tahu ada audio aktif.
+        // Listener sengaja mengabaikan semua loss event (TRANSIENT / TRANSIENT_CAN_DUCK)
+        // sehingga adzan tidak bisa di-pause/duck oleh app lain atau oleh screen-off policy.
+        // Hanya AUDIOFOCUS_LOSS permanent (tanpa CAN_DUCK) yang bisa menghentikan,
+        // dan itupun kita abaikan karena adzan adalah prioritas tertinggi.
+        requestAudioFocusCompat()
 
-        val updateIntent = Intent(this, SilentModeReceiver::class.java).apply {
+        settings.isAdzanPlaying = true
+        sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
             action = "ACTION_UPDATE_WIDGETS_BROADCAST"
-        }
-        sendBroadcast(updateIntent)
+        })
 
         playAdzan(isSubuh, settings)
 
-        // Safety timeout
         safetyHandler = Handler(Looper.getMainLooper())
         safetyRunnable = Runnable {
             if (!isFadingOut) stopSelf()
         }
         safetyHandler?.postDelayed(safetyRunnable!!, MAX_SERVICE_DURATION_MS)
 
-        return START_STICKY // Gunakan START_STICKY seperti di project sederhana
+        return START_STICKY
+    }
+
+    /**
+     * FIX BUG ADZAN PAUSE:
+     * Request AudioFocus secara "ignorant" — kita claim focus tapi listener tidak
+     * melakukan pause/stop apapun. Tujuannya hanya agar Audio Policy Manager tahu
+     * ada audio aktif yang berjalan, sehingga sistem tidak men-suspend audio session
+     * saat screen off (perilaku vendor tertentu seperti Samsung/Xiaomi).
+     *
+     * Root cause: tanpa AudioFocus + CONTENT_TYPE_MUSIC, beberapa vendor menganggap
+     * audio ini boleh di-suspend saat screen mati karena bukan "alarm sungguhan".
+     */
+    private fun requestAudioFocusCompat() {
+        val am = audioManager ?: return
+
+        // Listener yang sengaja tidak melakukan apa-apa (ignorant listener)
+        val ignoreAllLossListener = AudioManager.OnAudioFocusChangeListener { /* intentionally empty */ }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+                .setAcceptsDelayedFocusGain(false)
+                .setWillPauseWhenDucked(false) // Jangan pause saat ducking
+                .setOnAudioFocusChangeListener(ignoreAllLossListener)
+                .build()
+            audioFocusRequest = focusRequest
+            am.requestAudioFocus(focusRequest)
+        } else {
+            @Suppress("DEPRECATION")
+            am.requestAudioFocus(
+                ignoreAllLossListener,
+                AudioManager.STREAM_ALARM,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
+        }
+    }
+
+    private fun abandonAudioFocusCompat() {
+        val am = audioManager ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocusRequest?.let { am.abandonAudioFocusRequest(it) }
+        } else {
+            @Suppress("DEPRECATION")
+            am.abandonAudioFocus(null)
+        }
+        audioFocusRequest = null
     }
 
     private fun fadeOutAndStop() {
@@ -176,9 +230,7 @@ class AdzanService : Service() {
         try {
             if (settings.adzanOriginalVolumeBackup == -1) {
                 val currentVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
-                if (currentVol != -1) {
-                    settings.adzanOriginalVolumeBackup = currentVol
-                }
+                if (currentVol != -1) settings.adzanOriginalVolumeBackup = currentVol
             }
             val maxVol = audioManager?.getStreamMaxVolume(AudioManager.STREAM_ALARM) ?: 0
             audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, (maxVol * settings.adzanVolume) / 100, 0)
@@ -190,12 +242,16 @@ class AdzanService : Service() {
             mediaPlayer = MediaPlayer().apply {
                 setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
 
-                // METODE DARI PROJECT SEDERHANA: Tanpa menggunakan Audio Focus, langsung set properties tertinggi
+                // FIX BUG ADZAN PAUSE:
+                // Ganti CONTENT_TYPE_MUSIC → CONTENT_TYPE_SONIFICATION.
+                // CONTENT_TYPE_MUSIC + USAGE_ALARM menyebabkan ambiguitas di Audio Policy Manager
+                // sehingga beberapa vendor Android men-suspend audio stream ini saat screen off.
+                // CONTENT_TYPE_SONIFICATION adalah tipe yang benar untuk alarm/notifikasi.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     setAudioAttributes(
                         AudioAttributes.Builder()
                             .setUsage(AudioAttributes.USAGE_ALARM)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC) // Gunakan MUSIC sesuai project test Anda
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build()
                     )
                 } else {
@@ -215,10 +271,9 @@ class AdzanService : Service() {
                 prepare()
 
                 setOnCompletionListener {
-                    val stopIntent = Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
+                    sendBroadcast(Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
                         action = "ACTION_STOP_ADZAN_BROADCAST"
-                    }
-                    sendBroadcast(stopIntent)
+                    })
                 }
 
                 start()
@@ -273,10 +328,15 @@ class AdzanService : Service() {
 
         restoreOriginalVolume()
 
+        // FIX: Abandon audio focus saat service selesai
+        abandonAudioFocusCompat()
+
         val settings = SettingsManager(this)
         if (settings.isAdzanPlaying) {
             settings.isAdzanPlaying = false
-            sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply { action = "ACTION_UPDATE_WIDGETS_BROADCAST" })
+            sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
+                action = "ACTION_UPDATE_WIDGETS_BROADCAST"
+            })
         }
 
         SilentModeReceiver.releaseWakeLock()

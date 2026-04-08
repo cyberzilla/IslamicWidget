@@ -316,6 +316,10 @@ class MainActivity : AppCompatActivity() {
             val is24Hour = DateFormat.is24HourFormat(this)
             val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
 
+            // FIX BUG PREVIEW HIGHLIGHT:
+            // Deklarasikan di luar blok try agar bisa diakses setelah pewarnaan dasar.
+            var nextPrayerIndexForPreview = -1
+
             if (settingsManager.latitude != null && settingsManager.longitude != null) {
                 try {
                     val lat = settingsManager.latitude!!.toDouble()
@@ -345,6 +349,26 @@ class MainActivity : AppCompatActivity() {
                     findViewById<TextView>(R.id.tv_sunrise)?.text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}"
                     findViewById<TextView>(R.id.tv_last_third)?.text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}"
                     findViewById<TextView>(R.id.tv_qibla)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction)
+
+                    // FIX BUG PREVIEW HIGHLIGHT:
+                    // Hitung index sholat berikutnya, identik dengan logika di updateAppWidget().
+                    // Hasilnya disimpan di nextPrayerIndexForPreview (dideklarasikan di atas)
+                    // untuk dipakai setelah blok pewarnaan dasar.
+                    val prayerDatesForPreview = arrayOf(
+                        prayerTimes.fajr.asDate(),
+                        prayerTimes.dhuhr.asDate(),
+                        prayerTimes.asr.asDate(),
+                        prayerTimes.maghrib.asDate(),
+                        prayerTimes.isha.asDate()
+                    )
+                    for (i in prayerDatesForPreview.indices) {
+                        if (Date().before(prayerDatesForPreview[i])) {
+                            nextPrayerIndexForPreview = i
+                            break
+                        }
+                    }
+                    // Jika semua sholat sudah lewat, highlight Fajr berikutnya (index 0)
+                    if (nextPrayerIndexForPreview == -1) nextPrayerIndexForPreview = 0
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
@@ -445,11 +469,28 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.tv_gregorian_date)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsDate - 2f); setTextColor(textColor) }
             findViewById<TextView>(R.id.tv_hijri_date)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsDate); setTextColor(textColor) }
 
-            listOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha).forEach {
-                findViewById<TextView>(it)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsPrayer - 2f); setTextColor(textColor) }
+            // Pewarnaan dasar semua label & waktu sholat dengan textColor (termasuk resize)
+            val prayerLabelIds = arrayOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
+            val prayerTimeIds = arrayOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
+
+            for (id in prayerLabelIds) {
+                findViewById<TextView>(id)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsPrayer - 2f); setTextColor(textColor) }
             }
-            listOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time).forEach {
-                findViewById<TextView>(it)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsPrayer); setTextColor(textColor) }
+            for (id in prayerTimeIds) {
+                findViewById<TextView>(id)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsPrayer); setTextColor(textColor) }
+            }
+
+            // FIX BUG PREVIEW HIGHLIGHT:
+            // Override warna untuk sholat berikutnya dengan highlightColor (#FFC107),
+            // identik dengan logika di updateAppWidget() di IslamicWidgetProvider.
+            // Blok ini dijalankan SETELAH pewarnaan dasar di atas agar tidak tertimpa.
+            if (nextPrayerIndexForPreview >= 0) {
+                val highlightColor = Color.parseColor("#FFC107")
+                for (i in prayerLabelIds.indices) {
+                    val color = if (i == nextPrayerIndexForPreview) highlightColor else textColor
+                    findViewById<TextView>(prayerLabelIds[i])?.setTextColor(color)
+                    findViewById<TextView>(prayerTimeIds[i])?.setTextColor(color)
+                }
             }
 
             val additionalTextIds = listOf(

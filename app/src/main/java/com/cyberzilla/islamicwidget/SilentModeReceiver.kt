@@ -88,15 +88,34 @@ class SilentModeReceiver : BroadcastReceiver() {
             "ACTION_MUTE" -> {
                 if (!notificationManager.isNotificationPolicyAccessGranted) return
 
+                // FIX BUG AUTO SILENT HANYA 1X:
+                // Root cause: ketika user unmute manual via system shortcut, "ACTION_UNMUTE"
+                // tidak pernah dipanggil, sehingga flag IS_MUTED_BY_APP tetap true.
+                // Akibatnya, ketika alarm mute berikutnya dieksekusi, kondisi `if (!isMuted)`
+                // bernilai false dan mute tidak dieksekusi sama sekali.
+                //
+                // Fix: Jangan hanya cek flag. Sinkronkan dengan state actual device.
+                // Jika flag bilang sudah muted tapi ringer mode device sudah kembali normal
+                // (karena user unmute manual), reset flag agar mute bisa berjalan kembali.
+                val isMutedByApp = prefs.getBoolean("IS_MUTED_BY_APP", false)
+                val currentRingerMode = audioManager.ringerMode
+                val deviceIsActuallyMuted = currentRingerMode != AudioManager.RINGER_MODE_NORMAL
+
+                // Jika flag menyatakan sudah muted tapi device ternyata sudah normal,
+                // berarti user unmute manual — reset flag agar logika di bawah bisa berjalan.
+                if (isMutedByApp && !deviceIsActuallyMuted) {
+                    prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
+                }
+
                 val isMuted = prefs.getBoolean("IS_MUTED_BY_APP", false)
                 if (!isMuted) {
                     try {
                         val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                        val currentRingerMode = audioManager.ringerMode
+                        val currentRinger = audioManager.ringerMode
 
                         prefs.edit()
                             .putInt("PREF_PREV_MEDIA_VOL", currentMediaVol)
-                            .putInt("PREF_PREV_RINGER_MODE", currentRingerMode)
+                            .putInt("PREF_PREV_RINGER_MODE", currentRinger)
                             .putBoolean("IS_MUTED_BY_APP", true)
                             .apply()
 
@@ -134,18 +153,6 @@ class SilentModeReceiver : BroadcastReceiver() {
     private fun forceUpdateAllWidgets(context: Context) {
         val appWidgetManager = AppWidgetManager.getInstance(context)
 
-        // BUG FIX #1: Mengganti action dari ACTION_UPDATE_ADZAN_STATE ke ACTION_APPWIDGET_UPDATE.
-        //
-        // Sebelumnya, forceUpdateAllWidgets mengirim ACTION_UPDATE_ADZAN_STATE ke IslamicWidgetProvider.
-        // Action ini hanya memicu partial update (ukuran font dan flipper) di onReceive,
-        // TANPA memanggil updateAppWidget(). Akibatnya:
-        //   - Jadwal sholat tidak dihitung ulang untuk hari berikutnya
-        //   - scheduleSilentMode() tidak pernah dipanggil ulang
-        //   - Alarm mute/unmute untuk hari berikutnya tidak pernah dijadwalkan
-        //
-        // Dengan ACTION_APPWIDGET_UPDATE, super.onReceive() di AppWidgetProvider akan
-        // memanggil onUpdate() → scheduleAllPrayers() + updateAppWidget() untuk setiap widget,
-        // sehingga alarm dijadwalkan ulang dengan benar setiap harinya.
         val islamicWidget = ComponentName(context, IslamicWidgetProvider::class.java)
         val islamicIds = appWidgetManager.getAppWidgetIds(islamicWidget)
         if (islamicIds.isNotEmpty()) {
