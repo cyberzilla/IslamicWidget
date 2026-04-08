@@ -133,6 +133,11 @@ class AdzanService : Service() {
     //   pause (snooze 1) → resume → pause (snooze 2) → resume → dst.
     // Karena adzanStartedAtMillis tidak pernah di-reset, setelah 10 menit
     // adzan PASTI di-stop, tidak peduli berapa kali siklus pause-resume terjadi.
+    //
+    // BUG FIX #19 (lanjutan): Fungsi ini sekarang juga meng-handle dua skenario:
+    //   1. MediaPlayer sedang pause (seekTo + start) — resume normal setelah LOSS.
+    //   2. MediaPlayer sudah prepare tapi belum pernah start() — kasus AUDIOFOCUS_REQUEST_DELAYED,
+    //      di mana AUDIOFOCUS_GAIN adalah sinyal bahwa focus akhirnya tersedia dan adzan baru boleh mulai.
     private fun resumeAdzanIfStillRelevant() {
         try {
             val adzanAge = System.currentTimeMillis() - adzanStartedAtMillis
@@ -142,8 +147,14 @@ class AdzanService : Service() {
                 return
             }
             if (mediaPlayer != null && !isFadingOut) {
-                mediaPlayer?.seekTo(pausedPosition)
-                mediaPlayer?.start()
+                if (mediaPlayer?.isPlaying == false) {
+                    // Jika pausedPosition == 0 dan player belum pernah start,
+                    // seekTo(0) tidak merugikan — ini aman untuk kedua skenario.
+                    mediaPlayer?.seekTo(pausedPosition)
+                    mediaPlayer?.start()
+                }
+                // Jika isPlaying == true (sudah jalan karena GRANTED langsung),
+                // tidak perlu melakukan apa-apa.
             }
         } catch (e: Exception) {}
     }
@@ -168,7 +179,11 @@ class AdzanService : Service() {
         serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
 
         if (serviceWakeLock?.isHeld == false) {
-            serviceWakeLock?.acquire(10 * 60 * 1000L)
+            // BUG FIX #18: WakeLock timeout dinaikkan ke 16 menit (lebih dari MAX_SERVICE_DURATION_MS
+            // yang 15 menit). Sebelumnya 10 menit — lebih pendek dari safety timeout service —
+            // sehingga di rentang menit ke-10 hingga ke-15, CPU bisa sleep dan adzan berhenti
+            // di perangkat low-power meskipun service masih hidup.
+            serviceWakeLock?.acquire(16 * 60 * 1000L)
         }
 
         // BUG FIX #15: Inisialisasi HandlerThread untuk AudioFocus callback.
@@ -339,10 +354,17 @@ class AdzanService : Service() {
             audioManager?.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_ALARM, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
         }
 
-        if (focusResult != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+        // BUG FIX #19: Sebelumnya cek "!= GRANTED" — artinya AUDIOFOCUS_REQUEST_DELAYED (nilai 2)
+        // juga masuk ke stopSelf(), padahal DELAYED berarti focus akan diberikan nanti melalui
+        // callback AUDIOFOCUS_GAIN. Ini kontradiksi langsung dengan setAcceptsDelayedFocusGain(true)
+        // di fix #16. Dengan DELAYED, MediaPlayer sudah boleh diinisialisasi tapi jangan start()
+        // dulu — start() akan dipanggil dari resumeAdzanIfStillRelevant() saat AUDIOFOCUS_GAIN tiba.
+        // Hanya AUDIOFOCUS_REQUEST_FAILED (nilai 0) yang benar-benar berarti gagal.
+        if (focusResult == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
             stopSelf()
             return
         }
+        val isFocusDelayed = (focusResult == AudioManager.AUDIOFOCUS_REQUEST_DELAYED)
 
         val customUriString = if (isSubuh) settings.customAdzanSubuhUri else settings.customAdzanRegularUri
 
@@ -385,14 +407,24 @@ class AdzanService : Service() {
                     afd.close()
                 }
                 prepare()
-                start()
-            }
 
-            mediaPlayer?.setOnCompletionListener {
-                val stopIntent = Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
-                    action = "ACTION_STOP_ADZAN_BROADCAST"
+                // BUG FIX #20: setOnCompletionListener dipasang SEBELUM start().
+                // Sebelumnya dipasang setelah start() — ada race condition kecil di mana
+                // audio sangat pendek bisa selesai sebelum listener terpasang, sehingga
+                // ACTION_STOP_ADZAN_BROADCAST tidak pernah dikirim dan service tidak mati.
+                setOnCompletionListener {
+                    val stopIntent = Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
+                        action = "ACTION_STOP_ADZAN_BROADCAST"
+                    }
+                    sendBroadcast(stopIntent)
                 }
-                sendBroadcast(stopIntent)
+
+                // BUG FIX #19 (lanjutan): Jika focus DELAYED, jangan start() sekarang.
+                // MediaPlayer sudah di-prepare dan siap; start() akan dipanggil nanti
+                // dari resumeAdzanIfStillRelevant() ketika AUDIOFOCUS_GAIN tiba via callback.
+                if (!isFocusDelayed) {
+                    start()
+                }
             }
         } catch (e: Exception) {
             stopSelf()
