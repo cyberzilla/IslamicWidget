@@ -13,8 +13,10 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.media.AudioManager
 import android.os.Bundle
 import android.text.format.DateFormat
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
@@ -33,6 +35,10 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 class IslamicWidgetProvider : AppWidgetProvider() {
+
+    companion object {
+        private const val TAG = "IslamicWidget"
+    }
 
     private fun dpToPx(context: Context, dp: Float): Float {
         return TypedValue.applyDimension(
@@ -83,7 +89,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoSub))
                 }
 
-                //appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+                appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
             }
         }
     }
@@ -111,11 +117,84 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    private fun cancelExistingAlarms(context: Context, requestCodeId: Int) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        
+        val rcMute = 10000 + requestCodeId
+        val rcUnmute = 20000 + requestCodeId
+        val rcAdzan = 30000 + requestCodeId
+        
+        val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { 
+            action = "ACTION_MUTE" 
+        }
+        val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { 
+            action = "ACTION_UNMUTE" 
+        }
+        val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply { 
+            action = "ACTION_PLAY_ADZAN" 
+        }
+        
+        try {
+            PendingIntent.getBroadcast(
+                context, 
+                rcMute, 
+                muteIntent, 
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )?.let {
+                alarmManager.cancel(it)
+                it.cancel()
+                Log.d(TAG, "Cancelled existing mute alarm for prayer ID: $requestCodeId")
+            }
+            
+            PendingIntent.getBroadcast(
+                context, 
+                rcUnmute, 
+                unmuteIntent, 
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )?.let {
+                alarmManager.cancel(it)
+                it.cancel()
+                Log.d(TAG, "Cancelled existing unmute alarm for prayer ID: $requestCodeId")
+            }
+            
+            PendingIntent.getBroadcast(
+                context, 
+                rcAdzan, 
+                adzanIntent, 
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )?.let {
+                alarmManager.cancel(it)
+                it.cancel()
+                Log.d(TAG, "Cancelled existing adzan alarm for prayer ID: $requestCodeId")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error cancelling alarms for prayer ID: $requestCodeId", e)
+        }
+    }
+
+    private fun getBeforeMillis(context: Context, requestCodeId: Int): Long {
+        val settings = SettingsManager(context)
+        val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
+        val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
+        
+        return when (requestCodeId) {
+            1 -> settings.fajrBefore
+            2 -> if (isFriday) settings.fridayBefore else settings.dhuhrBefore
+            3 -> settings.asrBefore
+            4 -> settings.maghribBefore
+            5 -> settings.ishaBefore
+            else -> 0
+        } * 60 * 1000L
+    }
+
     private fun scheduleAllPrayers(context: Context) {
         val settings = SettingsManager(context)
         val latString = settings.latitude
         val lonString = settings.longitude
-        if (latString == null || lonString == null) return
+        if (latString == null || lonString == null) {
+            Log.w(TAG, "Location not set, skipping prayer scheduling")
+            return
+        }
 
         try {
             val lat = latString.toDouble()
@@ -148,14 +227,37 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             )
 
             for ((todayTime, tomorrowTime, id) in prayerPairs) {
-                val unmuteToday = todayTime.time + getAfterMillis(id)
-                if (now > unmuteToday) {
+                val beforeMillis = getBeforeMillis(context, id)
+                val muteTimeToday = todayTime.time - beforeMillis
+                val unmuteTimeToday = todayTime.time + getAfterMillis(id)
+                
+                Log.d(TAG, "Prayer ID $id - Today: ${Date(todayTime.time)}, Mute: ${Date(muteTimeToday)}, Unmute: ${Date(unmuteTimeToday)}, Now: ${Date(now)}")
+                
+                // Batalkan semua alarm yang ada untuk prayer ID ini
+                cancelExistingAlarms(context, id)
+                
+                if (now >= muteTimeToday) {
+                    // Waktu mute hari ini sudah lewat
+                    if (now < unmuteTimeToday) {
+                        // Masih dalam periode silent, trigger mute langsung
+                        Log.d(TAG, "Prayer ID $id: In silent period, triggering mute immediately")
+                        val muteIntent = Intent(context, SilentModeReceiver::class.java).apply {
+                            action = "ACTION_MUTE"
+                        }
+                        context.sendBroadcast(muteIntent)
+                    }
+                    // Jadwalkan untuk besok
+                    Log.d(TAG, "Prayer ID $id: Scheduling for tomorrow")
                     scheduleSilentMode(context, tomorrowTime, id, settings)
                 } else {
+                    // Jadwalkan untuk hari ini
+                    Log.d(TAG, "Prayer ID $id: Scheduling for today")
                     scheduleSilentMode(context, todayTime, id, settings)
                 }
             }
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            Log.e(TAG, "Error scheduling prayers", e)
+        }
     }
 
     private fun updateAppWidget(
@@ -485,6 +587,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     }
 
                 } catch (e: Exception) {
+                    Log.e(TAG, "Error updating widget", e)
                 }
             } else {
                 if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
@@ -593,6 +696,18 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val RC_UNMUTE = 20000 + requestCodeId
         val RC_ADZAN = 30000 + requestCodeId
 
+        // =======================================================================
+        // PROACTIVE FLAG SYNC - Dari versi user yang brilian
+        // =======================================================================
+        val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        val audioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        
+        if (prefs.getBoolean("IS_MUTED_BY_APP", false) &&
+            audioMgr.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
+            Log.d(TAG, "Proactive flag sync: Resetting stale mute flag for prayer ID: $requestCodeId")
+            prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
+        }
+
         if (settings.isAdzanAudioEnabled && now <= prayerTime.time && !isJumat) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
@@ -604,10 +719,15 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             try {
                 val alarmInfo = AlarmManager.AlarmClockInfo(prayerTime.time, adzanPendingIntent)
                 alarmManager.setAlarmClock(alarmInfo, adzanPendingIntent)
-            } catch (e: SecurityException) {}
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Failed to schedule adzan alarm", e)
+            }
         }
 
-        if (!settings.isAutoSilentEnabled) return
+        if (!settings.isAutoSilentEnabled) {
+            Log.d(TAG, "Auto silent disabled, skipping for prayer ID: $requestCodeId")
+            return
+        }
 
         val silentBeforeMillis: Long
         val silentAfterMillis: Long
@@ -621,13 +741,22 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             3 -> { silentBeforeMillis = settings.asrBefore * 60 * 1000L; silentAfterMillis = settings.asrAfter * 60 * 1000L }
             4 -> { silentBeforeMillis = settings.maghribBefore * 60 * 1000L; silentAfterMillis = settings.maghribAfter * 60 * 1000L }
             5 -> { silentBeforeMillis = settings.ishaBefore * 60 * 1000L; silentAfterMillis = settings.ishaAfter * 60 * 1000L }
-            else -> return
+            else -> {
+                Log.w(TAG, "Invalid request code ID: $requestCodeId")
+                return
+            }
         }
 
         val muteTimeMillis = prayerTime.time - silentBeforeMillis
         val unmuteTimeMillis = prayerTime.time + silentAfterMillis
 
-        if (now > unmuteTimeMillis) return
+        Log.d(TAG, "Scheduling silent mode for prayer $requestCodeId: " +
+                "prayer at ${Date(prayerTime.time)}, mute at ${Date(muteTimeMillis)}, unmute at ${Date(unmuteTimeMillis)}")
+
+        if (now > unmuteTimeMillis) {
+            Log.d(TAG, "Unmute time already passed, skipping for prayer ID: $requestCodeId")
+            return
+        }
 
         val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
         val mutePendingIntent = PendingIntent.getBroadcast(context, RC_MUTE, muteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -638,11 +767,20 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         try {
             if (now <= muteTimeMillis) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteTimeMillis, mutePendingIntent)
+                Log.d(TAG, "Scheduled mute alarm for: ${Date(muteTimeMillis)}")
             } else if (now in (muteTimeMillis + 1)..unmuteTimeMillis) {
+                // =======================================================================
+                // CRITICAL FIX - Dari analisis saya
+                // =======================================================================
+                Log.d(TAG, "Currently in silent period, cancelling stale alarm and triggering mute immediately for prayer ID: $requestCodeId")
+                alarmManager.cancel(mutePendingIntent)
                 context.sendBroadcast(muteIntent)
             }
 
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
-        } catch (e: SecurityException) {}
+            Log.d(TAG, "Scheduled unmute alarm for: ${Date(unmuteTimeMillis)}")
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Security exception scheduling silent mode", e)
+        }
     }
 }

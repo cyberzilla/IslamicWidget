@@ -9,7 +9,6 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -27,6 +26,7 @@ import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
@@ -76,7 +76,17 @@ class MainActivity : AppCompatActivity() {
     private var tempRegularUri: String? = null
     private var tempSubuhUri: String? = null
     private var doubleBackToExitPressedOnce = false
-    private lateinit var prefListener: SharedPreferences.OnSharedPreferenceChangeListener
+
+    // =======================================================================
+    // CRITICAL FIX: SharedPreferences listener DIHAPUS
+    // 
+    // ALASAN: Listener menyebabkan scheduleAllPrayers() dipanggil hingga 30x
+    // dengan data tidak konsisten setiap kali saveSettingsQuietly() dipanggil.
+    // Ini adalah ROOT CAUSE dari masalah auto silent tidak berfungsi.
+    // 
+    // saveSettingsQuietly() sudah mengirim broadcast SEKALI di akhir setelah
+    // semua setting tersimpan dengan benar.
+    // =======================================================================
 
     private val previewDebounceHandler = Handler(Looper.getMainLooper())
     private val previewDebounceRunnable = Runnable { updatePreview() }
@@ -139,28 +149,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val sharedPreferences = getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
-        prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            val relevantKeys = listOf(
-                "fajrBefore", "fajrAfter",
-                "dhuhrBefore", "dhuhrAfter",
-                "fridayBefore", "fridayAfter",
-                "asrBefore", "asrAfter",
-                "maghribBefore", "maghribAfter",
-                "ishaBefore", "ishaAfter",
-                "isAutoSilentEnabled"
-            )
-            if (key in relevantKeys) {
-                val ids = AppWidgetManager.getInstance(applicationContext).getAppWidgetIds(ComponentName(applicationContext, IslamicWidgetProvider::class.java))
-                val updateIntent = Intent(applicationContext, IslamicWidgetProvider::class.java).apply {
-                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-                }
-                sendBroadcast(updateIntent)
-            }
-        }
-        sharedPreferences.registerOnSharedPreferenceChangeListener(prefListener)
-
         checkBatteryOptimizations()
         UpdateHelper.checkForUpdates(this)
 
@@ -209,6 +197,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() { super.onPause(); stopTestAdzan() }
+
     override fun onDestroy() {
         super.onDestroy()
         stopTestAdzan()
@@ -316,8 +305,6 @@ class MainActivity : AppCompatActivity() {
             val is24Hour = DateFormat.is24HourFormat(this)
             val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
 
-            // FIX BUG PREVIEW HIGHLIGHT:
-            // Deklarasikan di luar blok try agar bisa diakses setelah pewarnaan dasar.
             var nextPrayerIndexForPreview = -1
 
             if (settingsManager.latitude != null && settingsManager.longitude != null) {
@@ -350,10 +337,6 @@ class MainActivity : AppCompatActivity() {
                     findViewById<TextView>(R.id.tv_last_third)?.text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}"
                     findViewById<TextView>(R.id.tv_qibla)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction)
 
-                    // FIX BUG PREVIEW HIGHLIGHT:
-                    // Hitung index sholat berikutnya, identik dengan logika di updateAppWidget().
-                    // Hasilnya disimpan di nextPrayerIndexForPreview (dideklarasikan di atas)
-                    // untuk dipakai setelah blok pewarnaan dasar.
                     val prayerDatesForPreview = arrayOf(
                         prayerTimes.fajr.asDate(),
                         prayerTimes.dhuhr.asDate(),
@@ -367,7 +350,6 @@ class MainActivity : AppCompatActivity() {
                             break
                         }
                     }
-                    // Jika semua sholat sudah lewat, highlight Fajr berikutnya (index 0)
                     if (nextPrayerIndexForPreview == -1) nextPrayerIndexForPreview = 0
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
@@ -447,7 +429,10 @@ class MainActivity : AppCompatActivity() {
                         flipper?.visibility = View.GONE
                     }
 
-                } catch (e: Exception) { setDummyPreviewTimes(activeLangCode) }
+                } catch (e: Exception) { 
+                    setDummyPreviewTimes(activeLangCode)
+                    Log.e("MainActivity", "Error updating preview", e)
+                }
             } else {
                 setDummyPreviewTimes(activeLangCode)
                 if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
@@ -469,7 +454,6 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.tv_gregorian_date)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsDate - 2f); setTextColor(textColor) }
             findViewById<TextView>(R.id.tv_hijri_date)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsDate); setTextColor(textColor) }
 
-            // Pewarnaan dasar semua label & waktu sholat dengan textColor (termasuk resize)
             val prayerLabelIds = arrayOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
             val prayerTimeIds = arrayOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
 
@@ -480,10 +464,6 @@ class MainActivity : AppCompatActivity() {
                 findViewById<TextView>(id)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsPrayer); setTextColor(textColor) }
             }
 
-            // FIX BUG PREVIEW HIGHLIGHT:
-            // Override warna untuk sholat berikutnya dengan highlightColor (#FFC107),
-            // identik dengan logika di updateAppWidget() di IslamicWidgetProvider.
-            // Blok ini dijalankan SETELAH pewarnaan dasar di atas agar tidak tertimpa.
             if (nextPrayerIndexForPreview >= 0) {
                 val highlightColor = Color.parseColor("#FFC107")
                 for (i in prayerLabelIds.indices) {
@@ -511,7 +491,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error in updatePreview", e)
+        }
     }
 
     private fun setDummyPreviewTimes(langCode: String) {
@@ -648,7 +630,6 @@ class MainActivity : AppCompatActivity() {
                         settingsManager.appTheme = newTheme
                         applyAppTheme(newTheme)
                         saveSettingsQuietly()
-
                         findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
                     }, 300)
                 }
@@ -789,12 +770,10 @@ class MainActivity : AppCompatActivity() {
         fun updateUI() {
             cardPreview.setCardBackgroundColor(currentColor)
             tvHex.text = String.format("#%08X", currentColor).uppercase()
-
             sbAlpha.progress = Color.alpha(currentColor)
             sbRed.progress = Color.red(currentColor)
             sbGreen.progress = Color.green(currentColor)
             sbBlue.progress = Color.blue(currentColor)
-
             tvAlphaVal.text = sbAlpha.progress.toString()
             tvRedVal.text = sbRed.progress.toString()
             tvGreenVal.text = sbGreen.progress.toString()
@@ -880,23 +859,56 @@ class MainActivity : AppCompatActivity() {
 
             QuoteUpdateManager.setAutoUpdate(this, newInterval)
 
+            // =======================================================================
+            // SINGLE BROADCAST - Setelah semua setting tersimpan dengan benar
+            // Ini menggantikan multi-trigger dari prefListener yang dihapus
+            // =======================================================================
             val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
-            sendBroadcast(Intent(this, IslamicWidgetProvider::class.java).apply { action = AppWidgetManager.ACTION_APPWIDGET_UPDATE; putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids) })
+            sendBroadcast(Intent(this, IslamicWidgetProvider::class.java).apply { 
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids) 
+            })
 
             val quoteIds = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, QuoteWidgetProvider::class.java))
-            sendBroadcast(Intent(this, QuoteWidgetProvider::class.java).apply { action = AppWidgetManager.ACTION_APPWIDGET_UPDATE; putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quoteIds) })
-        } catch (e: Exception) {}
+            sendBroadcast(Intent(this, QuoteWidgetProvider::class.java).apply { 
+                action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quoteIds) 
+            })
+            
+            Log.d("MainActivity", "Settings saved and broadcast sent once")
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error saving settings", e)
+        }
     }
 
     private fun setupButtons() {
         findViewById<Button>(R.id.btn_pin_main_widget)?.setOnClickListener { requestPinWidget(IslamicWidgetProvider::class.java) }
         findViewById<Button>(R.id.btn_pin_quote_widget)?.setOnClickListener { requestPinWidget(QuoteWidgetProvider::class.java) }
 
-        findViewById<Button>(R.id.btn_pick_text_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_text_color), currentTextColor) { selectedHex -> currentTextColor = selectedHex; updateColorButtons(); updatePreview(); saveSettingsQuietly() } }
-        findViewById<Button>(R.id.btn_pick_bg_color)?.setOnClickListener { showColorPickerDialog(getString(R.string.btn_bg_color), currentBgColor) { selectedHex -> currentBgColor = selectedHex; updateColorButtons(); updatePreview(); saveSettingsQuietly() } }
+        findViewById<Button>(R.id.btn_pick_text_color)?.setOnClickListener { 
+            showColorPickerDialog(getString(R.string.btn_text_color), currentTextColor) { selectedHex -> 
+                currentTextColor = selectedHex
+                updateColorButtons()
+                updatePreview()
+                saveSettingsQuietly() 
+            } 
+        }
+        
+        findViewById<Button>(R.id.btn_pick_bg_color)?.setOnClickListener { 
+            showColorPickerDialog(getString(R.string.btn_bg_color), currentBgColor) { selectedHex -> 
+                currentBgColor = selectedHex
+                updateColorButtons()
+                updatePreview()
+                saveSettingsQuietly() 
+            } 
+        }
 
         findViewById<Button>(R.id.btn_update_gps)?.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) fetchLocation() else requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                fetchLocation()
+            } else {
+                requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            }
         }
 
         findViewById<Button>(R.id.btn_restore)?.setOnClickListener {
@@ -904,17 +916,14 @@ class MainActivity : AppCompatActivity() {
                 .setTitle(getString(R.string.dialog_reset_title))
                 .setMessage(getString(R.string.dialog_reset_message))
                 .setPositiveButton(getString(R.string.dialog_yes)) { _, _ ->
-
                     findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
                     Handler(Looper.getMainLooper()).postDelayed({
                         cancelAllScheduledAlarms()
-
                         settingsManager.restoreDefaults()
                         applyAppTheme("SYSTEM")
                         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
                         loadSettingsToUI()
                         saveSettingsQuietly()
-
                         findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
                     }, 300)
                 }
@@ -928,19 +937,18 @@ class MainActivity : AppCompatActivity() {
             val versionName = try {
                 val packageInfo = packageManager.getPackageInfo(packageName, 0)
                 packageInfo.versionName ?: "1.0"
-            } catch (e: Exception) {
-                "1.0"
+            } catch (e: Exception) { 
+                "1.0" 
             }
 
             dialogView.findViewById<TextView>(R.id.tv_app_version)?.text = "Version $versionName"
 
-            val dialog = MaterialAlertDialogBuilder(this)
+            MaterialAlertDialogBuilder(this)
                 .setView(dialogView)
                 .show()
 
             dialogView.findViewById<Button>(R.id.btn_open_github)?.setOnClickListener {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/cyberzilla"))
-                startActivity(intent)
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/cyberzilla")))
             }
         }
     }
@@ -957,15 +965,29 @@ class MainActivity : AppCompatActivity() {
             val unmuteIntent = Intent(this, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
             val adzanIntent = Intent(this, SilentModeReceiver::class.java).apply { action = "ACTION_PLAY_ADZAN" }
 
-            PendingIntent.getBroadcast(this, rcMute, muteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
-            PendingIntent.getBroadcast(this, rcUnmute, unmuteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
-            PendingIntent.getBroadcast(this, rcAdzan, adzanIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
+            PendingIntent.getBroadcast(this, rcMute, muteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { 
+                alarmManager.cancel(it)
+                it.cancel()
+            }
+            PendingIntent.getBroadcast(this, rcUnmute, unmuteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { 
+                alarmManager.cancel(it)
+                it.cancel()
+            }
+            PendingIntent.getBroadcast(this, rcAdzan, adzanIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { 
+                alarmManager.cancel(it)
+                it.cancel()
+            }
         }
 
         val quoteIntent = Intent(this, QuoteWidgetProvider::class.java).apply {
             action = QuoteWidgetProvider.ACTION_RANDOM_QUOTE
         }
-        PendingIntent.getBroadcast(this, 1001, quoteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { alarmManager.cancel(it) }
+        PendingIntent.getBroadcast(this, 1001, quoteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let { 
+            alarmManager.cancel(it)
+            it.cancel()
+        }
+        
+        Log.d("MainActivity", "All scheduled alarms cancelled")
     }
 
     @SuppressLint("MissingPermission")
@@ -986,21 +1008,17 @@ class MainActivity : AppCompatActivity() {
                             @Suppress("DEPRECATION")
                             updateAddr(geocoder.getFromLocation(location.latitude, location.longitude, 1)?.firstOrNull())
                         }
-                    } catch(e: Exception) { updateAddr(null) }
+                    } catch(e: Exception) { 
+                        updateAddr(null)
+                        Log.e("MainActivity", "Geocoder error", e)
+                    }
                 } else {
-                    Toast.makeText(
-                        this,
-                        getString(R.string.toast_location_not_found),
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this, getString(R.string.toast_location_not_found), Toast.LENGTH_LONG).show()
                 }
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(
-                    this,
-                    getString(R.string.toast_location_error, exception.localizedMessage ?: ""),
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this, getString(R.string.toast_location_error, exception.localizedMessage ?: ""), Toast.LENGTH_LONG).show()
+                Log.e("MainActivity", "Location fetch failed", exception)
             }
     }
 
@@ -1043,13 +1061,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkBatteryOptimizations() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent()
             val packageName = packageName
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
 
             if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                intent.data = Uri.parse("package:$packageName")
+                val intent = Intent().apply {
+                    action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                    data = Uri.parse("package:$packageName")
+                }
                 startActivity(intent)
             }
         }
