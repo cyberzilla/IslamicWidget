@@ -14,8 +14,8 @@ android {
         applicationId = "com.cyberzilla.islamicwidget"
         minSdk = 26
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.4.1"
+        versionCode = 18
+        versionName = "1.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -51,4 +51,6 @@ dependencies {
     implementation("com.batoulapps.adhan:adhan2:0.0.6")
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+
+    implementation("androidx.media:media:1.7.1")
 }
