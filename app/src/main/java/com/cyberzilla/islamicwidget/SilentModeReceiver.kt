@@ -88,37 +88,41 @@ class SilentModeReceiver : BroadcastReceiver() {
             "ACTION_MUTE" -> {
                 if (!notificationManager.isNotificationPolicyAccessGranted) return
 
-                // FIX BUG AUTO SILENT HANYA 1X:
-                // Root cause: ketika user unmute manual via system shortcut, "ACTION_UNMUTE"
-                // tidak pernah dipanggil, sehingga flag IS_MUTED_BY_APP tetap true.
-                // Akibatnya, ketika alarm mute berikutnya dieksekusi, kondisi `if (!isMuted)`
-                // bernilai false dan mute tidak dieksekusi sama sekali.
-                //
-                // Fix: Jangan hanya cek flag. Sinkronkan dengan state actual device.
-                // Jika flag bilang sudah muted tapi ringer mode device sudah kembali normal
-                // (karena user unmute manual), reset flag agar mute bisa berjalan kembali.
-                val isMutedByApp = prefs.getBoolean("IS_MUTED_BY_APP", false)
+                var isMutedByApp = prefs.getBoolean("IS_MUTED_BY_APP", false)
                 val currentRingerMode = audioManager.ringerMode
-                val deviceIsActuallyMuted = currentRingerMode != AudioManager.RINGER_MODE_NORMAL
+                val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
-                // Jika flag menyatakan sudah muted tapi device ternyata sudah normal,
-                // berarti user unmute manual — reset flag agar logika di bawah bisa berjalan.
-                if (isMutedByApp && !deviceIsActuallyMuted) {
+                // Cek apakah device benar-benar dalam keadaan senyap (Ringer mode tidak normal ATAU media volume 0)
+                val isRingerMuted = currentRingerMode != AudioManager.RINGER_MODE_NORMAL
+                val isMediaMuted = currentMediaVol == 0
+
+                // SELF-HEALING: Jika app mengira sedang mute, tapi user secara manual
+                // mengembalikan ringer/media ke kondisi hidup, state app menjadi "stale".
+                // Kita harus reset flag agar bisa mem-backup volume aktual user yang baru.
+                if (isMutedByApp && (!isRingerMuted || !isMediaMuted)) {
+                    isMutedByApp = false
                     prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
                 }
 
-                val isMuted = prefs.getBoolean("IS_MUTED_BY_APP", false)
-                if (!isMuted) {
+                if (!isMutedByApp) {
                     try {
-                        val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                        val currentRinger = audioManager.ringerMode
-
+                        // Simpan backup state HANYA jika sedang tidak dalam fase mute
                         prefs.edit()
                             .putInt("PREF_PREV_MEDIA_VOL", currentMediaVol)
-                            .putInt("PREF_PREV_RINGER_MODE", currentRinger)
+                            .putInt("PREF_PREV_RINGER_MODE", currentRingerMode)
                             .putBoolean("IS_MUTED_BY_APP", true)
                             .apply()
 
+                        audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+                    } catch (e: SecurityException) {
+                        Log.e("SilentModeReceiver", context.getString(R.string.log_error_mute, e.message))
+                    }
+                } else {
+                    // ENFORCE MUTE: Jika flag sudah true dan ada pemicu ACTION_MUTE lagi
+                    // (misal karena user mereset ulang setting before/after).
+                    // Tetap paksa pastikan device di mode getar tanpa menimpa backup sebelumnya!
+                    try {
                         audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
                         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
                     } catch (e: SecurityException) {
@@ -140,10 +144,12 @@ class SilentModeReceiver : BroadcastReceiver() {
                         if (prevMediaVol != -1) {
                             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, prevMediaVol, 0)
                         }
-
-                        prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
                     } catch (e: SecurityException) {
                         Log.e("SilentModeReceiver", context.getString(R.string.log_error_unmute, e.message))
+                    } finally {
+                        // FIX: Selalu gunakan blok finally untuk mereset flag.
+                        // Memastikan flag dilepas walaupun saat mengubah ringer mode terjadi SecurityException.
+                        prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
                     }
                 }
             }
