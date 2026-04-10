@@ -20,7 +20,7 @@ A comprehensive Islamic Widget application for Android that provides accurate pr
 ### 🕌 Prayer Times & Smart Adzan
 * **Accurate Calculation:** Supports various global prayer time calculation methods (Muslim World League, Egyptian, Karachi, Umm Al-Qura, etc.) based on your GPS coordinates.
 * **Robust Anti-Pause Adzan:** The Adzan audio is guaranteed to play completely even when the screen is off. It includes a Battery Optimization Bypass request for aggressive vendors (e.g., MIUI/HyperOS, ColorOS).
-* **Instant & Smooth Interruptions:** Stop the Adzan sound instantly by tapping the notification on the Lock Screen or simply by pressing the physical Power button. It features a smooth fade-out effect so the audio doesn't stop abruptly.
+* **Instant & Smooth Interruptions:** Stop the Adzan sound instantly by tapping the notification on the Lock Screen or simply by pressing the **Volume Up or Volume Down** button. It features a smooth fade-out effect so the audio doesn't stop abruptly.
 * **Auto Friday Mode:** The system automatically skips the Dhuhr Adzan audio on Fridays to prevent disruptions during Jumu'ah prayers at the mosque.
 * **Auto-Silent (Do Not Disturb):** Automatically switches your phone to Vibrate/Silent mode shortly before prayer times and restores the normal volume afterward.
 * **Customizable Adzan Audio:** Use the built-in Adzan recitations (Fajr & Regular) or select your own custom MP3/WAV audio files from local storage.

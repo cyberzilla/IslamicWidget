@@ -22,6 +22,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.media.VolumeProviderCompat
 import java.util.Locale
 
 class AdzanService : Service() {
@@ -129,6 +130,20 @@ class AdzanService : Service() {
                 .build()
         )
         mediaSession?.isActive = true
+
+        val volumeProvider = object : VolumeProviderCompat(VOLUME_CONTROL_RELATIVE, 100, 50) {
+            override fun onAdjustVolume(direction: Int) {
+                if (direction != 0) {
+                    Log.d(TAG, "Volume Button Pressed, Adzan stopped!")
+
+                    sendBroadcast(Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
+                        action = "ACTION_STOP_ADZAN_BROADCAST"
+                    })
+                }
+            }
+        }
+
+        mediaSession?.setPlaybackToRemote(volumeProvider)
 
         requestAudioFocusCompat()
 
