@@ -271,16 +271,17 @@ class AdzanService : Service() {
             mediaPlayer = MediaPlayer().apply {
                 setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
 
+                // FIX ADZAN SUARA: Wajib menggunakan jalur ALARM agar menembus Silent Mode
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     setAudioAttributes(
                         AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build()
                     )
                 } else {
                     @Suppress("DEPRECATION")
-                    setAudioStreamType(AudioManager.STREAM_MUSIC)
+                    setAudioStreamType(AudioManager.STREAM_ALARM)
                 }
 
                 if (!customUriString.isNullOrEmpty()) {
