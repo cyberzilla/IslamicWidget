@@ -172,9 +172,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private fun getBeforeMillis(context: Context, requestCodeId: Int): Long {
+    private fun getBeforeMillis(context: Context, requestCodeId: Int, prayerTime: Date): Long {
         val settings = SettingsManager(context)
         val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
+        cal.time = prayerTime
         val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
 
         return when (requestCodeId) {
@@ -206,8 +207,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val tomorrowPT = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, tomorrow)
             val now = System.currentTimeMillis()
 
-            fun getAfterMillis(id: Int): Long {
-                val isFriday = today.dayOfWeek == java.time.DayOfWeek.FRIDAY
+            fun getAfterMillis(id: Int, prayerTime: Date): Long {
+                val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
+                cal.time = prayerTime
+                val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
+
                 return when (id) {
                     1 -> settings.fajrAfter
                     2 -> if (isFriday) settings.fridayAfter else settings.dhuhrAfter
@@ -234,9 +238,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             )
 
             for ((todayTime, tomorrowTime, id) in prayerPairs) {
-                val beforeMillis = getBeforeMillis(context, id)
+                val beforeMillis = getBeforeMillis(context, id, todayTime)
                 val muteTimeToday = todayTime.time - beforeMillis
-                val unmuteTimeToday = todayTime.time + getAfterMillis(id)
+                val unmuteTimeToday = todayTime.time + getAfterMillis(id, todayTime)
 
                 Log.d(TAG, "Prayer ID $id - Today: ${Date(todayTime.time)}, Mute: ${Date(muteTimeToday)}, Unmute: ${Date(unmuteTimeToday)}, Now: ${Date(now)}")
 
