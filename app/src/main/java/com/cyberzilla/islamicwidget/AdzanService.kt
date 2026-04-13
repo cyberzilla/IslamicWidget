@@ -82,7 +82,7 @@ class AdzanService : Service() {
 
         val isSubuh = intent.getBooleanExtra("IS_SUBUH", false)
         prayerId = intent.getIntExtra("PRAYER_ID", 0)
-        prayerTimeInMillis = intent.getLongExtra("PRAYER_TIME_MILLIS", 0L)  // ⭐ FIX #1
+        prayerTimeInMillis = intent.getLongExtra("PRAYER_TIME_MILLIS", 0L)
 
         val selectedLocale = Locale.forLanguageTag(settings.languageCode)
         val config = Configuration(resources.configuration)
@@ -105,6 +105,20 @@ class AdzanService : Service() {
         val stopPendingIntent = PendingIntent.getBroadcast(this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val deletePendingIntent = PendingIntent.getBroadcast(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
+        // =======================================================================
+        // FIX ANTI-DOZE: Inisialisasi MediaSession SEBELUM membuat Notifikasi
+        // =======================================================================
+        mediaSession = MediaSessionCompat(this, "AdzanSession")
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1f)
+                .build()
+        )
+        mediaSession?.isActive = true
+
+        // =======================================================================
+        // FIX ANTI-DOZE: Tambahkan MediaStyle dan tautkan token session ke notifikasi
+        // =======================================================================
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
             .setContentTitle(localizedContext.getString(R.string.notif_title_adzan, prayerName))
             .setContentText(localizedContext.getString(R.string.notif_desc_adzan))
@@ -115,6 +129,9 @@ class AdzanService : Service() {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
+            .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
+                .setMediaSession(mediaSession?.sessionToken)
+            )
             .build()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -122,14 +139,6 @@ class AdzanService : Service() {
         } else {
             startForeground(1122, notification)
         }
-
-        mediaSession = MediaSessionCompat(this, "AdzanSession")
-        mediaSession?.setPlaybackState(
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1f)
-                .build()
-        )
-        mediaSession?.isActive = true
 
         val volumeProvider = object : VolumeProviderCompat(VOLUME_CONTROL_RELATIVE, 100, 50) {
             override fun onAdjustVolume(direction: Int) {
