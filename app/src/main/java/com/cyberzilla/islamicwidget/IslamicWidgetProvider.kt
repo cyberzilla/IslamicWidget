@@ -143,7 +143,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             )?.let {
                 alarmManager.cancel(it)
                 it.cancel()
-                Log.d(TAG, "Cancelled existing mute alarm for prayer ID: $requestCodeId")
+                Log.d(TAG, "Alarm mute dibatalkan untuk prayer ID: $requestCodeId")
             }
 
             PendingIntent.getBroadcast(
@@ -154,7 +154,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             )?.let {
                 alarmManager.cancel(it)
                 it.cancel()
-                Log.d(TAG, "Cancelled existing unmute alarm for prayer ID: $requestCodeId")
+                Log.d(TAG, "Alarm unmute dibatalkan untuk prayer ID: $requestCodeId")
             }
 
             PendingIntent.getBroadcast(
@@ -165,10 +165,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             )?.let {
                 alarmManager.cancel(it)
                 it.cancel()
-                Log.d(TAG, "Cancelled existing adzan alarm for prayer ID: $requestCodeId")
+                Log.d(TAG, "Alarm adzan dibatalkan untuk prayer ID: $requestCodeId")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error cancelling alarms for prayer ID: $requestCodeId", e)
+            Log.e(TAG, "Error membatalkan alarm untuk prayer ID: $requestCodeId", e)
         }
     }
 
@@ -193,7 +193,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val latString = settings.latitude
         val lonString = settings.longitude
         if (latString == null || lonString == null) {
-            Log.w(TAG, "Location not set, skipping prayer scheduling")
+            Log.w(TAG, "Lokasi belum diatur, lewati penjadwalan sholat")
             return
         }
 
@@ -222,7 +222,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 } * 60 * 1000L
             }
 
-            // PENGAMANAN 1: Jika fitur Auto-Silent dimatikan secara global, paksa UNMUTE jika HP sedang tersandera mode mute.
+            // PENGAMANAN 1: Jika fitur Auto-Silent dimatikan secara global,
+            // paksa UNMUTE jika HP sedang tersandera mode mute.
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
             if (!settings.isAutoSilentEnabled && prefs.getBoolean("IS_MUTED_BY_APP", false)) {
                 Log.d(TAG, "Auto-Silent global dinonaktifkan, memaksa pembebasan mute!")
@@ -242,7 +243,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 val muteTimeToday = todayTime.time - beforeMillis
                 val unmuteTimeToday = todayTime.time + getAfterMillis(id, todayTime)
 
-                Log.d(TAG, "Prayer ID $id - Today: ${Date(todayTime.time)}, Mute: ${Date(muteTimeToday)}, Unmute: ${Date(unmuteTimeToday)}, Now: ${Date(now)}")
+                Log.d(TAG, "Prayer ID $id - Hari ini: ${Date(todayTime.time)}, Mute: ${Date(muteTimeToday)}, Unmute: ${Date(unmuteTimeToday)}, Sekarang: ${Date(now)}")
 
                 // Batalkan semua alarm yang ada untuk prayer ID ini
                 cancelExistingAlarms(context, id)
@@ -250,11 +251,30 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 if (now >= muteTimeToday) {
                     // Waktu mute hari ini sudah terlewati
                     if (now < unmuteTimeToday) {
-                        // Masih berada tepat di DALAM jendela durasi Silent yang baru
+                        // Masih berada tepat di DALAM jendela durasi Silent
                         if (settings.isAutoSilentEnabled) {
-                            Log.d(TAG, "Prayer ID $id: Masuk jendela silent pasca update, trigger MUTE langsung.")
-                            val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
-                            context.sendBroadcast(muteIntent)
+                            // =======================================================================
+                            // FIX — ROOT CAUSE KEDUA BUG NOTIFIKASI SILENT DUPLIKAT
+                            //
+                            // MASALAH LAMA: Broadcast ACTION_MUTE dikirim tanpa memeriksa apakah
+                            // perangkat sudah dalam keadaan mute. Setiap kali scheduleAllPrayers()
+                            // dipanggil saat dalam jendela silent (widget update, save settings,
+                            // dll), ACTION_MUTE dikirim lagi → masuk path "ENFORCE MUTE" →
+                            // jika kondisi OR terpenuhi, ringerMode di-set lagi → notifikasi muncul.
+                            //
+                            // SOLUSI: Cek IS_MUTED_BY_APP sebelum mengirim broadcast. Jika sudah
+                            // mute, tidak perlu broadcast sama sekali. Jika user secara manual
+                            // unmute (self-healing check di SilentModeReceiver akan menangkap ini),
+                            // broadcast tetap dikirim karena flag sudah false.
+                            // =======================================================================
+                            val alreadyMutedByApp = prefs.getBoolean("IS_MUTED_BY_APP", false)
+                            if (!alreadyMutedByApp) {
+                                Log.d(TAG, "Prayer ID $id: Masuk jendela silent, trigger MUTE langsung (belum muted).")
+                                val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                                context.sendBroadcast(muteIntent)
+                            } else {
+                                Log.d(TAG, "Prayer ID $id: Dalam jendela silent tapi sudah IS_MUTED_BY_APP=true, lewati broadcast.")
+                            }
                         }
                     } else {
                         // PENGAMANAN 2: Waktu unmute SUDAH LEWAT akibat user mengurangi durasi "After".
@@ -266,16 +286,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                         }
                     }
                     // Jadwalkan untuk besok
-                    Log.d(TAG, "Prayer ID $id: Scheduling for tomorrow")
+                    Log.d(TAG, "Prayer ID $id: Jadwalkan untuk besok")
                     scheduleSilentMode(context, tomorrowTime, id, settings)
                 } else {
                     // Jadwalkan untuk hari ini
-                    Log.d(TAG, "Prayer ID $id: Scheduling for today")
+                    Log.d(TAG, "Prayer ID $id: Jadwalkan untuk hari ini")
                     scheduleSilentMode(context, todayTime, id, settings)
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error scheduling prayers", e)
+            Log.e(TAG, "Error menjadwalkan sholat", e)
         }
     }
 
@@ -606,7 +626,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     }
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error updating widget", e)
+                    Log.e(TAG, "Error update widget", e)
                 }
             } else {
                 if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
@@ -715,15 +735,13 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val RC_UNMUTE = 20000 + requestCodeId
         val RC_ADZAN = 30000 + requestCodeId
 
-        // =======================================================================
-        // PROACTIVE FLAG SYNC - Dari versi user yang brilian
-        // =======================================================================
+        // PROACTIVE FLAG SYNC
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         val audioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         if (prefs.getBoolean("IS_MUTED_BY_APP", false) &&
             audioMgr.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
-            Log.d(TAG, "Proactive flag sync: Resetting stale mute flag for prayer ID: $requestCodeId")
+            Log.d(TAG, "Proactive flag sync: Mereset flag mute usang untuk prayer ID: $requestCodeId")
             prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
         }
 
@@ -739,12 +757,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 val alarmInfo = AlarmManager.AlarmClockInfo(prayerTime.time, adzanPendingIntent)
                 alarmManager.setAlarmClock(alarmInfo, adzanPendingIntent)
             } catch (e: SecurityException) {
-                Log.e(TAG, "Failed to schedule adzan alarm", e)
+                Log.e(TAG, "Gagal menjadwalkan alarm adzan", e)
             }
         }
 
         if (!settings.isAutoSilentEnabled) {
-            Log.d(TAG, "Auto silent disabled, skipping for prayer ID: $requestCodeId")
+            Log.d(TAG, "Auto silent dinonaktifkan, lewati untuk prayer ID: $requestCodeId")
             return
         }
 
@@ -761,7 +779,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             4 -> { silentBeforeMillis = settings.maghribBefore * 60 * 1000L; silentAfterMillis = settings.maghribAfter * 60 * 1000L }
             5 -> { silentBeforeMillis = settings.ishaBefore * 60 * 1000L; silentAfterMillis = settings.ishaAfter * 60 * 1000L }
             else -> {
-                Log.w(TAG, "Invalid request code ID: $requestCodeId")
+                Log.w(TAG, "Request code ID tidak valid: $requestCodeId")
                 return
             }
         }
@@ -769,11 +787,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val muteTimeMillis = prayerTime.time - silentBeforeMillis
         val unmuteTimeMillis = prayerTime.time + silentAfterMillis
 
-        Log.d(TAG, "Scheduling silent mode for prayer $requestCodeId: " +
-                "prayer at ${Date(prayerTime.time)}, mute at ${Date(muteTimeMillis)}, unmute at ${Date(unmuteTimeMillis)}")
+        Log.d(TAG, "Menjadwalkan silent mode untuk prayer $requestCodeId: " +
+                "sholat jam ${Date(prayerTime.time)}, mute jam ${Date(muteTimeMillis)}, unmute jam ${Date(unmuteTimeMillis)}")
 
         if (now > unmuteTimeMillis) {
-            Log.d(TAG, "Unmute time already passed, skipping for prayer ID: $requestCodeId")
+            Log.d(TAG, "Waktu unmute sudah lewat, lewati untuk prayer ID: $requestCodeId")
             return
         }
 
@@ -786,20 +804,20 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         try {
             if (now <= muteTimeMillis) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteTimeMillis, mutePendingIntent)
-                Log.d(TAG, "Scheduled mute alarm for: ${Date(muteTimeMillis)}")
+                Log.d(TAG, "Alarm mute dijadwalkan: ${Date(muteTimeMillis)}")
             } else if (now in (muteTimeMillis + 1)..unmuteTimeMillis) {
-                // =======================================================================
-                // CRITICAL FIX - Dari analisis saya
-                // =======================================================================
-                Log.d(TAG, "Currently in silent period, cancelling stale alarm and triggering mute immediately for prayer ID: $requestCodeId")
+                // Dalam jendela silent tapi jadwalkan dari scheduleSilentMode (misal dari path "besok")
+                // Catatan: immediate mute dari path ini sudah ditangani di scheduleAllPrayers()
+                // dengan guard IS_MUTED_BY_APP, jadi ini hanya akan aktif jika dipanggil
+                // langsung dengan todayTime yang dalam window (tidak melalui scheduleAllPrayers)
+                Log.d(TAG, "Dalam jendela silent via scheduleSilentMode langsung, pembatalan alarm mute lama.")
                 alarmManager.cancel(mutePendingIntent)
-                context.sendBroadcast(muteIntent)
             }
 
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
-            Log.d(TAG, "Scheduled unmute alarm for: ${Date(unmuteTimeMillis)}")
+            Log.d(TAG, "Alarm unmute dijadwalkan: ${Date(unmuteTimeMillis)}")
         } catch (e: SecurityException) {
-            Log.e(TAG, "Security exception scheduling silent mode", e)
+            Log.e(TAG, "SecurityException menjadwalkan silent mode", e)
         }
     }
 }

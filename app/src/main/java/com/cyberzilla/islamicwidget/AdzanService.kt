@@ -21,8 +21,8 @@ import android.os.PowerManager
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
-import androidx.media.VolumeProviderCompat
 import java.util.Locale
 
 class AdzanService : Service() {
@@ -36,11 +36,14 @@ class AdzanService : Service() {
     private var fadeRunnable: Runnable? = null
     private var safetyHandler: Handler? = null
     private var safetyRunnable: Runnable? = null
-    private var audioFocusRequest: AudioFocusRequest? = null
 
     // =======================================================================
-    // FIX #1: Tambahkan state untuk expired check
+    // FIX: Simpan listener sebagai class member agar tidak ter-GC dan bisa
+    // digunakan kembali di abandonAudioFocusCompat() untuk pre-O devices.
     // =======================================================================
+    private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
+    private var audioFocusRequest: AudioFocusRequest? = null
+
     private var prayerTimeInMillis = 0L
     private var prayerId = 0
 
@@ -106,19 +109,69 @@ class AdzanService : Service() {
         val deletePendingIntent = PendingIntent.getBroadcast(this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         // =======================================================================
-        // FIX ANTI-DOZE: Inisialisasi MediaSession SEBELUM membuat Notifikasi
+        // FIX #1 — ROOT CAUSE BUG ADZAN PAUSE SAAT SCREEN OFF
+        //
+        // MASALAH LAMA: setPlaybackToRemote(volumeProvider) memberi tahu Android
+        // bahwa audio diputar di perangkat EKSTERNAL (remote). Akibatnya:
+        // - Android TIDAK mempertahankan CPU audio pipeline lokal saat screen off
+        // - Doze mode (~60-90 dtk setelah layar mati) men-suspend "remote" session
+        // - MediaPlayer berhenti karena sistem berpikir audio ada di device lain
+        // - Layar hidup → sistem wake → adzan resume (symptom: resume saat screen on)
+        //
+        // SOLUSI: Biarkan MediaSession tetap LOCAL (tidak memanggil setPlaybackToRemote).
+        // Gunakan MediaSession.Callback + FLAG_HANDLES_MEDIA_BUTTONS untuk menangkap
+        // tombol volume sebagai pengganti VolumeProviderCompat pada remote session.
         // =======================================================================
         mediaSession = MediaSessionCompat(this, "AdzanSession")
+        mediaSession?.setFlags(
+            MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
+            MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+        )
         mediaSession?.setPlaybackState(
             PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1f)
+                .setState(
+                    PlaybackStateCompat.STATE_PLAYING,
+                    PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
+                    1f
+                )
+                .setActions(PlaybackStateCompat.ACTION_STOP)
                 .build()
         )
+
+        // Handle tombol volume via Callback — session tetap LOCAL, Doze exemption berlaku
+        mediaSession?.setCallback(object : MediaSessionCompat.Callback() {
+            override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
+                val keyEvent: KeyEvent? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    mediaButtonEvent?.getParcelableExtra(Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    mediaButtonEvent?.getParcelableExtra(Intent.EXTRA_KEY_EVENT)
+                }
+                if (keyEvent?.action == KeyEvent.ACTION_DOWN) {
+                    when (keyEvent.keyCode) {
+                        KeyEvent.KEYCODE_VOLUME_DOWN,
+                        KeyEvent.KEYCODE_VOLUME_UP -> {
+                            Log.d(TAG, "Tombol volume ditekan via MediaSession, menghentikan adzan")
+                            sendBroadcast(Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
+                                action = "ACTION_STOP_ADZAN_BROADCAST"
+                            })
+                            return true
+                        }
+                    }
+                }
+                return super.onMediaButtonEvent(mediaButtonEvent)
+            }
+
+            override fun onStop() {
+                Log.d(TAG, "MediaSession.onStop dipanggil, menghentikan adzan")
+                sendBroadcast(Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
+                    action = "ACTION_STOP_ADZAN_BROADCAST"
+                })
+            }
+        })
+
         mediaSession?.isActive = true
 
-        // =======================================================================
-        // FIX ANTI-DOZE: Tambahkan MediaStyle dan tautkan token session ke notifikasi
-        // =======================================================================
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
             .setContentTitle(localizedContext.getString(R.string.notif_title_adzan, prayerName))
             .setContentText(localizedContext.getString(R.string.notif_desc_adzan))
@@ -129,8 +182,12 @@ class AdzanService : Service() {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
-            .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
-                .setMediaSession(mediaSession?.sessionToken)
+            // FIX: Pastikan notifikasi foreground muncul SEGERA, tidak ditunda sistem
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .setStyle(
+                androidx.media.app.NotificationCompat.MediaStyle()
+                    .setMediaSession(mediaSession?.sessionToken)
+                    .setShowActionsInCompactView()
             )
             .build()
 
@@ -140,20 +197,7 @@ class AdzanService : Service() {
             startForeground(1122, notification)
         }
 
-        val volumeProvider = object : VolumeProviderCompat(VOLUME_CONTROL_RELATIVE, 100, 50) {
-            override fun onAdjustVolume(direction: Int) {
-                if (direction != 0) {
-                    Log.d(TAG, "Volume Button Pressed, Adzan stopped!")
-
-                    sendBroadcast(Intent(this@AdzanService, SilentModeReceiver::class.java).apply {
-                        action = "ACTION_STOP_ADZAN_BROADCAST"
-                    })
-                }
-            }
-        }
-
-        mediaSession?.setPlaybackToRemote(volumeProvider)
-
+        // Request audio focus setelah startForeground agar proses sudah terdaftar foreground
         requestAudioFocusCompat()
 
         settings.isAdzanPlaying = true
@@ -172,32 +216,60 @@ class AdzanService : Service() {
 
     private fun requestAudioFocusCompat() {
         val am = audioManager ?: return
-        val focusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
-            when (focusChange) {
-                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        // =======================================================================
-                        // FIX #2: Cek expired SEBELUM resume
-                        // =======================================================================
-                        if (!isAdzanStillRelevant()) {
-                            Log.d(TAG, "Adzan expired, not resuming")
-                            stopSelf()
-                            return@postDelayed
-                        }
 
+        // =======================================================================
+        // FIX #2: Gunakan AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE untuk audio alarm.
+        // - GAIN_TRANSIENT_EXCLUSIVE: mencegah app lain bersuara, prioritas tertinggi
+        // - Simpan listener sebagai class member agar tidak ter-GC
+        // - Handle GAIN untuk resume setelah pause
+        // - Handle LOSS_TRANSIENT dengan PAUSE (bukan hanya cek resume)
+        // - Handle LOSS_TRANSIENT_CAN_DUCK dengan meredupkan volume (bukan stop)
+        // =======================================================================
+        audioFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+            when (focusChange) {
+                AudioManager.AUDIOFOCUS_GAIN -> {
+                    Log.d(TAG, "Audio focus diperoleh kembali, melanjutkan adzan")
+                    if (!isAdzanStillRelevant()) {
+                        Log.d(TAG, "Adzan sudah kadaluarsa, tidak dilanjutkan")
+                        stopSelf()
+                        return@OnAudioFocusChangeListener
+                    }
+                    try {
+                        // Kembalikan volume penuh dan resume jika sedang pause
+                        mediaPlayer?.setVolume(1.0f, 1.0f)
                         if (mediaPlayer?.isPlaying == false && !isFadingOut) {
-                            try { mediaPlayer?.start() } catch (e: Exception) {}
+                            mediaPlayer?.start()
                         }
-                    }, 1000)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error saat resume MediaPlayer", e)
+                    }
+                }
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                    // FIX: PAUSE dulu — tunggu AUDIOFOCUS_GAIN untuk resume
+                    // Versi lama tidak mem-pause, hanya schedule resume yang sering gagal
+                    Log.d(TAG, "Audio focus hilang sementara, mem-pause adzan")
+                    try {
+                        if (mediaPlayer?.isPlaying == true) mediaPlayer?.pause()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error saat pause MediaPlayer", e)
+                    }
+                }
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                    // Redupkan volume saja, jangan hentikan
+                    Log.d(TAG, "Audio focus duck, meredupkan volume adzan")
+                    try {
+                        mediaPlayer?.setVolume(0.2f, 0.2f)
+                    } catch (e: Exception) {}
                 }
                 AudioManager.AUDIOFOCUS_LOSS -> {
+                    Log.d(TAG, "Audio focus hilang permanen, menghentikan adzan")
                     stopSelf()
                 }
             }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
                 .setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -205,19 +277,20 @@ class AdzanService : Service() {
                         .build()
                 )
                 .setAcceptsDelayedFocusGain(false)
-                .setWillPauseWhenDucked(false)
-                .setOnAudioFocusChangeListener(focusListener)
+                .setWillPauseWhenDucked(true)
+                .setOnAudioFocusChangeListener(audioFocusListener!!, Handler(Looper.getMainLooper()))
                 .build()
             am.requestAudioFocus(audioFocusRequest!!)
         } else {
             @Suppress("DEPRECATION")
-            am.requestAudioFocus(focusListener, AudioManager.STREAM_ALARM, AudioManager.AUDIOFOCUS_GAIN)
+            am.requestAudioFocus(
+                audioFocusListener,
+                AudioManager.STREAM_ALARM,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE
+            )
         }
     }
 
-    // =======================================================================
-    // FIX #1: Method untuk cek expired
-    // =======================================================================
     private fun isAdzanStillRelevant(): Boolean {
         if (prayerTimeInMillis == 0L) return true
 
@@ -243,10 +316,12 @@ class AdzanService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             audioFocusRequest?.let { am.abandonAudioFocusRequest(it) }
         } else {
+            // FIX: Gunakan stored listener (bukan null) agar focus benar-benar dilepas
             @Suppress("DEPRECATION")
-            am.abandonAudioFocus(null)
+            audioFocusListener?.let { am.abandonAudioFocus(it) }
         }
         audioFocusRequest = null
+        audioFocusListener = null
     }
 
     private fun fadeOutAndStop() {
@@ -295,7 +370,6 @@ class AdzanService : Service() {
             mediaPlayer = MediaPlayer().apply {
                 setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
 
-                // FIX ADZAN SUARA: Wajib menggunakan jalur ALARM agar menembus Silent Mode
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     setAudioAttributes(
                         AudioAttributes.Builder()
@@ -322,18 +396,14 @@ class AdzanService : Service() {
                 setOnInfoListener { _, what, _ ->
                     if (what == MediaPlayer.MEDIA_INFO_AUDIO_NOT_PLAYING && !isFadingOut) {
                         Handler(Looper.getMainLooper()).postDelayed({
-                            try {
-                                // =======================================================================
-                                // FIX #2: Cek expired SEBELUM resume
-                                // =======================================================================
-                                if (!isAdzanStillRelevant()) {
-                                    Log.d(TAG, "Adzan expired, not resuming")
-                                    stopSelf()
-                                    return@postDelayed
-                                }
-
-                                if (mediaPlayer?.isPlaying == false) mediaPlayer?.start()
-                            } catch (e: Exception) {}
+                            if (!isAdzanStillRelevant()) {
+                                Log.d(TAG, "Adzan kadaluarsa, tidak dilanjutkan")
+                                stopSelf()
+                                return@postDelayed
+                            }
+                            if (mediaPlayer?.isPlaying == false) {
+                                try { mediaPlayer?.start() } catch (e: Exception) {}
+                            }
                         }, 500)
                         true
                     } else false
@@ -348,6 +418,7 @@ class AdzanService : Service() {
                 start()
             }
         } catch (e: Exception) {
+            Log.e(TAG, "Gagal memutar adzan", e)
             stopSelf()
         }
     }
@@ -389,7 +460,7 @@ class AdzanService : Service() {
         fadeHandler = null
         fadeRunnable = null
 
-        mediaPlayer?.stop()
+        try { mediaPlayer?.stop() } catch (e: Exception) {}
         mediaPlayer?.release()
         mediaPlayer = null
 
