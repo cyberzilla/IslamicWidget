@@ -15,27 +15,7 @@ class SilentModeReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "SilentModeReceiver"
-        private var wakeLock: PowerManager.WakeLock? = null
-
-        fun acquireWakeLock(context: Context) {
-            if (wakeLock == null) {
-                val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-                wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanWakeLock")
-            }
-            if (wakeLock?.isHeld == false) {
-                wakeLock?.acquire(10 * 60 * 1000L)
-            }
-        }
-
-        fun releaseWakeLock() {
-            try {
-                if (wakeLock?.isHeld == true) {
-                    wakeLock?.release()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Gagal melepas WakeLock", e)
-            }
-        }
+        // FIX: Hapus statik WakeLock (penyebab memory leak dan bentrok state)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -45,7 +25,15 @@ class SilentModeReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             "ACTION_PLAY_ADZAN" -> {
-                acquireWakeLock(context)
+                // =======================================================================
+                // FIX TERBAIK: Waktiva-style WakeLock Bridge
+                // Menjaga CPU tetap menyala selama 15 detik di background untuk memastikan
+                // AdzanService berhasil memanggil startForeground sebelum OS menidurkan CPU.
+                // Timeout 15 detik akan dilepas otomatis oleh OS sehingga bebas leak.
+                // =======================================================================
+                val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                val bridgeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:BridgeLock")
+                bridgeLock.acquire(15 * 1000L)
 
                 val serviceIntent = Intent(context, AdzanService::class.java).apply {
                     putExtra("IS_SUBUH", intent.getBooleanExtra("IS_SUBUH", false))
@@ -59,7 +47,6 @@ class SilentModeReceiver : BroadcastReceiver() {
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, context.getString(R.string.log_error_play_adzan, e.message))
-                    releaseWakeLock()
                 }
             }
 
@@ -127,34 +114,16 @@ class SilentModeReceiver : BroadcastReceiver() {
                         Log.e(TAG, context.getString(R.string.log_error_mute, e.message))
                     }
                 } else {
-                    // =======================================================================
-                    // FIX — ROOT CAUSE BUG NOTIFIKASI SILENT DUPLIKAT
-                    //
-                    // MASALAH LAMA: Kondisi `if (currentRingerMode != VIBRATE || currentMediaVol > 0)`
-                    // menggunakan operator OR (||). Akibatnya jika ringerMode SUDAH VIBRATE
-                    // tapi mediaVol > 0, blok ini tetap masuk dan memanggil:
-                    //   audioManager.ringerMode = RINGER_MODE_VIBRATE  ← SUDAH VIBRATE!
-                    // Memanggil ringerMode = VIBRATE saat sudah VIBRATE tetap memicu
-                    // Android menampilkan notifikasi sistem "Vibrate" sekali lagi.
-                    //
-                    // SOLUSI: Pisahkan pengecekan ringerMode dan mediaVol menjadi dua
-                    // kondisi IF independen. Masing-masing hanya dipanggil jika BENAR-BENAR
-                    // perlu berubah. Dengan ini, pemanggilan ringerMode hanya terjadi jika
-                    // statusnya bukan VIBRATE, dan notifikasi sistem tidak muncul lagi.
-                    // =======================================================================
                     val ringerNeedsEnforce = currentRingerMode != AudioManager.RINGER_MODE_VIBRATE
                     val mediaVolNeedsEnforce = currentMediaVol > 0
 
                     if (ringerNeedsEnforce || mediaVolNeedsEnforce) {
                         Log.d(TAG, "ENFORCE MUTE: ringerNeedsChange=$ringerNeedsEnforce, mediaVolNeedsChange=$mediaVolNeedsEnforce")
                         try {
-                            // Panggil ringerMode HANYA jika belum VIBRATE
-                            // Ini mencegah notifikasi sistem muncul berulang
                             if (ringerNeedsEnforce) {
                                 audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
                                 Log.d(TAG, "Ringer mode diubah ke VIBRATE")
                             }
-                            // Tangani media volume secara independen
                             if (mediaVolNeedsEnforce) {
                                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
                                 Log.d(TAG, "Media volume direset ke 0")
@@ -163,7 +132,6 @@ class SilentModeReceiver : BroadcastReceiver() {
                             Log.e(TAG, context.getString(R.string.log_error_mute, e.message))
                         }
                     } else {
-                        // Sudah sepenuhnya dalam keadaan mute — tidak ada yang perlu dilakukan
                         Log.d(TAG, "Perangkat sudah dalam keadaan silent penuh. Abaikan trigger redundan.")
                     }
                 }
@@ -195,7 +163,6 @@ class SilentModeReceiver : BroadcastReceiver() {
                     } catch (e: SecurityException) {
                         Log.e(TAG, context.getString(R.string.log_error_unmute, e.message))
                     } finally {
-                        // CRITICAL: Finally block memastikan flag selalu direset
                         Log.d(TAG, "Mereset flag mute di finally block")
                         prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
                     }
