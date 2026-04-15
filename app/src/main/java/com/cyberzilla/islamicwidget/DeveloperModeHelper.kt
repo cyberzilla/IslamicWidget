@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
@@ -27,7 +28,6 @@ class DeveloperModeHelper(private val activity: Activity) {
     private val btnCancel: Button = activity.findViewById(R.id.devBtnCancel)
 
     fun setup() {
-        // Set nilai default ke waktu saat ini (ditambah 2 menit agar mudah dites)
         val cal = Calendar.getInstance()
         cal.add(Calendar.MINUTE, 2)
 
@@ -78,7 +78,6 @@ class DeveloperModeHelper(private val activity: Activity) {
             set(Calendar.MILLISECOND, 0)
         }
 
-        // Jika waktu yang diset sudah lewat hari ini, jadwalkan untuk besok
         if (targetCal.timeInMillis < System.currentTimeMillis()) {
             targetCal.add(Calendar.DAY_OF_YEAR, 1)
         }
@@ -87,36 +86,44 @@ class DeveloperModeHelper(private val activity: Activity) {
         val muteMillis = targetMillis - (beforeMins * 60 * 1000L)
         val unmuteMillis = targetMillis + (afterMins * 60 * 1000L)
 
-        // 1. Intent Adzan (Menggunakan PRAYER_ID 99 sebagai penanda Test/Default)
         val adzanIntent = Intent(activity, SilentModeReceiver::class.java).apply {
             action = "ACTION_PLAY_ADZAN"
             putExtra("IS_SUBUH", false)
-            putExtra("PRAYER_ID", 99) // 99 = Unknown/Test, akan membaca 'Prayer' di Notification
+            putExtra("PRAYER_ID", 99)
             putExtra("PRAYER_TIME_MILLIS", targetMillis)
         }
         val adzanPi = PendingIntent.getBroadcast(activity, 9901, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        // 2. Intent Mute (Before)
         val muteIntent = Intent(activity, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
         val mutePi = PendingIntent.getBroadcast(activity, 9902, muteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        // 3. Intent Unmute (After)
         val unmuteIntent = Intent(activity, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
         val unmutePi = PendingIntent.getBroadcast(activity, 9903, unmuteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        // EKSEKUSI PENJADWALAN
-        // Gunakan setAlarmClock (Tertinggi) untuk menembus Doze Mode saat layar mati
-        val alarmInfoAdzan = AlarmManager.AlarmClockInfo(targetMillis, adzanPi)
-        alarmManager.setAlarmClock(alarmInfoAdzan, adzanPi)
-
-        // Jadwalkan Mute jika "before" lebih dari 0
-        if (beforeMins > 0) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteMillis, mutePi)
+        // =======================================================================
+        // FIX OS PANIC: Menghapus setAlarmClock yang memicu OS membongkar DND.
+        // Kita menyamar menggunakan setExactAndAllowWhileIdle.
+        // =======================================================================
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, targetMillis, adzanPi)
+        } else {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetMillis, adzanPi)
         }
 
-        // Jadwalkan Unmute
+        if (beforeMins > 0) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteMillis, mutePi)
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, muteMillis, mutePi)
+            }
+        }
+
         if (afterMins > 0) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteMillis, unmutePi)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteMillis, unmutePi)
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, unmuteMillis, unmutePi)
+            }
         }
 
         Toast.makeText(activity, "✅ Tes Dijadwalkan!\nMute: -$beforeMins mnt | Adzan: ${String.format("%02d:%02d", hour, minute)} | Unmute: +$afterMins mnt", Toast.LENGTH_LONG).show()

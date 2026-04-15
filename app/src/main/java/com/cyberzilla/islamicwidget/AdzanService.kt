@@ -23,6 +23,7 @@ import android.os.Looper
 import android.os.PowerManager
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.media.VolumeProviderCompat
 import android.util.Log
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
@@ -35,10 +36,7 @@ class AdzanService : Service() {
 
     @Volatile
     private var isFadingOut = false
-
-    // FIX SENSOR VOLUME: Mencegah eksekusi prematur
-    @Volatile
-    private var isVolumeMonitoringActive = false
+    private var initialAlarmVolume = -1
 
     private var mediaSession: MediaSessionCompat? = null
 
@@ -75,7 +73,6 @@ class AdzanService : Service() {
         }
 
         isFadingOut = false
-        isVolumeMonitoringActive = false
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -85,11 +82,6 @@ class AdzanService : Service() {
         }
 
         val settings = SettingsManager(this)
-        val leftoverVolume = settings.adzanOriginalVolumeBackup
-        if (leftoverVolume != -1) {
-            try { audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, leftoverVolume, 0) } catch (e: SecurityException) {}
-            settings.adzanOriginalVolumeBackup = -1
-        }
 
         val isSubuh = intent.getBooleanExtra("IS_SUBUH", false)
         prayerId = intent.getIntExtra("PRAYER_ID", 0)
@@ -107,7 +99,7 @@ class AdzanService : Service() {
             3 -> localizedContext.getString(R.string.asr)
             4 -> localizedContext.getString(R.string.maghrib)
             5 -> localizedContext.getString(R.string.isha)
-            else -> localizedContext.getString(R.string.prayer) // Digunakan saat Test Mode (99)
+            else -> localizedContext.getString(R.string.prayer)
         }
 
         createNotificationChannel(localizedContext)
@@ -145,6 +137,7 @@ class AdzanService : Service() {
             override fun onStop() { fadeOutAndStop() }
             override fun onPause() { fadeOutAndStop() }
         })
+
         mediaSession?.isActive = true
 
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
@@ -155,7 +148,11 @@ class AdzanService : Service() {
             .setDeleteIntent(stopPendingIntent)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            // =======================================================================
+            // FIX KAMUFLASE NOTIFIKASI: Gunakan CATEGORY_EVENT alih-alih CATEGORY_ALARM
+            // Mencegah Android OS mereset DND ketika notifikasi diinterupsi/di-swipe.
+            // =======================================================================
+            .setCategory(NotificationCompat.CATEGORY_EVENT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(false)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
@@ -187,8 +184,6 @@ class AdzanService : Service() {
         if (isFadingOut) return
         isFadingOut = true
 
-        Log.d(TAG, "Menerima instruksi Stop Adzan. Eksekusi instan dimulai.")
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
@@ -214,7 +209,8 @@ class AdzanService : Service() {
                     stopSelf()
                 } else {
                     try {
-                        mediaPlayer?.setVolume(volume, volume)
+                        val internalVol = volume * (SettingsManager(this@AdzanService).adzanVolume / 100f)
+                        mediaPlayer?.setVolume(internalVol, internalVol)
                         fadeHandler?.postDelayed(this, fadeInterval)
                     } catch (e: Exception) { stopSelf() }
                 }
@@ -234,17 +230,18 @@ class AdzanService : Service() {
                         return@OnAudioFocusChangeListener
                     }
                     try {
-                        mediaPlayer?.setVolume(1.0f, 1.0f)
+                        val internalVol = SettingsManager(this).adzanVolume / 100f
+                        mediaPlayer?.setVolume(internalVol, internalVol)
                         if (mediaPlayer?.isPlaying == false && !isFadingOut) {
                             mediaPlayer?.start()
                         }
                     } catch (e: Exception) {}
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                    try { mediaPlayer?.setVolume(0.5f, 0.5f) } catch (e: Exception) {}
+                    try { mediaPlayer?.setVolume(0.1f, 0.1f) } catch (e: Exception) {}
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                    try { mediaPlayer?.setVolume(0.2f, 0.2f) } catch (e: Exception) {}
+                    try { mediaPlayer?.setVolume(0.1f, 0.1f) } catch (e: Exception) {}
                 }
                 AudioManager.AUDIOFOCUS_LOSS -> {
                     fadeOutAndStop()
@@ -253,7 +250,7 @@ class AdzanService : Service() {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
+            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
                 .setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -270,7 +267,7 @@ class AdzanService : Service() {
             am.requestAudioFocus(
                 audioFocusListener,
                 AudioManager.STREAM_ALARM,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
             )
         }
     }
@@ -287,7 +284,7 @@ class AdzanService : Service() {
             3 -> settings.asrAfter
             4 -> settings.maghribAfter
             5 -> settings.ishaAfter
-            else -> 30 // Untuk tes Developer Mode
+            else -> 30
         }
         val expiryTime = prayerTimeInMillis + (afterMinutes * 60 * 1000L)
         return System.currentTimeMillis() <= expiryTime
@@ -307,15 +304,7 @@ class AdzanService : Service() {
 
     private fun playAdzan(isSubuh: Boolean, settings: SettingsManager) {
         val customUriString = if (isSubuh) settings.customAdzanSubuhUri else settings.customAdzanRegularUri
-
-        try {
-            if (settings.adzanOriginalVolumeBackup == -1) {
-                val currentVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
-                if (currentVol != -1) settings.adzanOriginalVolumeBackup = currentVol
-            }
-            val maxVol = audioManager?.getStreamMaxVolume(AudioManager.STREAM_ALARM) ?: 0
-            audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, (maxVol * settings.adzanVolume) / 100, 0)
-        } catch (e: SecurityException) {}
+        val targetInternalVolume = settings.adzanVolume / 100f
 
         mediaPlayer?.release()
 
@@ -344,6 +333,7 @@ class AdzanService : Service() {
                     afd.close()
                 }
 
+                setVolume(targetInternalVolume, targetInternalVolume)
                 prepare()
 
                 setOnInfoListener { _, what, _ ->
@@ -361,13 +351,12 @@ class AdzanService : Service() {
                     } else false
                 }
 
-                setOnCompletionListener {
-                    fadeOutAndStop()
-                }
+                setOnCompletionListener { fadeOutAndStop() }
 
                 start()
             }
 
+            initialAlarmVolume = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
             registerHardwareVolumeListener()
 
         } catch (e: Exception) {
@@ -377,17 +366,20 @@ class AdzanService : Service() {
     }
 
     private fun registerHardwareVolumeListener() {
-        // Lapisan 1: Broadcast Receiver
+        val volumeProvider = object : VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 100, 50) {
+            override fun onAdjustVolume(direction: Int) {
+                Log.d(TAG, "Tombol Volume Hardware ditekan via Provider. Stop Adzan.")
+                if (!isFadingOut) fadeOutAndStop()
+            }
+        }
+        mediaSession?.setPlaybackToRemote(volumeProvider)
+
         volumeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                // GUARD: Hanya proses jika pemantauan sudah aktif
-                if (!isVolumeMonitoringActive || isFadingOut) return
-
-                if (intent?.action == "android.media.VOLUME_CHANGED_ACTION") {
+                if (intent?.action == "android.media.VOLUME_CHANGED_ACTION" && !isFadingOut) {
                     val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
-                    // Fokus hanya pada ALARM atau RING
                     if (streamType == AudioManager.STREAM_ALARM || streamType == AudioManager.STREAM_RING) {
-                        Log.d(TAG, "Volume fisik ditekan, memberhentikan Adzan")
+                        Log.d(TAG, "Deteksi perubahan Stream via Broadcast. Stop Adzan.")
                         fadeOutAndStop()
                     }
                 }
@@ -397,44 +389,21 @@ class AdzanService : Service() {
             registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
         } catch (e: Exception) {}
 
-        // Lapisan 2: ContentObserver
         volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
                 super.onChange(selfChange)
-                // GUARD: Hanya proses jika pemantauan aktif
-                if (!isVolumeMonitoringActive || isFadingOut) return
+                if (isFadingOut) return
 
-                Log.d(TAG, "Observer Volume sistem bergeser, memberhentikan Adzan")
-                fadeOutAndStop()
+                val currentAlarmVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
+                if (currentAlarmVol != initialAlarmVolume && currentAlarmVol != -1) {
+                    Log.d(TAG, "Observer mendeteksi nilai absolut Volume bergeser. Stop Adzan.")
+                    fadeOutAndStop()
+                }
             }
         }
         try {
-            // FIX: Hanya observasi spesifik pada volume alarm, bukan keseluruhan sistem
-            contentResolver.registerContentObserver(
-                android.provider.Settings.System.getUriFor("volume_alarm_speaker"),
-                true,
-                volumeObserver!!
-            )
+            contentResolver.registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, volumeObserver!!)
         } catch (e: Exception) {}
-
-        // =======================================================================
-        // FIX UTAMA: Mencegah Eksekusi Prematur
-        // Memberi waktu 2 detik bagi sistem untuk menyelesaikan set volume awal
-        // sebelum kita mulai "mendengarkan" sentuhan user pada tombol volume.
-        // =======================================================================
-        Handler(Looper.getMainLooper()).postDelayed({
-            isVolumeMonitoringActive = true
-            Log.d(TAG, "Sensor interupsi volume telah diaktifkan")
-        }, 2000)
-    }
-
-    private fun restoreOriginalVolume() {
-        val settings = SettingsManager(this)
-        val savedVolume = settings.adzanOriginalVolumeBackup
-        if (savedVolume != -1) {
-            try { audioManager?.setStreamVolume(AudioManager.STREAM_ALARM, savedVolume, 0) } catch (e: SecurityException) {}
-            settings.adzanOriginalVolumeBackup = -1
-        }
     }
 
     private fun createNotificationChannel(localizedContext: Context) {
@@ -457,8 +426,6 @@ class AdzanService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
-        isVolumeMonitoringActive = false
-
         volumeReceiver?.let {
             try { unregisterReceiver(it) } catch (e: Exception) {}
             volumeReceiver = null
@@ -480,7 +447,6 @@ class AdzanService : Service() {
         mediaPlayer?.release()
         mediaPlayer = null
 
-        restoreOriginalVolume()
         abandonAudioFocusCompat()
 
         mediaSession?.isActive = false
@@ -496,5 +462,13 @@ class AdzanService : Service() {
         }
 
         serviceWakeLock?.let { if (it.isHeld) it.release() }
+
+        val prefs = getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("PENDING_UNMUTE", false)) {
+            Log.d(TAG, "Mengeksekusi PENDING UNMUTE karena Adzan sudah selesai/dihentikan.")
+            sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
+                action = "ACTION_UNMUTE"
+            })
+        }
     }
 }
