@@ -34,7 +34,11 @@ class AdzanService : Service() {
     private var serviceWakeLock: PowerManager.WakeLock? = null
 
     @Volatile
-    private var isFadingOut = false // Guard Atomic Anti-Redundan
+    private var isFadingOut = false
+
+    // FIX SENSOR VOLUME: Mencegah eksekusi prematur
+    @Volatile
+    private var isVolumeMonitoringActive = false
 
     private var mediaSession: MediaSessionCompat? = null
 
@@ -65,13 +69,13 @@ class AdzanService : Service() {
             return START_NOT_STICKY
         }
 
-        // Tangkap Interupsi dari Tap / Swipe Notifikasi
         if (intent.action == "ACTION_FADE_OUT") {
             fadeOutAndStop()
             return START_NOT_STICKY
         }
 
         isFadingOut = false
+        isVolumeMonitoringActive = false
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -103,7 +107,7 @@ class AdzanService : Service() {
             3 -> localizedContext.getString(R.string.asr)
             4 -> localizedContext.getString(R.string.maghrib)
             5 -> localizedContext.getString(R.string.isha)
-            else -> localizedContext.getString(R.string.prayer)
+            else -> localizedContext.getString(R.string.prayer) // Digunakan saat Test Mode (99)
         }
 
         createNotificationChannel(localizedContext)
@@ -143,18 +147,17 @@ class AdzanService : Service() {
         })
         mediaSession?.isActive = true
 
-        // Notifikasi Bebas Tombol, Cukup Tap & Swipe
         val notification = NotificationCompat.Builder(this, "ADZAN_CHANNEL_V2")
             .setContentTitle(localizedContext.getString(R.string.notif_title_adzan, prayerName))
             .setContentText(localizedContext.getString(R.string.notif_desc_adzan))
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentIntent(stopPendingIntent) // Klik Notifikasi
-            .setDeleteIntent(stopPendingIntent)  // Swipe Notifikasi
+            .setContentIntent(stopPendingIntent)
+            .setDeleteIntent(stopPendingIntent)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setOngoing(false) // Membantu agar bisa di-swipe di custom ROM
+            .setOngoing(false)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
 
@@ -180,18 +183,12 @@ class AdzanService : Service() {
         return START_STICKY
     }
 
-    // =======================================================================
-    // FUNGSI UTAMA STOP & CLEAR:
-    // Menjamin satu eksekusi, meruntuhkan notifikasi, dan stop service
-    // =======================================================================
     private fun fadeOutAndStop() {
-        // GUARD: Jika sudah dalam proses mematikan, buang pemanggilan kedua kalinya.
         if (isFadingOut) return
         isFadingOut = true
 
         Log.d(TAG, "Menerima instruksi Stop Adzan. Eksekusi instan dimulai.")
 
-        // INSTANT CLEAR NOTIFICATION: Copot dari status foreground secepat mungkin
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
@@ -206,7 +203,7 @@ class AdzanService : Service() {
 
         var volume = 1.0f
         val fadeSteps = 10
-        val fadeInterval = 500L / fadeSteps // Selesaikan fade dalam setengah detik agar cepat
+        val fadeInterval = 500L / fadeSteps
 
         fadeHandler = Handler(Looper.getMainLooper())
         fadeRunnable = object : Runnable {
@@ -290,7 +287,7 @@ class AdzanService : Service() {
             3 -> settings.asrAfter
             4 -> settings.maghribAfter
             5 -> settings.ishaAfter
-            else -> 30
+            else -> 30 // Untuk tes Developer Mode
         }
         val expiryTime = prayerTimeInMillis + (afterMinutes * 60 * 1000L)
         return System.currentTimeMillis() <= expiryTime
@@ -380,47 +377,55 @@ class AdzanService : Service() {
     }
 
     private fun registerHardwareVolumeListener() {
-        val initialVolume = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
-
+        // Lapisan 1: Broadcast Receiver
         volumeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                // isFadingOut juga dijaga di sini agar broadcast beruntun tidak tembus
-                if (intent?.action == "android.media.VOLUME_CHANGED_ACTION" && !isFadingOut) {
+                // GUARD: Hanya proses jika pemantauan sudah aktif
+                if (!isVolumeMonitoringActive || isFadingOut) return
+
+                if (intent?.action == "android.media.VOLUME_CHANGED_ACTION") {
                     val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
+                    // Fokus hanya pada ALARM atau RING
                     if (streamType == AudioManager.STREAM_ALARM || streamType == AudioManager.STREAM_RING) {
-                        val currentVolume = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
-                        if (currentVolume != initialVolume) {
-                            Log.d(TAG, "Volume fisik ditekan, memberhentikan Adzan")
-                            fadeOutAndStop()
-                        }
+                        Log.d(TAG, "Volume fisik ditekan, memberhentikan Adzan")
+                        fadeOutAndStop()
                     }
                 }
             }
         }
         try {
             registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
-        } catch (e: Exception) {
-            Log.e(TAG, "Gagal mendaftarkan volume receiver", e)
-        }
+        } catch (e: Exception) {}
 
+        // Lapisan 2: ContentObserver
         volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
                 super.onChange(selfChange)
-                if (!isFadingOut) {
-                    Log.d(TAG, "Observer Volume sistem bergeser, memberhentikan Adzan")
-                    fadeOutAndStop()
-                }
+                // GUARD: Hanya proses jika pemantauan aktif
+                if (!isVolumeMonitoringActive || isFadingOut) return
+
+                Log.d(TAG, "Observer Volume sistem bergeser, memberhentikan Adzan")
+                fadeOutAndStop()
             }
         }
         try {
+            // FIX: Hanya observasi spesifik pada volume alarm, bukan keseluruhan sistem
             contentResolver.registerContentObserver(
-                android.provider.Settings.System.CONTENT_URI,
+                android.provider.Settings.System.getUriFor("volume_alarm_speaker"),
                 true,
                 volumeObserver!!
             )
-        } catch (e: Exception) {
-            Log.e(TAG, "Gagal mendaftarkan volume observer", e)
-        }
+        } catch (e: Exception) {}
+
+        // =======================================================================
+        // FIX UTAMA: Mencegah Eksekusi Prematur
+        // Memberi waktu 2 detik bagi sistem untuk menyelesaikan set volume awal
+        // sebelum kita mulai "mendengarkan" sentuhan user pada tombol volume.
+        // =======================================================================
+        Handler(Looper.getMainLooper()).postDelayed({
+            isVolumeMonitoringActive = true
+            Log.d(TAG, "Sensor interupsi volume telah diaktifkan")
+        }, 2000)
     }
 
     private fun restoreOriginalVolume() {
@@ -451,6 +456,8 @@ class AdzanService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        isVolumeMonitoringActive = false
 
         volumeReceiver?.let {
             try { unregisterReceiver(it) } catch (e: Exception) {}

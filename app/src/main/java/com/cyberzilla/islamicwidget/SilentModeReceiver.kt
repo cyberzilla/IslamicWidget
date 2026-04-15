@@ -24,10 +24,8 @@ class SilentModeReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             "ACTION_PLAY_ADZAN" -> {
-                // Eksekusi Silent Mode TERLEBIH DAHULU sebelum Adzan dimulai
                 executeMute(context)
 
-                // Jembatan WakeLock 15 detik untuk memastikan Service hidup
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
                 val bridgeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:BridgeLock")
                 bridgeLock.acquire(15 * 1000L)
@@ -35,6 +33,8 @@ class SilentModeReceiver : BroadcastReceiver() {
                 val serviceIntent = Intent(context, AdzanService::class.java).apply {
                     putExtra("IS_SUBUH", intent.getBooleanExtra("IS_SUBUH", false))
                     putExtra("PRAYER_ID", intent.getIntExtra("PRAYER_ID", 0))
+                    // FIX: Teruskan PRAYER_TIME_MILLIS agar Developer Mode dan Alarm asli sinkron
+                    putExtra("PRAYER_TIME_MILLIS", intent.getLongExtra("PRAYER_TIME_MILLIS", 0L))
                 }
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -119,7 +119,6 @@ class SilentModeReceiver : BroadcastReceiver() {
         val currentRingerMode = audioManager.ringerMode
         val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
-        // SELF-HEALING
         if (isMutedByApp && currentRingerMode == AudioManager.RINGER_MODE_NORMAL) {
             isMutedByApp = false
             prefs.edit().putBoolean("IS_MUTED_BY_APP", false).apply()
