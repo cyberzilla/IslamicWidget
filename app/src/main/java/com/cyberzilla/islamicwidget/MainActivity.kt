@@ -53,6 +53,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.time.ExperimentalTime
+import com.cyberzilla.islamicwidget.BuildConfig
 
 @OptIn(ExperimentalTime::class)
 class MainActivity : AppCompatActivity() {
@@ -150,8 +151,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         //Developer Mode
-        val devModeHelper = DeveloperModeHelper(this)
-        devModeHelper.setup()
+        val devModeLayout = findViewById<View>(R.id.layoutDeveloperMode)
+
+        // =======================================================================
+        // GERBANG KEAMANAN: Cek Tipe Build (Debug vs Release)
+        // =======================================================================
+        if (BuildConfig.DEBUG) {
+            // Jika sedang di-run/build melalui tombol Play hijau (Debug)
+            // 1. Munculkan UI Developer Mode
+            devModeLayout.visibility = View.VISIBLE
+
+            // 2. Aktifkan logika Slider dan Tombolnya
+            val devModeHelper = DeveloperModeHelper(this)
+            devModeHelper.setup()
+        } else {
+            // Jika sedang di-build menjadi APK Release (Generate Signed APK/Bundle)
+            // Pastikan UI musnah dari layar dan jangan panggil Helper-nya
+            devModeLayout.visibility = View.GONE
+        }
 
         checkBatteryOptimizations()
         UpdateHelper.checkForUpdates(this)
