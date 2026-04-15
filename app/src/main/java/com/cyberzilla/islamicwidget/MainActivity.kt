@@ -149,6 +149,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //Developer Mode
+        val devModeHelper = DeveloperModeHelper(this)
+        devModeHelper.setup()
+
         checkBatteryOptimizations()
         UpdateHelper.checkForUpdates(this)
 
