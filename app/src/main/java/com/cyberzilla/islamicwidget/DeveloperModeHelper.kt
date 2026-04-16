@@ -86,6 +86,15 @@ class DeveloperModeHelper(private val activity: Activity) {
         val muteMillis = targetMillis - (beforeMins * 60 * 1000L)
         val unmuteMillis = targetMillis + (afterMins * 60 * 1000L)
 
+        val prefs = activity.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        // =======================================================================
+        // FIX GHOST DATA: Sapu bersih PENDING_UNMUTE saat test baru dijadwalkan
+        // =======================================================================
+        prefs.edit()
+            .putBoolean("IS_TEST_MODE_ACTIVE", true)
+            .putBoolean("PENDING_UNMUTE", false)
+            .apply()
+
         val adzanIntent = Intent(activity, SilentModeReceiver::class.java).apply {
             action = "ACTION_PLAY_ADZAN"
             putExtra("IS_SUBUH", false)
@@ -100,10 +109,6 @@ class DeveloperModeHelper(private val activity: Activity) {
         val unmuteIntent = Intent(activity, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
         val unmutePi = PendingIntent.getBroadcast(activity, 9903, unmuteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-        // =======================================================================
-        // FIX OS PANIC: Menghapus setAlarmClock yang memicu OS membongkar DND.
-        // Kita menyamar menggunakan setExactAndAllowWhileIdle.
-        // =======================================================================
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, targetMillis, adzanPi)
         } else {
@@ -131,6 +136,12 @@ class DeveloperModeHelper(private val activity: Activity) {
 
     private fun cancelDeveloperTest() {
         val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        val prefs = activity.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean("IS_TEST_MODE_ACTIVE", false)
+            .putBoolean("PENDING_UNMUTE", false)
+            .apply()
 
         val adzanIntent = Intent(activity, SilentModeReceiver::class.java).apply { action = "ACTION_PLAY_ADZAN" }
         val muteIntent = Intent(activity, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }

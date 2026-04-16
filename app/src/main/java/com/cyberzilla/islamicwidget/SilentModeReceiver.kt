@@ -23,6 +23,12 @@ class SilentModeReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             "ACTION_PLAY_ADZAN" -> {
+                // =======================================================================
+                // FIX GHOST DATA: Reset status pending sebelum Adzan baru dimulai!
+                // Mencegah DND terhapus prematur saat Adzan diinterupsi.
+                // =======================================================================
+                prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
+
                 executeMute(context)
 
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -120,15 +126,8 @@ class SilentModeReceiver : BroadcastReceiver() {
         }
 
         try {
-            // =======================================================================
-            // FIX TAMPILAN ICON: Menggunakan INTERRUPTION_FILTER_PRIORITY.
-            // Ini adalah level DND yang sama persis dengan menekan tombol manual di
-            // Notification Manager. Hanya memunculkan icon bulan sabit tanpa merusak
-            // Ringer Mode menjadi Vibrate (tanpa lonceng tercoret).
-            // =======================================================================
             if (notificationManager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
                 notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
-                Log.d(TAG, "DND 'Priority' berhasil diaktifkan. Hanya Moon Icon yang muncul.")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Gagal mengaktifkan DND: ${e.message}")
@@ -162,6 +161,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                 .putBoolean("IS_MUTED_BY_APP_DND", false)
                 .putBoolean("IS_MUTED_BY_APP_RINGER", false)
                 .putBoolean("PENDING_UNMUTE", false)
+                .putBoolean("IS_TEST_MODE_ACTIVE", false)
                 .apply()
         }
     }

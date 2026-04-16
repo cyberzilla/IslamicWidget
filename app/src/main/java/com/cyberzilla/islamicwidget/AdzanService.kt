@@ -148,10 +148,6 @@ class AdzanService : Service() {
             .setDeleteIntent(stopPendingIntent)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_MAX)
-            // =======================================================================
-            // FIX KAMUFLASE NOTIFIKASI: Gunakan CATEGORY_EVENT alih-alih CATEGORY_ALARM
-            // Mencegah Android OS mereset DND ketika notifikasi diinterupsi/di-swipe.
-            // =======================================================================
             .setCategory(NotificationCompat.CATEGORY_EVENT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(false)
@@ -238,10 +234,14 @@ class AdzanService : Service() {
                     } catch (e: Exception) {}
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                    try { mediaPlayer?.setVolume(0.1f, 0.1f) } catch (e: Exception) {}
+                    // =======================================================================
+                    // FIX ADZAN TERPOTONG KETIKA SCREEN OFF: Jangan ubah apapun.
+                    // Jika OS mencuri audio sementara karena Screen-Off Sound, biarkan saja.
+                    // =======================================================================
+                    Log.d(TAG, "Audio focus transient loss diabaikan (Proteksi Screen Off)")
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                    try { mediaPlayer?.setVolume(0.1f, 0.1f) } catch (e: Exception) {}
+                    Log.d(TAG, "Audio focus duck diabaikan")
                 }
                 AudioManager.AUDIOFOCUS_LOSS -> {
                     fadeOutAndStop()
@@ -379,8 +379,16 @@ class AdzanService : Service() {
                 if (intent?.action == "android.media.VOLUME_CHANGED_ACTION" && !isFadingOut) {
                     val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
                     if (streamType == AudioManager.STREAM_ALARM || streamType == AudioManager.STREAM_RING) {
-                        Log.d(TAG, "Deteksi perubahan Stream via Broadcast. Stop Adzan.")
-                        fadeOutAndStop()
+                        // =======================================================================
+                        // FIX ADZAN TERPOTONG KETIKA SCREEN OFF
+                        // Wajib mengecek apakah angka volume aktual BENAR-BENAR bergeser, karena
+                        // OS Android mengirim broadcast palsu ini ketika Screen Off / Rerouting audio!
+                        // =======================================================================
+                        val currentVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
+                        if (currentVol != initialAlarmVolume && currentVol != -1) {
+                            Log.d(TAG, "Deteksi perubahan Stream aktual via Broadcast. Stop Adzan.")
+                            fadeOutAndStop()
+                        }
                     }
                 }
             }
