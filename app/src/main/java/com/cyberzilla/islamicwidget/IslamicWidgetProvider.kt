@@ -199,9 +199,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 Triple(todayPT.isha.asDate(), tomorrowPT.isha.asDate(), 5),
             )
 
-            // =======================================================================
-            // FIX LOGIKA LOOP ZONA 1 TRAP: Evaluasi status Mute secara Global!
-            // =======================================================================
             var isInsideAnySilentWindow = false
 
             for ((todayTime, tomorrowTime, id) in prayerPairs) {
@@ -335,6 +332,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val isFriday = today.dayOfWeek == DayOfWeek.FRIDAY
 
             views.setTextViewText(R.id.label_fajr, localizedContext.getString(R.string.fajr))
+            // Teks diset awal berdasarkan hari Gregorian
             views.setTextViewText(R.id.label_dhuhr, if (isFriday) localizedContext.getString(R.string.friday) else localizedContext.getString(R.string.dhuhr))
             views.setTextViewText(R.id.label_asr, localizedContext.getString(R.string.asr))
             views.setTextViewText(R.id.label_maghrib, localizedContext.getString(R.string.maghrib))
@@ -393,9 +391,14 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     val qibla = Qibla(Coordinates(lat, lon))
 
                     val currentTime = Date()
+                    val maghribTime = prayerTimes.maghrib.asDate()
+
+                    if (isFriday && currentTime.after(maghribTime)) {
+                        views.setTextViewText(R.id.label_dhuhr, localizedContext.getString(R.string.dhuhr))
+                    }
+
                     var isAfterMaghrib = false
                     if (settings.isDayStartAtMaghrib) {
-                        val maghribTime = prayerTimes.maghrib.asDate()
                         if (currentTime.after(maghribTime)) {
                             totalHijriOffset += 1L
                             isAfterMaghrib = true
