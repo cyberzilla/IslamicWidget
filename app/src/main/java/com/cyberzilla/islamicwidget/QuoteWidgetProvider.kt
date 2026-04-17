@@ -28,7 +28,6 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        // Tampilkan Shimmer dahulu saat pertama kali dirender
         showShimmer(context, appWidgetManager, appWidgetIds)
 
         Handler(Looper.getMainLooper()).postDelayed({
@@ -44,13 +43,11 @@ class QuoteWidgetProvider : AppWidgetProvider() {
 
         when (intent.action) {
             ACTION_RANDOM_QUOTE -> {
-                // Tampilkan Shimmer sebelum data baru di-load
                 showShimmer(context, appWidgetManager, appWidgetIds)
 
                 Handler(Looper.getMainLooper()).postDelayed({
                     updateAllWidgets(context, appWidgetManager, appWidgetIds)
 
-                    // Jadwalkan ulang rantai interval agar akurat
                     val settings = SettingsManager(context)
                     val interval = settings.quoteUpdateInterval
                     if (interval > 0) {
@@ -81,8 +78,8 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     private fun showShimmer(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_quotes)
-            // Index 0 adalah layout Skeleton/Shimmer
-            views.setDisplayedChild(R.id.quote_flipper, 0)
+            // --- INDEX 1 ADALAH SHIMMER SEKARANG ---
+            views.setDisplayedChild(R.id.quote_flipper, 1)
             appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
         }
     }
@@ -102,15 +99,16 @@ class QuoteWidgetProvider : AppWidgetProvider() {
 
         val alphaValue = settingsManager.quoteBgAlpha
 
-        // Karena index 0 adalah Shimmer, kita hanya merotasi index 1 dan 2 untuk konten
+        // --- LOGIKA ROTASI BARU (Lompati Index 1) ---
         var currentChild = settingsManager.quoteDisplayedChild
-        if (currentChild < 1) currentChild = 1 // Perlindungan jika dari state default
+        if (currentChild == 1) currentChild = 0
 
-        val nextChild = if (currentChild == 1) 2 else 1
+        val nextChild = if (currentChild == 0) 2 else 0
         settingsManager.quoteDisplayedChild = nextChild
 
-        val tvQuoteId = if (nextChild == 1) R.id.tv_quote_text_0 else R.id.tv_quote_text_1
-        val tvRefId = if (nextChild == 1) R.id.tv_quote_reference_0 else R.id.tv_quote_reference_1
+        val tvQuoteId = if (nextChild == 0) R.id.tv_quote_text_0 else R.id.tv_quote_text_1
+        val tvRefId = if (nextChild == 0) R.id.tv_quote_reference_0 else R.id.tv_quote_reference_1
+        // --------------------------------------------
 
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_quotes)
@@ -124,7 +122,6 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             views.setTextViewTextSize(tvQuoteId, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fontSize))
             views.setTextViewTextSize(tvRefId, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, refFontSize))
 
-            // Crossfade memudar dari Shimmer (0) menuju teks baru (1 atau 2)
             views.setDisplayedChild(R.id.quote_flipper, nextChild)
 
             views.setContentDescription(R.id.btn_share_quote, context.getString(R.string.quote_desc_share))

@@ -41,9 +41,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val TAG = "IslamicWidget"
-        // State Index untuk ViewFlipper
-        private const val STATE_LOADING = 0
-        private const val STATE_NORMAL = 1
+        // --- INDEX BARU (0 = Normal, 1 = Shimmer, 2 = Adzan) ---
+        private const val STATE_NORMAL = 0
+        private const val STATE_LOADING = 1
         private const val STATE_ADZAN = 2
     }
 
@@ -58,9 +58,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        // =======================================================================
-        // EVENT 1: TRANSISI ADZAN (Triggered by System/Service)
-        // =======================================================================
         if (intent.action == "com.cyberzilla.islamicwidget.ACTION_UPDATE_ADZAN_STATE") {
             val appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) ?: return
             val appWidgetManager = AppWidgetManager.getInstance(context)
@@ -74,7 +71,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_islamic)
 
-                // TRANSISI ELEGAN: Berpindah dari 1 (Normal) ke 2 (Adzan) atau sebaliknya
                 val targetState = if (settings.isAdzanPlaying) STATE_ADZAN else STATE_NORMAL
                 views.setDisplayedChild(R.id.master_flipper, targetState)
 
@@ -91,21 +87,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        // =======================================================================
-        // EVENT 2: MANUAL REFRESH (Penyegaran dengan efek Shimmer/Skeleton)
-        // =======================================================================
         if (intent.action == "com.cyberzilla.islamicwidget.ACTION_FORCE_REFRESH") {
             val appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) ?: return
             val appWidgetManager = AppWidgetManager.getInstance(context)
 
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_islamic)
-                // Lempar ke State 0 (Skeleton Loader)
                 views.setDisplayedChild(R.id.master_flipper, STATE_LOADING)
                 appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
             }
 
-            // Tahan selama 600ms agar user melihat efek loading yang mulus, lalu proses data baru
             Handler(Looper.getMainLooper()).postDelayed({
                 onUpdate(context, appWidgetManager, appWidgetIds)
             }, 600)
@@ -135,7 +126,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     override fun onAppWidgetOptionsChanged(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, newOptions: Bundle) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
 
-        // Munculkan skeleton saat user me-resize widget
         val views = RemoteViews(context.packageName, R.layout.widget_islamic)
         views.setDisplayedChild(R.id.master_flipper, STATE_LOADING)
         appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
@@ -261,13 +251,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             if (isInsideAnySilentWindow) {
                 if (!(currentlyMutedDnd || currentlyMutedRinger) && settings.isAutoSilentEnabled && !isTestMode) {
-                    Log.d(TAG, "Global Check: Berada di dalam jendela silent. Memaksa MUTE aktif!")
                     val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
                     context.sendBroadcast(muteIntent)
                 }
             } else {
                 if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode) {
-                    Log.d(TAG, "Global Check: HP Tersandera padahal semua jendela silent telah lewat. Memaksa UNMUTE!")
                     val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
                     context.sendBroadcast(unmuteIntent)
                 }
@@ -338,15 +326,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val txtLastThird = localizedContext.getString(R.string.last_third)
         val txtQibla = localizedContext.getString(R.string.qibla)
 
-        // Terapkan ukuran Font ke View
         applyFontSizesToNormalMode(context, views, settings)
 
-        // Deklarasi fsAdd yang dibutuhkan untuk komponen tambahan dinamis
         val fsAdd = settings.fontSizeAdditional.toFloat()
 
-        // =======================================================================
-        // APLIKASIKAN STATE SETELAH SEMUA DATA SELESAI DIHITUNG
-        // =======================================================================
         val targetState = if (settings.isAdzanPlaying) STATE_ADZAN else STATE_NORMAL
         views.setDisplayedChild(R.id.master_flipper, targetState)
 
@@ -398,7 +381,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val compassPendingIntent = PendingIntent.getActivity(context, appWidgetId, compassIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             views.setOnClickPendingIntent(R.id.tv_qibla, compassPendingIntent)
 
-            // INTERAKTIVITAS: Fungsi Shimmer Reload Manual
             val forceRefreshIntent = Intent(context, IslamicWidgetProvider::class.java).apply {
                 action = "com.cyberzilla.islamicwidget.ACTION_FORCE_REFRESH"
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
@@ -418,9 +400,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     val currentTime = Date()
                     val maghribTime = prayerTimes.maghrib.asDate()
 
-                    // =======================================================================
-                    // UX FIX: Pemulihan Teks Jumat menjadi Dzuhur setelah lewat Maghrib
-                    // =======================================================================
                     if (isFriday && currentTime.after(maghribTime)) {
                         views.setTextViewText(R.id.label_dhuhr, localizedContext.getString(R.string.dhuhr))
                     }
