@@ -16,6 +16,8 @@ import android.graphics.RectF
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.format.DateFormat
 import android.util.Log
 import android.util.TypedValue
@@ -39,6 +41,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val TAG = "IslamicWidget"
+        // State Index untuk ViewFlipper
+        private const val STATE_LOADING = 0
+        private const val STATE_NORMAL = 1
+        private const val STATE_ADZAN = 2
     }
 
     private fun dpToPx(context: Context, dp: Float): Float {
@@ -51,65 +57,95 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
+
+        // =======================================================================
+        // EVENT 1: TRANSISI ADZAN (Triggered by System/Service)
+        // =======================================================================
         if (intent.action == "com.cyberzilla.islamicwidget.ACTION_UPDATE_ADZAN_STATE") {
             val appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) ?: return
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val settings = SettingsManager(context)
 
-            val fsClock = settings.fontSizeClock.toFloat()
-            val fsDate = settings.fontSizeDate.toFloat()
             val fsPrayer = settings.fontSizePrayer.toFloat()
             val fsAdd = settings.fontSizeAdditional.toFloat()
-
             val fsInfoTitle = fsPrayer + 4f
             val fsInfoSub = fsAdd + 1f
 
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_islamic)
-                views.setDisplayedChild(R.id.master_flipper, if (settings.isAdzanPlaying) 1 else 0)
 
-                if (!settings.isAdzanPlaying) {
-                    views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsClock))
-                    views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate - 2f))
-                    views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate))
+                // TRANSISI ELEGAN: Berpindah dari 1 (Normal) ke 2 (Adzan) atau sebaliknya
+                val targetState = if (settings.isAdzanPlaying) STATE_ADZAN else STATE_NORMAL
+                views.setDisplayedChild(R.id.master_flipper, targetState)
 
-                    val textViewsToResize = listOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
-                    for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer - 2f)) }
-
-                    val timeViewsToResize = listOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
-                    for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer)) }
-
-                    val additionalTextIds = listOf(
-                        R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2
-                    )
-                    for (id in additionalTextIds) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd)) }
-                } else {
+                if (settings.isAdzanPlaying) {
                     views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
                     views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
                     views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
                     views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoSub))
+                } else {
+                    applyFontSizesToNormalMode(context, views, settings)
                 }
 
                 appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
             }
         }
+
+        // =======================================================================
+        // EVENT 2: MANUAL REFRESH (Penyegaran dengan efek Shimmer/Skeleton)
+        // =======================================================================
+        if (intent.action == "com.cyberzilla.islamicwidget.ACTION_FORCE_REFRESH") {
+            val appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) ?: return
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+
+            for (appWidgetId in appWidgetIds) {
+                val views = RemoteViews(context.packageName, R.layout.widget_islamic)
+                // Lempar ke State 0 (Skeleton Loader)
+                views.setDisplayedChild(R.id.master_flipper, STATE_LOADING)
+                appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+            }
+
+            // Tahan selama 600ms agar user melihat efek loading yang mulus, lalu proses data baru
+            Handler(Looper.getMainLooper()).postDelayed({
+                onUpdate(context, appWidgetManager, appWidgetIds)
+            }, 600)
+        }
     }
 
-    override fun onAppWidgetOptionsChanged(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        newOptions: Bundle
-    ) {
+    private fun applyFontSizesToNormalMode(context: Context, views: RemoteViews, settings: SettingsManager) {
+        val fsClock = settings.fontSizeClock.toFloat()
+        val fsDate = settings.fontSizeDate.toFloat()
+        val fsPrayer = settings.fontSizePrayer.toFloat()
+        val fsAdd = settings.fontSizeAdditional.toFloat()
+
+        views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsClock))
+        views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate - 2f))
+        views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate))
+
+        val textViewsToResize = listOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
+        for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer - 2f)) }
+
+        val timeViewsToResize = listOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
+        for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer)) }
+
+        val additionalTextIds = listOf(R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2)
+        for (id in additionalTextIds) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd)) }
+    }
+
+    override fun onAppWidgetOptionsChanged(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, newOptions: Bundle) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-        updateAppWidget(context, appWidgetManager, appWidgetId)
+
+        // Munculkan skeleton saat user me-resize widget
+        val views = RemoteViews(context.packageName, R.layout.widget_islamic)
+        views.setDisplayedChild(R.id.master_flipper, STATE_LOADING)
+        appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            updateAppWidget(context, appWidgetManager, appWidgetId)
+        }, 300)
     }
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         UpdateHelper.checkForUpdates(context)
         scheduleAllPrayers(context)
 
@@ -302,29 +338,24 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val txtLastThird = localizedContext.getString(R.string.last_third)
         val txtQibla = localizedContext.getString(R.string.qibla)
 
-        val fsClock = settings.fontSizeClock.toFloat()
-        val fsDate = settings.fontSizeDate.toFloat()
-        val fsPrayer = settings.fontSizePrayer.toFloat()
+        // Terapkan ukuran Font ke View
+        applyFontSizesToNormalMode(context, views, settings)
+
+        // Deklarasi fsAdd yang dibutuhkan untuk komponen tambahan dinamis
         val fsAdd = settings.fontSizeAdditional.toFloat()
 
-        val fsInfoTitle = fsPrayer + 4f
-        val fsInfoSub = fsAdd + 1f
+        // =======================================================================
+        // APLIKASIKAN STATE SETELAH SEMUA DATA SELESAI DIHITUNG
+        // =======================================================================
+        val targetState = if (settings.isAdzanPlaying) STATE_ADZAN else STATE_NORMAL
+        views.setDisplayedChild(R.id.master_flipper, targetState)
 
         if (settings.isAdzanPlaying) {
-            views.setDisplayedChild(R.id.master_flipper, 1)
-
-            views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
-            views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
-            views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
-            views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoSub))
-
             views.setTextViewText(R.id.tv_info_adzan_1, localizedContext.getString(R.string.info_adzan_1))
             views.setTextViewText(R.id.tv_info_adzan_2, localizedContext.getString(R.string.info_adzan_2))
             views.setTextViewText(R.id.tv_info_adzan_3, localizedContext.getString(R.string.info_adzan_3))
             views.setTextViewText(R.id.tv_info_sub, localizedContext.getString(R.string.info_adzan_sub))
         } else {
-            views.setDisplayedChild(R.id.master_flipper, 0)
-
             views.setViewVisibility(R.id.container_clock, if (settings.showClock) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.container_date, if (settings.showDate) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.container_prayer, if (settings.showPrayer) View.VISIBLE else View.GONE)
@@ -332,33 +363,19 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val isFriday = today.dayOfWeek == DayOfWeek.FRIDAY
 
             views.setTextViewText(R.id.label_fajr, localizedContext.getString(R.string.fajr))
-            // Teks diset awal berdasarkan hari Gregorian
             views.setTextViewText(R.id.label_dhuhr, if (isFriday) localizedContext.getString(R.string.friday) else localizedContext.getString(R.string.dhuhr))
             views.setTextViewText(R.id.label_asr, localizedContext.getString(R.string.asr))
             views.setTextViewText(R.id.label_maghrib, localizedContext.getString(R.string.maghrib))
             views.setTextViewText(R.id.label_isha, localizedContext.getString(R.string.isha))
-
-            views.setTextViewTextSize(R.id.clock_widget, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsClock))
-            views.setTextViewTextSize(R.id.tv_gregorian_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate - 2f))
-            views.setTextViewTextSize(R.id.tv_hijri_date, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsDate))
-
-            val textViewsToResize = listOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
-            for (id in textViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer - 2f)) }
-
-            val timeViewsToResize = listOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
-            for (id in timeViewsToResize) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsPrayer)) }
 
             val textColor = try { Color.parseColor(settings.widgetTextColor) } catch (e: Exception) { Color.WHITE }
             views.setTextColor(R.id.clock_widget, textColor)
             views.setTextColor(R.id.tv_gregorian_date, textColor)
             views.setTextColor(R.id.tv_hijri_date, textColor)
 
-            val additionalTextIds = listOf(
-                R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2
-            )
+            val additionalTextIds = listOf(R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2)
             for (id in additionalTextIds) {
                 views.setTextColor(id, textColor)
-                views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
             }
 
             if (is24Hour) {
@@ -381,6 +398,14 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val compassPendingIntent = PendingIntent.getActivity(context, appWidgetId, compassIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             views.setOnClickPendingIntent(R.id.tv_qibla, compassPendingIntent)
 
+            // INTERAKTIVITAS: Fungsi Shimmer Reload Manual
+            val forceRefreshIntent = Intent(context, IslamicWidgetProvider::class.java).apply {
+                action = "com.cyberzilla.islamicwidget.ACTION_FORCE_REFRESH"
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
+            }
+            val refreshPendingIntent = PendingIntent.getBroadcast(context, appWidgetId + 9999, forceRefreshIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            views.setOnClickPendingIntent(R.id.widget_bg, refreshPendingIntent)
+
             if (latString != null && lonString != null) {
                 try {
                     val lat = latString.toDouble()
@@ -393,6 +418,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     val currentTime = Date()
                     val maghribTime = prayerTimes.maghrib.asDate()
 
+                    // =======================================================================
+                    // UX FIX: Pemulihan Teks Jumat menjadi Dzuhur setelah lewat Maghrib
+                    // =======================================================================
                     if (isFriday && currentTime.after(maghribTime)) {
                         views.setTextViewText(R.id.label_dhuhr, localizedContext.getString(R.string.dhuhr))
                     }
@@ -489,7 +517,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                                     quoteView.setTextViewText(R.id.tv_item_text, currentSlideText)
                                     quoteView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
                                     quoteView.setTextColor(R.id.tv_item_text, Color.parseColor("#81D4FA"))
-
                                     val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                                     quoteView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
                                     views.addView(R.id.container_additional_flipper, quoteView)

@@ -14,8 +14,42 @@
         android:id="@+id/master_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:inAnimation="@android:anim/fade_in">
+        android:inAnimation="@android:anim/fade_in"
+        android:outAnimation="@android:anim/fade_out"> <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:gravity="center">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="12dp">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="35dp"
+                android:background="@drawable/bg_skeleton"
+                android:layout_marginEnd="16dp"
+                android:importantForAccessibility="no" />
+
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="20dp"
+                android:background="@drawable/bg_skeleton"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_skeleton"
+            android:layout_marginHorizontal="12dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"

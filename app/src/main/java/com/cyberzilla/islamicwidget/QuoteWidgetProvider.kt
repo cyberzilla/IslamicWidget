@@ -7,6 +7,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.util.TypedValue
 import android.widget.RemoteViews
 
@@ -26,7 +28,12 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        updateAllWidgets(context, appWidgetManager, appWidgetIds)
+        // Tampilkan Shimmer dahulu saat pertama kali dirender
+        showShimmer(context, appWidgetManager, appWidgetIds)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            updateAllWidgets(context, appWidgetManager, appWidgetIds)
+        }, 500)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -37,16 +44,19 @@ class QuoteWidgetProvider : AppWidgetProvider() {
 
         when (intent.action) {
             ACTION_RANDOM_QUOTE -> {
-                updateAllWidgets(context, appWidgetManager, appWidgetIds)
+                // Tampilkan Shimmer sebelum data baru di-load
+                showShimmer(context, appWidgetManager, appWidgetIds)
 
-                // BUG FIX #10 (chain alarm): Setelah alarm terpicu dan widget di-update,
-                // jadwalkan alarm berikutnya agar pola "chain exact alarm" terjaga.
-                // Ini menggantikan peran setRepeating() yang tidak exact di Android 6+.
-                val settings = SettingsManager(context)
-                val interval = settings.quoteUpdateInterval
-                if (interval > 0) {
-                    QuoteUpdateManager.setAutoUpdate(context, interval)
-                }
+                Handler(Looper.getMainLooper()).postDelayed({
+                    updateAllWidgets(context, appWidgetManager, appWidgetIds)
+
+                    // Jadwalkan ulang rantai interval agar akurat
+                    val settings = SettingsManager(context)
+                    val interval = settings.quoteUpdateInterval
+                    if (interval > 0) {
+                        QuoteUpdateManager.setAutoUpdate(context, interval)
+                    }
+                }, 500)
             }
             ACTION_SHARE_QUOTE -> {
                 val quote = intent.getStringExtra("EXTRA_QUOTE") ?: return
@@ -68,6 +78,15 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    private fun showShimmer(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        for (appWidgetId in appWidgetIds) {
+            val views = RemoteViews(context.packageName, R.layout.widget_quotes)
+            // Index 0 adalah layout Skeleton/Shimmer
+            views.setDisplayedChild(R.id.quote_flipper, 0)
+            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
+        }
+    }
+
     private fun updateAllWidgets(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         if (appWidgetIds.isEmpty()) return
 
@@ -83,12 +102,15 @@ class QuoteWidgetProvider : AppWidgetProvider() {
 
         val alphaValue = settingsManager.quoteBgAlpha
 
-        val currentChild = settingsManager.quoteDisplayedChild
-        val nextChild = if (currentChild == 0) 1 else 0
+        // Karena index 0 adalah Shimmer, kita hanya merotasi index 1 dan 2 untuk konten
+        var currentChild = settingsManager.quoteDisplayedChild
+        if (currentChild < 1) currentChild = 1 // Perlindungan jika dari state default
+
+        val nextChild = if (currentChild == 1) 2 else 1
         settingsManager.quoteDisplayedChild = nextChild
 
-        val tvQuoteId = if (nextChild == 0) R.id.tv_quote_text_0 else R.id.tv_quote_text_1
-        val tvRefId = if (nextChild == 0) R.id.tv_quote_reference_0 else R.id.tv_quote_reference_1
+        val tvQuoteId = if (nextChild == 1) R.id.tv_quote_text_0 else R.id.tv_quote_text_1
+        val tvRefId = if (nextChild == 1) R.id.tv_quote_reference_0 else R.id.tv_quote_reference_1
 
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_quotes)
@@ -102,6 +124,7 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             views.setTextViewTextSize(tvQuoteId, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fontSize))
             views.setTextViewTextSize(tvRefId, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, refFontSize))
 
+            // Crossfade memudar dari Shimmer (0) menuju teks baru (1 atau 2)
             views.setDisplayedChild(R.id.quote_flipper, nextChild)
 
             views.setContentDescription(R.id.btn_share_quote, context.getString(R.string.quote_desc_share))
