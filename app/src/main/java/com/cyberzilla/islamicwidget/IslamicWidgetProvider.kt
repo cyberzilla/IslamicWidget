@@ -41,7 +41,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val TAG = "IslamicWidget"
-        // INDEX STATE VIEWFLIPPER
         private const val STATE_NORMAL = 0
         private const val STATE_LOADING = 1
         private const val STATE_ADZAN = 2
@@ -115,9 +114,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         for (id in additionalTextIds) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd)) }
     }
 
-    // =======================================================================
-    // FIX: FUNGSI BARU UNTUK MENJAGA UKURAN FONT ADZAN TETAP BESAR & DINAMIS
-    // =======================================================================
     private fun applyFontSizesToAdzanMode(context: Context, views: RemoteViews, settings: SettingsManager) {
         val fsPrayer = settings.fontSizePrayer.toFloat()
         val fsAdd = settings.fontSizeAdditional.toFloat()
@@ -326,6 +322,27 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         val latString = settings.latitude
         val lonString = settings.longitude
+
+        // =======================================================================
+        // FIX: KALKULASI HIJRIYAH DIPINDAH KE ZONA AMAN (LUAR BLOK ADZAN)
+        // Agar Icon Launcher selalu menerima data yang telah terkoreksi!
+        // =======================================================================
+        if (latString != null && lonString != null) {
+            try {
+                val lat = latString.toDouble()
+                val lon = lonString.toDouble()
+                val pt = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
+                if (settings.isDayStartAtMaghrib && Date().after(pt.maghrib.asDate())) {
+                    totalHijriOffset += 1L
+                }
+            } catch (e: Exception) {}
+        }
+
+        if (totalHijriOffset != 0L) {
+            hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
+        }
+        // =======================================================================
+
         val is24Hour = DateFormat.is24HourFormat(context)
         val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
 
@@ -333,7 +350,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val txtLastThird = localizedContext.getString(R.string.last_third)
         val txtQibla = localizedContext.getString(R.string.qibla)
 
-        // Panggil fungsi resize agar ukurannya teraplikasikan dengan aman
         applyFontSizesToNormalMode(context, views, settings)
 
         val fsAdd = settings.fontSizeAdditional.toFloat()
@@ -342,9 +358,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         views.setDisplayedChild(R.id.master_flipper, targetState)
 
         if (settings.isAdzanPlaying) {
-            // =======================================================================
-            // FIX: PASTIKAN FONT SIZE ADZAN DIAPLIKASIKAN SAAT UPDATE
-            // =======================================================================
             applyFontSizesToAdzanMode(context, views, settings)
 
             views.setTextViewText(R.id.tv_info_adzan_1, localizedContext.getString(R.string.info_adzan_1))
@@ -420,7 +433,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     var isAfterMaghrib = false
                     if (settings.isDayStartAtMaghrib) {
                         if (currentTime.after(maghribTime)) {
-                            totalHijriOffset += 1L
                             isAfterMaghrib = true
                         }
                     }
@@ -463,8 +475,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     }
 
                     scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), prayerTimes.fajr.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
-
-                    if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
                     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                     val currentVersionName = packageInfo.versionName ?: "1.0"
@@ -509,6 +519,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                                     quoteView.setTextViewText(R.id.tv_item_text, currentSlideText)
                                     quoteView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
                                     quoteView.setTextColor(R.id.tv_item_text, Color.parseColor("#81D4FA"))
+
                                     val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                                     quoteView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
                                     views.addView(R.id.container_additional_flipper, quoteView)
@@ -558,11 +569,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 } catch (e: Exception) {
                     Log.e(TAG, "Error update widget", e)
                 }
-            } else {
-                if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
             }
         }
 
+        // =======================================================================
+        // EKSEKUSI ICON DI SINI (Tanggal sudah fix dikoreksi dari atas)
+        // =======================================================================
         try {
             val hDayOfMonth = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
