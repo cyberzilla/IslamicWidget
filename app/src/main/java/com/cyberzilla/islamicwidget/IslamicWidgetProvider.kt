@@ -41,7 +41,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val TAG = "IslamicWidget"
-        // --- INDEX BARU (0 = Normal, 1 = Shimmer, 2 = Adzan) ---
+        // INDEX STATE VIEWFLIPPER
         private const val STATE_NORMAL = 0
         private const val STATE_LOADING = 1
         private const val STATE_ADZAN = 2
@@ -63,11 +63,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val settings = SettingsManager(context)
 
-            val fsPrayer = settings.fontSizePrayer.toFloat()
-            val fsAdd = settings.fontSizeAdditional.toFloat()
-            val fsInfoTitle = fsPrayer + 4f
-            val fsInfoSub = fsAdd + 1f
-
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_islamic)
 
@@ -75,10 +70,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 views.setDisplayedChild(R.id.master_flipper, targetState)
 
                 if (settings.isAdzanPlaying) {
-                    views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
-                    views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
-                    views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
-                    views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoSub))
+                    applyFontSizesToAdzanMode(context, views, settings)
                 } else {
                     applyFontSizesToNormalMode(context, views, settings)
                 }
@@ -121,6 +113,21 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         val additionalTextIds = listOf(R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2)
         for (id in additionalTextIds) { views.setTextViewTextSize(id, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd)) }
+    }
+
+    // =======================================================================
+    // FIX: FUNGSI BARU UNTUK MENJAGA UKURAN FONT ADZAN TETAP BESAR & DINAMIS
+    // =======================================================================
+    private fun applyFontSizesToAdzanMode(context: Context, views: RemoteViews, settings: SettingsManager) {
+        val fsPrayer = settings.fontSizePrayer.toFloat()
+        val fsAdd = settings.fontSizeAdditional.toFloat()
+        val fsInfoTitle = fsPrayer + 4f
+        val fsInfoSub = fsAdd + 1f
+
+        views.setTextViewTextSize(R.id.tv_info_adzan_1, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+        views.setTextViewTextSize(R.id.tv_info_adzan_2, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+        views.setTextViewTextSize(R.id.tv_info_adzan_3, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoTitle))
+        views.setTextViewTextSize(R.id.tv_info_sub, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsInfoSub))
     }
 
     override fun onAppWidgetOptionsChanged(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, newOptions: Bundle) {
@@ -326,6 +333,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val txtLastThird = localizedContext.getString(R.string.last_third)
         val txtQibla = localizedContext.getString(R.string.qibla)
 
+        // Panggil fungsi resize agar ukurannya teraplikasikan dengan aman
         applyFontSizesToNormalMode(context, views, settings)
 
         val fsAdd = settings.fontSizeAdditional.toFloat()
@@ -334,6 +342,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         views.setDisplayedChild(R.id.master_flipper, targetState)
 
         if (settings.isAdzanPlaying) {
+            // =======================================================================
+            // FIX: PASTIKAN FONT SIZE ADZAN DIAPLIKASIKAN SAAT UPDATE
+            // =======================================================================
+            applyFontSizesToAdzanMode(context, views, settings)
+
             views.setTextViewText(R.id.tv_info_adzan_1, localizedContext.getString(R.string.info_adzan_1))
             views.setTextViewText(R.id.tv_info_adzan_2, localizedContext.getString(R.string.info_adzan_2))
             views.setTextViewText(R.id.tv_info_adzan_3, localizedContext.getString(R.string.info_adzan_3))
