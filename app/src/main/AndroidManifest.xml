@@ -165,7 +165,7 @@
 
         <receiver
             android:name=".SilentModeReceiver"
-            android:exported="true" />
+            android:exported="false" />
 
         <service
             android:name=".AdzanService"

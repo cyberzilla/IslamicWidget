@@ -314,7 +314,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         canvas.drawRoundRect(rectF, radiusPx, radiusPx, paint)
         views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
         appWidgetManager.updateAppWidget(appWidgetId, views)
-        try { bgBitmap.recycle() } catch (e: Exception) {}
+        // FIX A1: Dihapus bgBitmap.recycle() — menyebabkan race condition.
+        // RemoteViews melakukan internal copy saat serialisasi. Biarkan GC yang handle.
 
         val today = LocalDate.now()
         var hijriDate = HijrahDate.from(today)
@@ -327,12 +328,18 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         // FIX: KALKULASI HIJRIYAH DIPINDAH KE ZONA AMAN (LUAR BLOK ADZAN)
         // Agar Icon Launcher selalu menerima data yang telah terkoreksi!
         // =======================================================================
+        // FIX A3: Cache prayer times — dihitung SEKALI di sini, dipakai untuk hijri check DAN display.
+        // Sebelumnya dihitung 3-4x redundan per widget update.
+        var cachedPrayerTimes: com.batoulapps.adhan2.PrayerTimes? = null
+        var cachedLat = 0.0
+        var cachedLon = 0.0
+
         if (latString != null && lonString != null) {
             try {
-                val lat = latString.toDouble()
-                val lon = lonString.toDouble()
-                val pt = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
-                if (settings.isDayStartAtMaghrib && Date().after(pt.maghrib.asDate())) {
+                cachedLat = latString.toDouble()
+                cachedLon = lonString.toDouble()
+                cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
+                if (settings.isDayStartAtMaghrib && Date().after(cachedPrayerTimes!!.maghrib.asDate())) {
                     totalHijriOffset += 1L
                 }
             } catch (e: Exception) {}
@@ -414,14 +421,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val refreshPendingIntent = PendingIntent.getBroadcast(context, appWidgetId + 9999, forceRefreshIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             views.setOnClickPendingIntent(R.id.widget_bg, refreshPendingIntent)
 
-            if (latString != null && lonString != null) {
+            if (latString != null && lonString != null && cachedPrayerTimes != null) {
                 try {
-                    val lat = latString.toDouble()
-                    val lon = lonString.toDouble()
-
-                    val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
+                    // FIX A3: Gunakan cached prayer times, bukan hitung ulang
+                    val prayerTimes = cachedPrayerTimes!!
                     val sunnahTimes = SunnahTimes(prayerTimes)
-                    val qibla = Qibla(Coordinates(lat, lon))
+                    val qibla = Qibla(Coordinates(cachedLat, cachedLon))
 
                     val currentTime = Date()
                     val maghribTime = prayerTimes.maghrib.asDate()
@@ -502,7 +507,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                         try {
                             var fullQuote = "Barangsiapa yang menempuh suatu jalan untuk mencari ilmu, maka Allah akan mudahkan baginya jalan menuju surga. (HR. Muslim)"
                             try {
-                                val quoteHelper = QuoteDatabaseHelper(context)
+                                val quoteHelper = QuoteDatabaseHelper.getInstance(context)
                                 val quotePair = quoteHelper.getRandomQuote()
                                 if (quotePair != null) fullQuote = "${quotePair.first} - ${quotePair.second}"
                             } catch (e: Exception) {}

@@ -178,8 +178,77 @@ class SettingsManager(private val context: Context) {
 
         prefs.edit().clear().apply()
 
+        // FIX E5: Restore juga reset ghost DND flags agar tidak stuck silent
+        prefs.edit()
+            .putBoolean("IS_MUTED_BY_APP_DND", false)
+            .putBoolean("IS_MUTED_BY_APP_RINGER", false)
+            .putBoolean("PENDING_UNMUTE", false)
+            .putBoolean("IS_TEST_MODE_ACTIVE", false)
+            .putBoolean("isAdzanPlaying", false)
+            .apply()
+
         latitude = currentLat
         longitude = currentLon
         locationName = currentLocName
+    }
+
+    // =======================================================================
+    // FIX A2: Batch save — menulis SEMUA settings dalam 1 disk I/O operation.
+    // Mencegah data inconsistency dan I/O thrashing dari 30+ individual writes.
+    // =======================================================================
+    fun saveAllSettings(
+        previewScale: Int, calculationMethod: String,
+        showClock: Boolean, showDate: Boolean, showPrayer: Boolean, showAdditional: Boolean,
+        fontSizeClock: Int, fontSizeDate: Int, fontSizePrayer: Int, fontSizeAdditional: Int,
+        widgetBgRadius: Int, hijriOffset: Int,
+        widgetTextColor: String, widgetBgColor: String, isDayStartAtMaghrib: Boolean,
+        dateFormat: String, hijriFormat: String,
+        isAutoSilentEnabled: Boolean,
+        fajrBefore: Int, fajrAfter: Int, dhuhrBefore: Int, dhuhrAfter: Int,
+        fridayBefore: Int, fridayAfter: Int, asrBefore: Int, asrAfter: Int,
+        maghribBefore: Int, maghribAfter: Int, ishaBefore: Int, ishaAfter: Int,
+        isAdzanAudioEnabled: Boolean, adzanVolume: Int,
+        customAdzanRegularUri: String?, customAdzanSubuhUri: String?,
+        quoteUpdateInterval: Int, quoteFontSize: Int, quoteBgAlpha: Int
+    ) {
+        prefs.edit()
+            .putInt("previewScale", previewScale)
+            .putString("calculationMethod", calculationMethod)
+            .putBoolean("showClock", showClock)
+            .putBoolean("showDate", showDate)
+            .putBoolean("showPrayer", showPrayer)
+            .putBoolean("showAdditional", showAdditional)
+            .putInt("fontSizeClock", fontSizeClock)
+            .putInt("fontSizeDate", fontSizeDate)
+            .putInt("fontSizePrayer", fontSizePrayer)
+            .putInt("fontSizeAdditional", fontSizeAdditional)
+            .putInt("widgetBgRadius", widgetBgRadius)
+            .putInt("hijriOffset", hijriOffset)
+            .putString("widgetTextColor", widgetTextColor)
+            .putString("widgetBgColor", widgetBgColor)
+            .putBoolean("isDayStartAtMaghrib", isDayStartAtMaghrib)
+            .putString("dateFormat", dateFormat)
+            .putString("hijriFormat", hijriFormat)
+            .putBoolean("isAutoSilentEnabled", isAutoSilentEnabled)
+            .putInt("fajrBefore", fajrBefore)
+            .putInt("fajrAfter", fajrAfter)
+            .putInt("dhuhrBefore", dhuhrBefore)
+            .putInt("dhuhrAfter", dhuhrAfter)
+            .putInt("fridayBefore", fridayBefore)
+            .putInt("fridayAfter", fridayAfter)
+            .putInt("asrBefore", asrBefore)
+            .putInt("asrAfter", asrAfter)
+            .putInt("maghribBefore", maghribBefore)
+            .putInt("maghribAfter", maghribAfter)
+            .putInt("ishaBefore", ishaBefore)
+            .putInt("ishaAfter", ishaAfter)
+            .putBoolean("isAdzanAudioEnabled", isAdzanAudioEnabled)
+            .putInt("adzanVolume", adzanVolume)
+            .putString("customAdzanRegularUri", customAdzanRegularUri)
+            .putString("customAdzanSubuhUri", customAdzanSubuhUri)
+            .putInt("quoteUpdateInterval", quoteUpdateInterval)
+            .putInt("quoteFontSize", quoteFontSize)
+            .putInt("quoteBgAlpha", quoteBgAlpha)
+            .apply()
     }
 }

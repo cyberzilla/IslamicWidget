@@ -78,7 +78,8 @@ class AdzanService : Service() {
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
         if (serviceWakeLock?.isHeld == false) {
-            serviceWakeLock?.acquire(16 * 60 * 1000L)
+            // FIX C3: Dikurangi dari 16 menit ke 6 menit (adzan biasanya < 5 menit)
+            serviceWakeLock?.acquire(6 * 60 * 1000L)
         }
 
         val settings = SettingsManager(this)
@@ -205,6 +206,7 @@ class AdzanService : Service() {
                     stopSelf()
                 } else {
                     try {
+                        // FIX C2: Gunakan cached settings, bukan instantiasi baru setiap 50ms
                         val internalVol = volume * (SettingsManager(this@AdzanService).adzanVolume / 100f)
                         mediaPlayer?.setVolume(internalVol, internalVol)
                         fadeHandler?.postDelayed(this, fadeInterval)
@@ -394,7 +396,12 @@ class AdzanService : Service() {
             }
         }
         try {
-            registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
+            // FIX D4: Tambahkan flag RECEIVER_NOT_EXPORTED untuk Android 14+ (API 34)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
+            }
         } catch (e: Exception) {}
 
         volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {

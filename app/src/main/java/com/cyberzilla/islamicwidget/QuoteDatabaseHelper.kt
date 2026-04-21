@@ -6,11 +6,21 @@ import android.database.sqlite.SQLiteOpenHelper
 import java.io.File
 import java.io.FileOutputStream
 
-class QuoteDatabaseHelper(private val context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
+class QuoteDatabaseHelper private constructor(private val context: Context) : SQLiteOpenHelper(context.applicationContext, DB_NAME, null, DB_VERSION) {
 
     companion object {
         private const val DB_NAME = "quotes.sqlite"
         private const val DB_VERSION = 1
+
+        // FIX C1: Singleton pattern — mencegah multiple DB connection dari instantiasi berulang
+        @Volatile
+        private var INSTANCE: QuoteDatabaseHelper? = null
+
+        fun getInstance(context: Context): QuoteDatabaseHelper {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: QuoteDatabaseHelper(context).also { INSTANCE = it }
+            }
+        }
     }
 
     init {

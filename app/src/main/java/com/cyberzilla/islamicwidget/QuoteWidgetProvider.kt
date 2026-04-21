@@ -87,7 +87,7 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     private fun updateAllWidgets(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         if (appWidgetIds.isEmpty()) return
 
-        val dbHelper = QuoteDatabaseHelper(context)
+        val dbHelper = QuoteDatabaseHelper.getInstance(context)
         val settingsManager = SettingsManager(context)
         val quoteData = dbHelper.getRandomQuote()
 

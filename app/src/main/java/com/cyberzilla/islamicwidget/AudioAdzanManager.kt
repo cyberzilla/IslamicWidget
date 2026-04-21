@@ -18,6 +18,9 @@ object AudioAdzanManager {
     var isTestingSubuh = false
         private set
 
+    // FIX A5: Simpan volume alarm asli sebelum diubah agar bisa di-restore
+    private var originalAlarmVolume = -1
+
     fun toggleTestAdzan(
         context: Context,
         isSubuh: Boolean,
@@ -27,10 +30,10 @@ object AudioAdzanManager {
         onStopCallback: () -> Unit
     ) {
         if ((isSubuh && isTestingSubuh) || (!isSubuh && isTestingRegular)) {
-            stopTestAdzan(onStopCallback)
+            stopTestAdzan(context, onStopCallback)
             return
         }
-        stopTestAdzan(onStopCallback)
+        stopTestAdzan(context, onStopCallback)
 
         try {
             testMediaPlayer = MediaPlayer().apply {
@@ -49,6 +52,10 @@ object AudioAdzanManager {
                 }
 
                 val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+                // FIX A5: Simpan volume asli SEBELUM mengubahnya
+                originalAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+
                 val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
                 val targetVolume = (maxVolume * volumePercentage) / 100
                 audioManager.setStreamVolume(AudioManager.STREAM_ALARM, targetVolume, 0)
@@ -68,15 +75,15 @@ object AudioAdzanManager {
                 btnPlay.text = context.getString(R.string.btn_stop)
                 btnPlay.setTextColor(Color.RED)
 
-                setOnCompletionListener { stopTestAdzan(onStopCallback) }
+                setOnCompletionListener { stopTestAdzan(context, onStopCallback) }
             }
         } catch (e: Exception) {
             Toast.makeText(context, context.getString(R.string.toast_audio_error), Toast.LENGTH_SHORT).show()
-            stopTestAdzan(onStopCallback)
+            stopTestAdzan(context, onStopCallback)
         }
     }
 
-    fun stopTestAdzan(onStopCallback: () -> Unit) {
+    fun stopTestAdzan(context: Context? = null, onStopCallback: () -> Unit) {
         try {
             testMediaPlayer?.stop()
             testMediaPlayer?.release()
@@ -85,6 +92,16 @@ object AudioAdzanManager {
             testMediaPlayer = null
             isTestingRegular = false
             isTestingSubuh = false
+
+            // FIX A5: Restore volume alarm ke nilai asli setelah test selesai
+            if (originalAlarmVolume >= 0 && context != null) {
+                try {
+                    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                    audioManager.setStreamVolume(AudioManager.STREAM_ALARM, originalAlarmVolume, 0)
+                } catch (e: Exception) {}
+                originalAlarmVolume = -1
+            }
+
             onStopCallback()
         }
     }

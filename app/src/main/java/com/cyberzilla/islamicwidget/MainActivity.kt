@@ -398,7 +398,7 @@ class MainActivity : AppCompatActivity() {
                         try {
                             var fullQuote = "Barangsiapa yang menempuh suatu jalan untuk mencari ilmu, maka Allah akan mudahkan baginya jalan menuju surga. - HR. Muslim"
                             try {
-                                val quoteHelper = QuoteDatabaseHelper(this@MainActivity)
+                                val quoteHelper = QuoteDatabaseHelper.getInstance(this@MainActivity)
                                 val quotePair = quoteHelper.getRandomQuote()
                                 if (quotePair != null) {
                                     fullQuote = "${quotePair.first} - ${quotePair.second}"
@@ -540,7 +540,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun stopTestAdzan() {
-        AudioAdzanManager.stopTestAdzan {
+        AudioAdzanManager.stopTestAdzan(this) {
             findViewById<Button>(R.id.btn_play_adzan_regular)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
             findViewById<Button>(R.id.btn_play_adzan_subuh)?.apply { text = getString(R.string.btn_test); setTextColor(Color.parseColor("#10B981")) }
         }
@@ -831,58 +831,58 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveSettingsQuietly() {
         try {
-            settingsManager.previewScale = (findViewById<SeekBar>(R.id.sb_preview_scale)?.progress ?: 50) + 50
-
             val calcSpinnerStr = findViewById<AutoCompleteTextView>(R.id.spinner_calc_method)?.text?.toString() ?: ""
-            settingsManager.calculationMethod = calcValues[calcEntries.indexOf(calcSpinnerStr).takeIf { it >= 0 } ?: 0]
-
-            settingsManager.showClock = findViewById<SwitchCompat>(R.id.sw_show_clock)?.isChecked ?: true
-            settingsManager.showDate = findViewById<SwitchCompat>(R.id.sw_show_date)?.isChecked ?: true
-            settingsManager.showPrayer = findViewById<SwitchCompat>(R.id.sw_show_prayer)?.isChecked ?: true
-            settingsManager.showAdditional = findViewById<SwitchCompat>(R.id.sw_show_additional)?.isChecked ?: true
-
-            settingsManager.fontSizeClock = (findViewById<SeekBar>(R.id.sb_fs_clock)?.progress ?: 16) + 20
-            settingsManager.fontSizeDate = (findViewById<SeekBar>(R.id.sb_fs_date)?.progress ?: 4) + 8
-            settingsManager.fontSizePrayer = (findViewById<SeekBar>(R.id.sb_fs_prayer)?.progress ?: 5) + 8
-            settingsManager.fontSizeAdditional = (findViewById<SeekBar>(R.id.sb_fs_additional)?.progress ?: 3) + 8
-            settingsManager.widgetBgRadius = findViewById<SeekBar>(R.id.sb_radius)?.progress ?: 16
-            settingsManager.hijriOffset = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
-
-            settingsManager.widgetTextColor = currentTextColor
-            settingsManager.widgetBgColor = currentBgColor
-            settingsManager.isDayStartAtMaghrib = findViewById<CheckBox>(R.id.cb_day_start)?.isChecked ?: true
-
-            settingsManager.dateFormat = findViewById<EditText>(R.id.et_date_format)?.text?.toString()?.ifEmpty { "en-US{EEEE, dd MMMM yyyy}" } ?: "en-US{EEEE, dd MMMM yyyy}"
-            settingsManager.hijriFormat = findViewById<EditText>(R.id.et_hijri_format)?.text?.toString()?.ifEmpty { "en-US{dd MMMM yyyy} AH" } ?: "en-US{dd MMMM yyyy} AH"
-
-            settingsManager.isAutoSilentEnabled = findViewById<SwitchCompat>(R.id.switch_auto_silent)?.isChecked ?: false
-            settingsManager.fajrBefore = findViewById<SeekBar>(R.id.sb_fajr_bef)?.progress ?: 5
-            settingsManager.fajrAfter = findViewById<SeekBar>(R.id.sb_fajr_aft)?.progress ?: 15
-            settingsManager.dhuhrBefore = findViewById<SeekBar>(R.id.sb_dhuhr_bef)?.progress ?: 5
-            settingsManager.dhuhrAfter = findViewById<SeekBar>(R.id.sb_dhuhr_aft)?.progress ?: 15
-            settingsManager.fridayBefore = findViewById<SeekBar>(R.id.sb_fri_bef)?.progress ?: 10
-            settingsManager.fridayAfter = findViewById<SeekBar>(R.id.sb_fri_aft)?.progress ?: 45
-            settingsManager.asrBefore = findViewById<SeekBar>(R.id.sb_asr_bef)?.progress ?: 5
-            settingsManager.asrAfter = findViewById<SeekBar>(R.id.sb_asr_aft)?.progress ?: 15
-            settingsManager.maghribBefore = findViewById<SeekBar>(R.id.sb_maghrib_bef)?.progress ?: 5
-            settingsManager.maghribAfter = findViewById<SeekBar>(R.id.sb_maghrib_aft)?.progress ?: 15
-            settingsManager.ishaBefore = findViewById<SeekBar>(R.id.sb_isha_bef)?.progress ?: 5
-            settingsManager.ishaAfter = findViewById<SeekBar>(R.id.sb_isha_aft)?.progress ?: 15
-            settingsManager.isAdzanAudioEnabled = findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked ?: false
-            settingsManager.adzanVolume = findViewById<SeekBar>(R.id.sb_adzan_vol)?.progress ?: 80
-            settingsManager.customAdzanRegularUri = tempRegularUri
-            settingsManager.customAdzanSubuhUri = tempSubuhUri
 
             val newInterval = findViewById<SeekBar>(R.id.sb_quote_interval)?.progress ?: 0
-            settingsManager.quoteUpdateInterval = newInterval
-            settingsManager.quoteFontSize = (findViewById<SeekBar>(R.id.sb_quote_font)?.progress ?: 4) + 10
-            settingsManager.quoteBgAlpha = findViewById<SeekBar>(R.id.sb_quote_alpha)?.progress ?: 153
+
+            // =======================================================================
+            // FIX A2: Batch save — menulis SEMUA settings dalam 1 disk I/O operation.
+            // Menggantikan 30+ individual writes yang menyebabkan I/O thrashing.
+            // =======================================================================
+            settingsManager.saveAllSettings(
+                previewScale = (findViewById<SeekBar>(R.id.sb_preview_scale)?.progress ?: 50) + 50,
+                calculationMethod = calcValues[calcEntries.indexOf(calcSpinnerStr).takeIf { it >= 0 } ?: 0],
+                showClock = findViewById<SwitchCompat>(R.id.sw_show_clock)?.isChecked ?: true,
+                showDate = findViewById<SwitchCompat>(R.id.sw_show_date)?.isChecked ?: true,
+                showPrayer = findViewById<SwitchCompat>(R.id.sw_show_prayer)?.isChecked ?: true,
+                showAdditional = findViewById<SwitchCompat>(R.id.sw_show_additional)?.isChecked ?: true,
+                fontSizeClock = (findViewById<SeekBar>(R.id.sb_fs_clock)?.progress ?: 16) + 20,
+                fontSizeDate = (findViewById<SeekBar>(R.id.sb_fs_date)?.progress ?: 4) + 8,
+                fontSizePrayer = (findViewById<SeekBar>(R.id.sb_fs_prayer)?.progress ?: 5) + 8,
+                fontSizeAdditional = (findViewById<SeekBar>(R.id.sb_fs_additional)?.progress ?: 3) + 8,
+                widgetBgRadius = findViewById<SeekBar>(R.id.sb_radius)?.progress ?: 16,
+                hijriOffset = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2,
+                widgetTextColor = currentTextColor,
+                widgetBgColor = currentBgColor,
+                isDayStartAtMaghrib = findViewById<CheckBox>(R.id.cb_day_start)?.isChecked ?: true,
+                dateFormat = findViewById<EditText>(R.id.et_date_format)?.text?.toString()?.ifEmpty { "en-US{EEEE, dd MMMM yyyy}" } ?: "en-US{EEEE, dd MMMM yyyy}",
+                hijriFormat = findViewById<EditText>(R.id.et_hijri_format)?.text?.toString()?.ifEmpty { "en-US{dd MMMM yyyy} AH" } ?: "en-US{dd MMMM yyyy} AH",
+                isAutoSilentEnabled = findViewById<SwitchCompat>(R.id.switch_auto_silent)?.isChecked ?: false,
+                fajrBefore = findViewById<SeekBar>(R.id.sb_fajr_bef)?.progress ?: 5,
+                fajrAfter = findViewById<SeekBar>(R.id.sb_fajr_aft)?.progress ?: 15,
+                dhuhrBefore = findViewById<SeekBar>(R.id.sb_dhuhr_bef)?.progress ?: 5,
+                dhuhrAfter = findViewById<SeekBar>(R.id.sb_dhuhr_aft)?.progress ?: 15,
+                fridayBefore = findViewById<SeekBar>(R.id.sb_fri_bef)?.progress ?: 10,
+                fridayAfter = findViewById<SeekBar>(R.id.sb_fri_aft)?.progress ?: 45,
+                asrBefore = findViewById<SeekBar>(R.id.sb_asr_bef)?.progress ?: 5,
+                asrAfter = findViewById<SeekBar>(R.id.sb_asr_aft)?.progress ?: 15,
+                maghribBefore = findViewById<SeekBar>(R.id.sb_maghrib_bef)?.progress ?: 5,
+                maghribAfter = findViewById<SeekBar>(R.id.sb_maghrib_aft)?.progress ?: 15,
+                ishaBefore = findViewById<SeekBar>(R.id.sb_isha_bef)?.progress ?: 5,
+                ishaAfter = findViewById<SeekBar>(R.id.sb_isha_aft)?.progress ?: 15,
+                isAdzanAudioEnabled = findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked ?: false,
+                adzanVolume = findViewById<SeekBar>(R.id.sb_adzan_vol)?.progress ?: 80,
+                customAdzanRegularUri = tempRegularUri,
+                customAdzanSubuhUri = tempSubuhUri,
+                quoteUpdateInterval = newInterval,
+                quoteFontSize = (findViewById<SeekBar>(R.id.sb_quote_font)?.progress ?: 4) + 10,
+                quoteBgAlpha = findViewById<SeekBar>(R.id.sb_quote_alpha)?.progress ?: 153
+            )
 
             QuoteUpdateManager.setAutoUpdate(this, newInterval)
 
             // =======================================================================
             // SINGLE BROADCAST - Setelah semua setting tersimpan dengan benar
-            // Ini menggantikan multi-trigger dari prefListener yang dihapus
             // =======================================================================
             val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
             sendBroadcast(Intent(this, IslamicWidgetProvider::class.java).apply { 
@@ -896,7 +896,7 @@ class MainActivity : AppCompatActivity() {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quoteIds) 
             })
             
-            Log.d("MainActivity", "Settings saved and broadcast sent once")
+            Log.d("MainActivity", "Settings saved (batch) and broadcast sent once")
         } catch (e: Exception) {
             Log.e("MainActivity", "Error saving settings", e)
         }

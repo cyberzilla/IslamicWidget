@@ -25,6 +25,18 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
+        // =======================================================================
+        // FIX B3: Reset flag Adzan & DND ghost state setelah reboot.
+        // Jika AdzanService di-kill paksa/reboot sebelum onDestroy(), flag ini
+        // bisa stuck true → phone terjebak silent mode tanpa batas.
+        // =======================================================================
+        val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean("isAdzanPlaying", false)
+            .putBoolean("PENDING_UNMUTE", false)
+            .putBoolean("IS_TEST_MODE_ACTIVE", false)
+            .apply()
+
         val appWidgetManager = AppWidgetManager.getInstance(context)
 
         // 1. Trigger full update IslamicWidgetProvider — ini akan memanggil
