@@ -71,6 +71,8 @@
     <string name="toast_searching_location">Searching for location...</string>
     <string name="toast_audio_error">Failed to play custom audio. Format might be unsupported.</string>
     <string name="toast_xml_error">There is an error in your XML layout!</string>
+    <string name="toast_language_applied">✓ Language applied successfully</string>
+    <string name="toast_theme_applied">✓ Theme applied successfully</string>
 
     <string name="dialog_reset_title">Restore Defaults?</string>
     <string name="dialog_reset_message">All settings will be restored to their initial values.</string>

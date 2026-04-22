@@ -71,6 +71,8 @@
     <string name="toast_searching_location">Mencari lokasi...</string>
     <string name="toast_audio_error">Gagal memutar audio kustom. Format mungkin tidak didukung.</string>
     <string name="toast_xml_error">Terdapat kesalahan pada layout XML Anda!</string>
+    <string name="toast_language_applied">✓ Bahasa berhasil diterapkan</string>
+    <string name="toast_theme_applied">✓ Tema berhasil diterapkan</string>
 
     <string name="dialog_reset_title">Kembalikan ke Awal?</string>
     <string name="dialog_reset_message">Semua pengaturan akan dikembalikan ke nilai awal aplikasi.</string>

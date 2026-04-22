@@ -90,6 +90,12 @@ class MainActivity : AppCompatActivity() {
     private var doubleBackToExitPressedOnce = false
 
     // =======================================================================
+    // FIX RESTART: Simpan referensi TextWatcher agar tidak ditambah duplikat
+    // saat onConfigurationChanged memanggil loadSettingsToUI() kembali.
+    // =======================================================================
+    private var activeTextWatcher: android.text.TextWatcher? = null
+
+    // =======================================================================
     // CRITICAL FIX: SharedPreferences listener DIHAPUS
     // 
     // ALASAN: Listener menyebabkan scheduleAllPrayers() dipanggil hingga 30x
@@ -236,6 +242,22 @@ class MainActivity : AppCompatActivity() {
         previewDebounceHandler.removeCallbacks(previewDebounceRunnable)
     }
 
+    // =======================================================================
+    // FIX RESTART: Handle locale & theme changes tanpa destroy/recreate Activity.
+    // Dipanggil otomatis oleh Android karena configChanges sudah didaftarkan
+    // di AndroidManifest. loadSettingsToUI() me-refresh semua string & UI
+    // dengan locale/tema baru secara in-place.
+    // =======================================================================
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        try {
+            loadSettingsToUI()
+            updatePreview()
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error on configuration change", e)
+        }
+    }
+
     private fun setupSlider(seekBarId: Int, textViewId: Int, min: Int, max: Int, initialValue: Int, isFormatScale: Boolean = false, suffix: String = "") {
         val seekBar = findViewById<SeekBar>(seekBarId) ?: return
         val textView = findViewById<TextView>(textViewId) ?: return
@@ -252,7 +274,17 @@ class MainActivity : AppCompatActivity() {
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) seekBar?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                // =======================================================================
+                // FIX HIJRI LOOP: Text label selalu diupdate (termasuk saat set
+                // secara programmatic dari calculateAutoOffset), tapi schedulePreviewUpdate
+                // HANYA dipanggil ketika user yang menggeser slider.
+                //
+                // Sebelumnya: schedulePreviewUpdate() selalu dipanggil → infinite loop:
+                //   updatePreview → seekBar.progress = X (programmatic)
+                //   → onProgressChanged(fromUser=false) → schedulePreviewUpdate()
+                //   → updatePreview lagi tiap 100ms → calculateAutoOffset() terus
+                //   → ANR → sistem kill app ("close sendiri").
+                // =======================================================================
                 val actualValue = progress + min
                 if (isFormatScale) {
                     textView.text = getString(R.string.preview_scale, actualValue)
@@ -260,7 +292,10 @@ class MainActivity : AppCompatActivity() {
                     val displayValue = if (seekBarId == R.id.sb_hijri_offset && actualValue > 0) "+$actualValue" else "$actualValue"
                     textView.text = "$displayValue$suffix"
                 }
-                schedulePreviewUpdate()
+                if (fromUser) {
+                    seekBar?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                    schedulePreviewUpdate()
+                }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
@@ -655,44 +690,45 @@ class MainActivity : AppCompatActivity() {
                 showBottomSheetSelector(getString(R.string.sec_lang_theme), languageEntries, btn.text.toString()) { pos ->
                     val code = languageValues[pos]
                     if (code != activeLangCode) {
-                        btn.text = languageEntries[pos]
-                        findViewById<android.widget.FrameLayout>(R.id.loading_overlay)?.visibility = android.view.View.VISIBLE
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            settingsManager.languageCode = code
+                        // =======================================================================
+                        // FIX RESTART: Tidak ada lagi loading overlay + delayed Handler.
+                        // Dengan configChanges="locale" di Manifest, setApplicationLocales()
+                        // akan memanggil onConfigurationChanged() secara in-place — UI
+                        // di-refresh tanpa destroy/recreate Activity sama sekali.
+                        // =======================================================================
+                        settingsManager.languageCode = code
 
-                            val newDateFormat: String
-                            val newHijriFormat: String
+                        val newDateFormat: String
+                        val newHijriFormat: String
 
-                            when (code) {
-                                "id" -> {
-                                    newDateFormat = "id-ID{EEEE, dd MMMM yyyy}"
-                                    newHijriFormat = "id-ID{dd MMMM yyyy} H"
-                                }
-                                "en" -> {
-                                    newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
-                                    newHijriFormat = "en-US{dd MMMM yyyy} AH"
-                                }
-                                "ar" -> {
-                                    newDateFormat = "ar-SA{EEEE, dd MMMM yyyy}"
-                                    newHijriFormat = "ar-SA{dd MMMM yyyy} هـ"
-                                }
-                                else -> {
-                                    newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
-                                    newHijriFormat = "en-US{dd MMMM yyyy} AH"
-                                }
+                        when (code) {
+                            "id" -> {
+                                newDateFormat = "id-ID{EEEE, dd MMMM yyyy}"
+                                newHijriFormat = "id-ID{dd MMMM yyyy} H"
                             }
+                            "en" -> {
+                                newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
+                                newHijriFormat = "en-US{dd MMMM yyyy} AH"
+                            }
+                            "ar" -> {
+                                newDateFormat = "ar-SA{EEEE, dd MMMM yyyy}"
+                                newHijriFormat = "ar-SA{dd MMMM yyyy} هـ"
+                            }
+                            else -> {
+                                newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
+                                newHijriFormat = "en-US{dd MMMM yyyy} AH"
+                            }
+                        }
 
-                            settingsManager.dateFormat = newDateFormat
-                            settingsManager.hijriFormat = newHijriFormat
+                        settingsManager.dateFormat = newDateFormat
+                        settingsManager.hijriFormat = newHijriFormat
 
-                            findViewById<android.widget.EditText>(R.id.et_date_format)?.setText(newDateFormat)
-                            findViewById<android.widget.EditText>(R.id.et_hijri_format)?.setText(newHijriFormat)
-
-                            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(androidx.core.os.LocaleListCompat.forLanguageTags(code))
-                            saveSettingsQuietly()
-
-                            findViewById<android.widget.FrameLayout>(R.id.loading_overlay)?.visibility = android.view.View.GONE
-                        }, 300)
+                        // Terapkan locale baru → memicu onConfigurationChanged, bukan restart
+                        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                            androidx.core.os.LocaleListCompat.forLanguageTags(code)
+                        )
+                        saveSettingsQuietly()
+                        showSettingsAppliedFeedback(getString(R.string.toast_language_applied))
                     }
                 }
             }
@@ -712,7 +748,13 @@ class MainActivity : AppCompatActivity() {
                         "DARK" -> AppCompatDelegate.MODE_NIGHT_YES
                         else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
                     }
+                    // =======================================================================
+                    // FIX RESTART: setDefaultNightMode() memicu onConfigurationChanged
+                    // (bukan recreate) karena configChanges="uiMode" sudah didaftarkan.
+                    // Snackbar memberi feedback langsung tanpa user bingung app "close".
+                    // =======================================================================
                     AppCompatDelegate.setDefaultNightMode(nightMode)
+                    showSettingsAppliedFeedback(getString(R.string.toast_theme_applied))
                 }
             }
         }
@@ -789,6 +831,16 @@ class MainActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) { updatePreview() }
             override fun afterTextChanged(s: Editable?) { saveSettingsQuietly() }
         }
+        // =======================================================================
+        // FIX RESTART: Hapus TextWatcher lama sebelum menambah yang baru.
+        // Tanpa ini, setiap onConfigurationChanged akan menumpuk TextWatcher
+        // dan menyebabkan saveSettingsQuietly() dipanggil berkali-kali per keystroke.
+        // =======================================================================
+        activeTextWatcher?.let {
+            findViewById<EditText>(R.id.et_date_format)?.removeTextChangedListener(it)
+            findViewById<EditText>(R.id.et_hijri_format)?.removeTextChangedListener(it)
+        }
+        activeTextWatcher = tw
         findViewById<EditText>(R.id.et_date_format)?.apply { setText(settingsManager.dateFormat); addTextChangedListener(tw) }
         findViewById<EditText>(R.id.et_hijri_format)?.apply { setText(settingsManager.hijriFormat); addTextChangedListener(tw) }
 
@@ -937,6 +989,20 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton(getString(R.string.dialog_cancel), null)
             .show()
+    }
+
+    // =======================================================================
+    // FIX RESTART: Toast feedback untuk semua perubahan setting.
+    // Menggunakan Toast (bukan Snackbar) agar seragam dengan notifikasi
+    // lain di seluruh aplikasi.
+    // =======================================================================
+    private fun showSettingsAppliedFeedback(message: String? = null) {
+        try {
+            val msg = message ?: getString(R.string.toast_saved)
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error showing feedback toast", e)
+        }
     }
 
     private fun saveSettingsQuietly() {
