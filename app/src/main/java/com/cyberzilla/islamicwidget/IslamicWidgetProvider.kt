@@ -597,6 +597,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         // =======================================================================
         // EKSEKUSI ICON DI SINI (Tanggal sudah fix dikoreksi dari atas)
+        // FIX: lastIconHijriDay dikelola oleh IconHelper secara internal,
+        // BUKAN di sini — karena updateLauncherIcon bisa di-defer saat foreground.
         // =======================================================================
         try {
             val hDayOfMonth = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
@@ -605,7 +607,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             if (hDayOfMonth != lastUpdatedIconDay) {
                 IconHelper.updateLauncherIcon(context, hDayOfMonth)
-                prefs.edit().putInt("lastIconHijriDay", hDayOfMonth).apply()
+                // JANGAN tulis lastIconHijriDay di sini — IconHelper yang handle
             }
         } catch (e: Exception) {}
 

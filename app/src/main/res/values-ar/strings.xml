@@ -71,8 +71,7 @@
     <string name="toast_searching_location">جاري البحث عن الموقع...</string>
     <string name="toast_audio_error">فشل تشغيل الصوت المخصص. قد يكون التنسيق غير مدعوم.</string>
     <string name="toast_xml_error">يوجد خطأ في تخطيط XML الخاص بك!</string>
-    <string name="toast_language_applied">✓ تم تطبيق اللغة بنجاح</string>
-    <string name="toast_theme_applied">✓ تم تطبيق المظهر بنجاح</string>
+
 
     <string name="dialog_reset_title">إعادة تعيين للافتراضي؟</string>
     <string name="dialog_reset_message">سيتم استعادة جميع الإعدادات إلى قيمها الافتراضية الأصلية.</string>

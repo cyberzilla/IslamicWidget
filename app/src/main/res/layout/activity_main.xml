@@ -330,8 +330,10 @@
                     app:cardElevation="0dp"
                     app:strokeWidth="1.5dp"
                     app:strokeColor="@color/glass_card_stroke"
-                    app:contentPadding="20dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:animateLayoutChanges="true">
+                    app:contentPadding="20dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:animateLayoutChanges="true" android:clipChildren="false" android:clipToPadding="false">
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sec_dnd" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" />
                             <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_auto_silent" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
@@ -344,7 +346,10 @@
                             android:orientation="horizontal"
                             android:background="?android:attr/selectableItemBackground"
                             android:paddingVertical="12dp"
-                            android:gravity="center_vertical">
+                            android:paddingHorizontal="4dp"
+                            android:gravity="center_vertical"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"

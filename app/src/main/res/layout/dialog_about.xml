@@ -4,8 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="32dp"
-    android:gravity="center">
+    android:paddingTop="16dp"
+    android:paddingBottom="32dp"
+    android:paddingHorizontal="32dp"
+    android:gravity="center"
+    android:background="@drawable/bg_bottom_sheet_glass">
+
+    <!-- Handle indicator -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:background="?android:attr/textColorHint"
+        android:layout_marginBottom="24dp"/>
 
     <ImageView
         android:layout_width="72dp"

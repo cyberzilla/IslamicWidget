@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:paddingTop="16dp"
     android:paddingBottom="24dp"
-    android:background="?android:attr/windowBackground">
+    android:background="@drawable/bg_bottom_sheet_glass">
 
     <!-- Handle indicator -->
     <View
