@@ -18,7 +18,6 @@ object UpdateHelper {
     private const val METADATA_URL = "https://raw.githubusercontent.com/cyberzilla/IslamicWidget/main/app/release/output-metadata.json"
     private const val DIRECT_APK_URL = "https://github.com/cyberzilla/IslamicWidget/raw/main/app/release/app-release.apk"
 
-    // FIX D3: Cached executor — mencegah thread leak dari pembuatan executor baru setiap panggilan
     private val executor = Executors.newSingleThreadExecutor()
 
     fun checkForUpdates(context: Context) {

@@ -316,8 +316,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         canvas.drawRoundRect(rectF, radiusPx, radiusPx, paint)
         views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
         appWidgetManager.updateAppWidget(appWidgetId, views)
-        // FIX A1: Dihapus bgBitmap.recycle() — menyebabkan race condition.
-        // RemoteViews melakukan internal copy saat serialisasi. Biarkan GC yang handle.
 
         val today = LocalDate.now()
         var hijriDate = HijrahDate.from(today)
@@ -327,7 +325,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         var totalHijriOffset: Long
 
-        // === Auto Hijri Offset ===
         if (settings.isAutoHijriOffset && latString != null && lonString != null) {
             try {
                 val lat = latString.toDouble()
@@ -342,12 +339,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             totalHijriOffset = settings.hijriOffset.toLong()
         }
 
-        // =======================================================================
-        // FIX: KALKULASI HIJRIYAH DIPINDAH KE ZONA AMAN (LUAR BLOK ADZAN)
-        // Agar Icon Launcher selalu menerima data yang telah terkoreksi!
-        // =======================================================================
-        // FIX A3: Cache prayer times — dihitung SEKALI di sini, dipakai untuk hijri check DAN display.
-        // Sebelumnya dihitung 3-4x redundan per widget update.
         var cachedPrayerTimes: com.batoulapps.adhan2.PrayerTimes? = null
         var cachedLat = 0.0
         var cachedLon = 0.0
@@ -366,7 +357,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         if (totalHijriOffset != 0L) {
             hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
         }
-        // =======================================================================
 
         val is24Hour = DateFormat.is24HourFormat(context)
         val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
@@ -441,7 +431,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             if (latString != null && lonString != null && cachedPrayerTimes != null) {
                 try {
-                    // FIX A3: Gunakan cached prayer times, bukan hitung ulang
                     val prayerTimes = cachedPrayerTimes!!
                     val sunnahTimes = SunnahTimes(prayerTimes)
                     val qibla = Qibla(Coordinates(cachedLat, cachedLon))
@@ -595,11 +584,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        // =======================================================================
-        // EKSEKUSI ICON DI SINI (Tanggal sudah fix dikoreksi dari atas)
-        // FIX: lastIconHijriDay dikelola oleh IconHelper secara internal,
-        // BUKAN di sini — karena updateLauncherIcon bisa di-defer saat foreground.
-        // =======================================================================
         try {
             val hDayOfMonth = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
@@ -607,7 +591,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             if (hDayOfMonth != lastUpdatedIconDay) {
                 IconHelper.updateLauncherIcon(context, hDayOfMonth)
-                // JANGAN tulis lastIconHijriDay di sini — IconHelper yang handle
             }
         } catch (e: Exception) {}
 

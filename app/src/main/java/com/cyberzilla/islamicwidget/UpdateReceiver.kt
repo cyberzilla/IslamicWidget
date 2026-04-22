@@ -16,13 +16,11 @@ class UpdateReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val settings = SettingsManager(context)
 
-        // Terapkan lokalisasi bahasa agar toast dan notifikasi sesuai pengaturan aplikasi
         val selectedLocale = Locale.forLanguageTag(settings.languageCode)
         val config = Configuration(context.resources.configuration)
         config.setLocale(selectedLocale)
         val localizedContext = context.createConfigurationContext(config)
 
-        // Nama file dinamis menggunakan versionName
         val fileName = "update_islamicwidget_${settings.latestVersionName}.apk"
 
         if (intent.action == "ACTION_START_UPDATE_DOWNLOAD") {
@@ -37,7 +35,6 @@ class UpdateReceiver : BroadcastReceiver() {
 
             Toast.makeText(context, localizedContext.getString(R.string.update_download_start), Toast.LENGTH_SHORT).show()
 
-            // Opsi tambahan yang baik: Bersihkan file apk lama yang ada di folder Downloads agar tidak menumpuk
             val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
             downloadDir?.listFiles()?.forEach { file ->
                 if (file.name.startsWith("update_islamicwidget") && file.name.endsWith(".apk") && file.name != fileName) {
@@ -49,7 +46,6 @@ class UpdateReceiver : BroadcastReceiver() {
                 setTitle(localizedContext.getString(R.string.update_notification_title, localizedContext.getString(R.string.app_name)))
                 setDescription(localizedContext.getString(R.string.update_download_desc, settings.latestVersionName))
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                // Gunakan nama file yang sudah dinamis
                 setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName)
             }
 
@@ -62,7 +58,6 @@ class UpdateReceiver : BroadcastReceiver() {
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
 
             if (id != -1L && id == settings.latestDownloadId) {
-                // Cari menggunakan nama file yang dinamis
                 val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
                 if (file.exists()) {
                     installApk(context, localizedContext, fileName)
@@ -71,7 +66,6 @@ class UpdateReceiver : BroadcastReceiver() {
         }
     }
 
-    // Tambahkan parameter fileName agar bisa merujuk ke file yang tepat
     private fun installApk(context: Context, localizedContext: Context, fileName: String) {
         val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)

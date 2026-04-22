@@ -56,6 +56,7 @@ import kotlin.time.ExperimentalTime
 import com.cyberzilla.islamicwidget.BuildConfig
 import com.cyberzilla.islamicwidget.utils.HilalCriteria
 import com.cyberzilla.islamicwidget.utils.HijriOffsetCalculator
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import android.view.HapticFeedbackConstants
 import com.google.android.material.button.MaterialButton
@@ -86,22 +87,7 @@ class MainActivity : AppCompatActivity() {
     private var tempSubuhUri: String? = null
     private var doubleBackToExitPressedOnce = false
 
-    // =======================================================================
-    // FIX RESTART: Simpan referensi TextWatcher agar tidak ditambah duplikat
-    // saat onConfigurationChanged memanggil loadSettingsToUI() kembali.
-    // =======================================================================
     private var activeTextWatcher: android.text.TextWatcher? = null
-
-    // =======================================================================
-    // CRITICAL FIX: SharedPreferences listener DIHAPUS
-    // 
-    // ALASAN: Listener menyebabkan scheduleAllPrayers() dipanggil hingga 30x
-    // dengan data tidak konsisten setiap kali saveSettingsQuietly() dipanggil.
-    // Ini adalah ROOT CAUSE dari masalah auto silent tidak berfungsi.
-    // 
-    // saveSettingsQuietly() sudah mengirim broadcast SEKALI di akhir setelah
-    // semua setting tersimpan dengan benar.
-    // =======================================================================
 
     private val previewDebounceHandler = Handler(Looper.getMainLooper())
     private val previewDebounceRunnable = Runnable { updatePreview() }
@@ -111,11 +97,6 @@ class MainActivity : AppCompatActivity() {
         previewDebounceHandler.postDelayed(previewDebounceRunnable, 100)
     }
 
-    // =======================================================================
-    // FIX AUTO-CLOSE: Debounce save+broadcast agar tidak membanjiri sistem
-    // dengan broadcast berulang saat user menggeser slider atau toggle switch
-    // berturut-turut. Broadcast hanya dikirim SEKALI setelah 500ms idle.
-    // =======================================================================
     private val saveDebounceHandler = Handler(Looper.getMainLooper())
     private val saveDebounceRunnable = Runnable { performActualSave() }
 
@@ -172,23 +153,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        //Developer Mode
         val devModeLayout = findViewById<View>(R.id.layoutDeveloperMode)
 
-        // =======================================================================
-        // GERBANG KEAMANAN: Cek Tipe Build (Debug vs Release)
-        // =======================================================================
         if (BuildConfig.DEBUG) {
-            // Jika sedang di-run/build melalui tombol Play hijau (Debug)
-            // 1. Munculkan UI Developer Mode
             devModeLayout.visibility = View.VISIBLE
 
-            // 2. Aktifkan logika Slider dan Tombolnya
             val devModeHelper = DeveloperModeHelper(this)
             devModeHelper.setup()
         } else {
-            // Jika sedang di-build menjadi APK Release (Generate Signed APK/Bundle)
-            // Pastikan UI musnah dari layar dan jangan panggil Helper-nya
             devModeLayout.visibility = View.GONE
         }
 
@@ -241,12 +213,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() { super.onPause(); stopTestAdzan() }
 
-    // =======================================================================
-    // FIX AUTO-CLOSE: Hanya execute pending icon update saat Activity benar-
-    // benar ditutup (isFinishing). JANGAN execute saat hanya pindah ke Settings
-    // atau app lain sementara — karena setComponentEnabledSetting(MainActivity,
-    // DISABLED) akan mematikan Activity yang user harap masih bisa kembali.
-    // =======================================================================
     override fun onStop() {
         super.onStop()
         if (isFinishing) {
@@ -258,36 +224,21 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         stopTestAdzan()
         previewDebounceHandler.removeCallbacks(previewDebounceRunnable)
-        // FIX AUTO-CLOSE: Pastikan pending save dieksekusi sebelum destroy
         saveDebounceHandler.removeCallbacks(saveDebounceRunnable)
         performActualSave()
-        // Safety net: execute pending icon update jika belum dieksekusi di onStop
         IconHelper.executePendingIconUpdate(this)
     }
 
-    // =======================================================================
-    // FIX BAHASA: Reinflate layout saat locale/theme berubah agar SEMUA
-    // string dari XML (@string/...) terupdate ke bahasa baru.
-    // Sebelumnya hanya memanggil loadSettingsToUI() yang set string secara
-    // programmatic — elemen dengan android:text="@string/..." tidak berubah.
-    // =======================================================================
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         try {
-            // Cancel semua pending debounce SEBELUM reinflate agar data stale
-            // dari layout lama tidak menimpa format/setting yang baru
             saveDebounceHandler.removeCallbacks(saveDebounceRunnable)
             previewDebounceHandler.removeCallbacks(previewDebounceRunnable)
 
             setContentView(R.layout.activity_main)
 
-            // FIX LAYOUT: Setelah setContentView() di onConfigurationChanged,
-            // window insets (fitsSystemWindows) TIDAK otomatis di-dispatch ke
-            // view baru. Harus request ulang agar layout tidak naik ke belakang
-            // notification bar.
             window.decorView.requestApplyInsets()
 
-            // Developer Mode (harus di-setup ulang setelah reinflate)
             val devModeLayout = findViewById<View>(R.id.layoutDeveloperMode)
             if (BuildConfig.DEBUG) {
                 devModeLayout.visibility = View.VISIBLE
@@ -321,17 +272,6 @@ class MainActivity : AppCompatActivity() {
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                // =======================================================================
-                // FIX HIJRI LOOP: Text label selalu diupdate (termasuk saat set
-                // secara programmatic dari calculateAutoOffset), tapi schedulePreviewUpdate
-                // HANYA dipanggil ketika user yang menggeser slider.
-                //
-                // Sebelumnya: schedulePreviewUpdate() selalu dipanggil → infinite loop:
-                //   updatePreview → seekBar.progress = X (programmatic)
-                //   → onProgressChanged(fromUser=false) → schedulePreviewUpdate()
-                //   → updatePreview lagi tiap 100ms → calculateAutoOffset() terus
-                //   → ANR → sistem kill app ("close sendiri").
-                // =======================================================================
                 val actualValue = progress + min
                 if (isFormatScale) {
                     textView.text = getString(R.string.preview_scale, actualValue)
@@ -351,20 +291,48 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    
-    // =======================================================================
-    // Helper: Bersihkan semua layer visual BottomSheetDialog agar HANYA
-    // glass background pada content view yang terlihat.
-    // - Hapus scrim/dim overlay (latar gelap)
-    // - Set container Material (design_bottom_sheet) ke transparent
-    // - Hasil: glass panel slide-up di atas main UI tanpa artefak visual
-    // =======================================================================
     private fun styleGlassBottomSheet(dialog: BottomSheetDialog) {
-        dialog.window?.setDimAmount(0f)
-        // background = null menghapus SEMUA layer visual Material (termasuk
-        // backgroundTint, shapeAppearance) yang tidak hilang dengan setBackgroundColor
-        dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.apply {
-            background = null
+        val bottomSheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+        if (bottomSheet != null) {
+            bottomSheet.setBackgroundColor(Color.TRANSPARENT)
+            bottomSheet.backgroundTintList = null
+            bottomSheet.elevation = 0f
+
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.skipCollapsed = true
+
+            (bottomSheet as? android.view.ViewGroup)?.clipChildren = false
+            bottomSheet.parent?.let { parent ->
+                (parent as? android.view.ViewGroup)?.clipChildren = false
+            }
+
+            val contentView = (bottomSheet as? android.view.ViewGroup)?.getChildAt(0)
+            contentView?.apply {
+                elevation = 24f
+                clipToOutline = false
+                outlineProvider = object : android.view.ViewOutlineProvider() {
+                    override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                        val radius = 28f * view.resources.displayMetrics.density
+                        outline.setRoundRect(
+                            0, 0,
+                            view.width,
+                            view.height + radius.toInt(),
+                            radius
+                        )
+                    }
+                }
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            dialog.window?.setBackgroundBlurRadius(50)
+        }
+    }
+
+    private fun setupGlassBottomSheet(dialog: BottomSheetDialog) {
+        dialog.setOnShowListener {
+            styleGlassBottomSheet(dialog)
         }
     }
 
@@ -375,37 +343,30 @@ class MainActivity : AppCompatActivity() {
 
         view.findViewById<TextView>(R.id.tv_sheet_title)?.text = title
 
-        val listView = view.findViewById<ListView>(R.id.lv_sheet_items)
+        val container = view.findViewById<LinearLayout>(R.id.ll_sheet_items) ?: return
         val selectedIndex = items.indexOf(currentItem).takeIf { it >= 0 } ?: -1
 
-        // Custom adapter dengan checkmark untuk item terpilih
-        val adapter = object : ArrayAdapter<String>(this, R.layout.item_bottom_sheet, items) {
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val tv = super.getView(position, convertView, parent) as TextView
-                if (position == selectedIndex) {
-                    tv.text = "✓  ${items[position]}"
-                    val typedValue = TypedValue()
-                    theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, typedValue, true)
-                    tv.setTextColor(typedValue.data)
-                    tv.setTypeface(tv.typeface, android.graphics.Typeface.BOLD)
-                } else {
-                    tv.text = items[position]
-                    val typedValue = TypedValue()
-                    theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true)
-                    tv.setTextColor(typedValue.data)
-                    tv.setTypeface(tv.typeface, android.graphics.Typeface.NORMAL)
-                }
-                return tv
-            }
-        }
-        listView?.adapter = adapter
+        for (i in items.indices) {
+            val tv = layoutInflater.inflate(R.layout.item_bottom_sheet, container, false) as TextView
+            tv.text = items[i]
 
-        listView?.setOnItemClickListener { _, _, position, _ ->
-            onSelected(position)
-            bottomSheetDialog.dismiss()
+            if (i == selectedIndex) {
+                tv.text = "✓  ${items[i]}"
+                val typedValue = TypedValue()
+                theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, typedValue, true)
+                tv.setTextColor(typedValue.data)
+                tv.setTypeface(tv.typeface, android.graphics.Typeface.BOLD)
+            }
+
+            tv.setOnClickListener {
+                onSelected(i)
+                bottomSheetDialog.dismiss()
+            }
+            container.addView(tv)
         }
+
+        setupGlassBottomSheet(bottomSheetDialog)
         bottomSheetDialog.show()
-        styleGlassBottomSheet(bottomSheetDialog)
     }
 
     private fun updateLocationUI() {
@@ -441,7 +402,6 @@ class MainActivity : AppCompatActivity() {
             findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !isAutoHijri
             var offsetHijri = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
 
-            // Auto Hijri Offset: hitung offset otomatis dari kalkulasi lunar
             if (isAutoHijri && settingsManager.latitude != null && settingsManager.longitude != null) {
                 try {
                     val lat = settingsManager.latitude!!.toDouble()
@@ -454,9 +414,8 @@ class MainActivity : AppCompatActivity() {
                     val criteria = HilalCriteria.fromName(criteriaStr)
                     offsetHijri = HijriOffsetCalculator.calculateAutoOffset(lat, lon, criteria)
 
-                    // Update slider ke posisi auto (tanpa trigger listener)
                     val seekBar = findViewById<SeekBar>(R.id.sb_hijri_offset)
-                    seekBar?.progress = offsetHijri + 2 // slider range 0..4, offset -2..+2
+                    seekBar?.progress = offsetHijri + 2
                     val displayValue = if (offsetHijri > 0) "+$offsetHijri" else "$offsetHijri"
                     findViewById<TextView>(R.id.tv_label_hijri)?.text = "$displayValue ✦"
                 } catch (e: Exception) {
@@ -566,14 +525,12 @@ class MainActivity : AppCompatActivity() {
                         flipper?.visibility = View.VISIBLE
                         flipper?.removeAllViews()
 
-                        // 1. Info Normal Default
                         val normalView = layoutInflater.inflate(R.layout.item_flipper_normal, flipper, false)
                         normalView.findViewById<TextView>(R.id.tv_sunrise_flip)?.apply { text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}" }
                         normalView.findViewById<TextView>(R.id.tv_last_third_flip)?.apply { text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}" }
                         normalView.findViewById<TextView>(R.id.tv_qibla_flip)?.apply { text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction) }
                         flipper?.addView(normalView)
 
-                        // 2. FITUR QUOTES UNTUK PREVIEW
                         try {
                             var fullQuote = "Barangsiapa yang menempuh suatu jalan untuk mencari ilmu, maka Allah akan mudahkan baginya jalan menuju surga. - HR. Muslim"
                             try {
@@ -608,7 +565,6 @@ class MainActivity : AppCompatActivity() {
                             }
                         } catch (e: Exception) {}
 
-                        // 3. Info Puasa Sunnah
                         if (sunnahInfo.isNotEmpty()) {
                             val sunnahView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
                             sunnahView.text = sunnahInfo
@@ -616,7 +572,6 @@ class MainActivity : AppCompatActivity() {
                             flipper?.addView(sunnahView)
                         }
 
-                        // 4. Info Update
                         if (isUpdateAvailable) {
                             val updateMsg = localizedContext.getString(R.string.update_available_msg, settingsManager.latestVersionName)
                             val updateView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
@@ -646,9 +601,9 @@ class MainActivity : AppCompatActivity() {
 
             val bgDrawable = ContextCompat.getDrawable(this, R.drawable.widget_bg_shape)?.mutate() as? GradientDrawable
             bgDrawable?.cornerRadius = previewRadiusDp * resources.displayMetrics.density
+            bgDrawable?.setColor(bgColor)
             previewBg.setImageDrawable(bgDrawable)
-            previewBg.setColorFilter(Color.rgb(Color.red(bgColor), Color.green(bgColor), Color.blue(bgColor)))
-            previewBg.imageAlpha = Color.alpha(bgColor)
+            previewBg.colorFilter = null
 
             findViewById<TextView>(R.id.clock_widget)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsClock); setTextColor(textColor) }
             findViewById<TextView>(R.id.tv_gregorian_date)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsDate - 2f); setTextColor(textColor) }
@@ -775,12 +730,6 @@ class MainActivity : AppCompatActivity() {
                 showBottomSheetSelector(getString(R.string.sec_lang_theme), languageEntries, btn.text.toString()) { pos ->
                     val code = languageValues[pos]
                     if (code != activeLangCode) {
-                        // =======================================================================
-                        // FIX RESTART: Tidak ada lagi loading overlay + delayed Handler.
-                        // Dengan configChanges="locale" di Manifest, setApplicationLocales()
-                        // akan memanggil onConfigurationChanged() secara in-place — UI
-                        // di-refresh tanpa destroy/recreate Activity sama sekali.
-                        // =======================================================================
                         settingsManager.languageCode = code
 
                         val newDateFormat: String
@@ -808,14 +757,9 @@ class MainActivity : AppCompatActivity() {
                         settingsManager.dateFormat = newDateFormat
                         settingsManager.hijriFormat = newHijriFormat
 
-                        // Terapkan locale baru → memicu onConfigurationChanged, bukan restart
                         androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
                             androidx.core.os.LocaleListCompat.forLanguageTags(code)
                         )
-                        // JANGAN panggil saveSettingsQuietly() di sini!
-                        // Format sudah disimpan di atas (baris 763-764).
-                        // saveSettingsQuietly() membaca EditText LAMA dan MENIMPA
-                        // format baru dengan "en-US{...}" dari layout sebelum reinflate.
 
                     }
                 }
@@ -836,11 +780,6 @@ class MainActivity : AppCompatActivity() {
                         "DARK" -> AppCompatDelegate.MODE_NIGHT_YES
                         else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
                     }
-                    // =======================================================================
-                    // FIX RESTART: setDefaultNightMode() memicu onConfigurationChanged
-                    // (bukan recreate) karena configChanges="uiMode" sudah didaftarkan.
-                    // Snackbar memberi feedback langsung tanpa user bingung app "close".
-                    // =======================================================================
                     AppCompatDelegate.setDefaultNightMode(nightMode)
 
                 }
@@ -872,12 +811,10 @@ class MainActivity : AppCompatActivity() {
         setupSlider(R.id.sb_fs_prayer, R.id.tv_fs_prayer, 8, 30, settingsManager.fontSizePrayer, false, "sp")
         setupSlider(R.id.sb_fs_additional, R.id.tv_fs_additional, 8, 24, settingsManager.fontSizeAdditional, false, "sp")
         setupSlider(R.id.sb_radius, R.id.tv_label_radius, 0, 60, settingsManager.widgetBgRadius, false, "dp")
-        // === Auto Hijri Offset Switch ===
         findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.apply {
             isChecked = settingsManager.isAutoHijriOffset
             setOnCheckedChangeListener { view, isChecked ->
                 if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
-                // Toggle slider enabled/disabled
                 findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !isChecked
                 findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.visibility =
                     if (isChecked) View.VISIBLE else View.GONE
@@ -886,7 +823,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // === Hilal Criteria Dropdown ===
         findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.let { btn ->
             val savedIdx = hilalCriteriaValues.indexOf(settingsManager.hilalCriteria).takeIf { it >= 0 } ?: 0
             btn.text = hilalCriteriaEntries[savedIdx]
@@ -899,13 +835,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Visibility: hilal criteria dropdown hanya tampil saat auto ON
         findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.visibility =
             if (settingsManager.isAutoHijriOffset) View.VISIBLE else View.GONE
 
         setupSlider(R.id.sb_hijri_offset, R.id.tv_label_hijri, -2, 2, settingsManager.hijriOffset, false, "")
 
-        // Disable slider saat auto mode ON
         findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !settingsManager.isAutoHijriOffset
 
         currentTextColor = settingsManager.widgetTextColor
@@ -919,11 +853,6 @@ class MainActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) { updatePreview() }
             override fun afterTextChanged(s: Editable?) { saveSettingsQuietly() }
         }
-        // =======================================================================
-        // FIX RESTART: Hapus TextWatcher lama sebelum menambah yang baru.
-        // Tanpa ini, setiap onConfigurationChanged akan menumpuk TextWatcher
-        // dan menyebabkan saveSettingsQuietly() dipanggil berkali-kali per keystroke.
-        // =======================================================================
         activeTextWatcher?.let {
             findViewById<EditText>(R.id.et_date_format)?.removeTextChangedListener(it)
             findViewById<EditText>(R.id.et_hijri_format)?.removeTextChangedListener(it)
@@ -945,16 +874,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
-        // === Advanced DND ===
         val swAdvancedDnd = findViewById<SwitchCompat>(R.id.sw_advanced_dnd)
         val advancedDndLayout = findViewById<View>(R.id.layout_advanced_dnd)
         swAdvancedDnd?.isChecked = false
         swAdvancedDnd?.setOnCheckedChangeListener { view, isChecked ->
             if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            val parent = advancedDndLayout?.parent as? android.view.ViewGroup
+            if (parent != null) {
+                androidx.transition.TransitionManager.beginDelayedTransition(
+                    parent,
+                    androidx.transition.AutoTransition().apply { duration = 250 }
+                )
+            }
             advancedDndLayout?.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-        // Klik seluruh baris juga toggle switch (bukan hanya switch-nya saja)
         findViewById<View>(R.id.btn_advanced_dnd)?.setOnClickListener { view ->
             view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             swAdvancedDnd?.toggle()
@@ -1088,17 +1021,10 @@ class MainActivity : AppCompatActivity() {
             bottomSheetDialog.dismiss()
         }
 
+        setupGlassBottomSheet(bottomSheetDialog)
         bottomSheetDialog.show()
-        styleGlassBottomSheet(bottomSheetDialog)
     }
 
-
-    // =======================================================================
-    // FIX AUTO-CLOSE: saveSettingsQuietly() sekarang hanya menyimpan ke
-    // SharedPreferences (operasi cepat) dan men-schedule broadcast via debounce.
-    // Broadcast berat (yang memicu onUpdate → scheduleAllPrayers) hanya dikirim
-    // SEKALI setelah 500ms idle, mencegah overload dan ANR.
-    // =======================================================================
     private fun saveSettingsQuietly() {
         try {
             val calcSpinnerStr = findViewById<MaterialButton>(R.id.btn_calc_method)?.text?.toString() ?: ""
@@ -1153,7 +1079,6 @@ class MainActivity : AppCompatActivity() {
 
             QuoteUpdateManager.setAutoUpdate(this, newInterval)
 
-            // Schedule debounced broadcast instead of immediate
             saveDebounceHandler.removeCallbacks(saveDebounceRunnable)
             saveDebounceHandler.postDelayed(saveDebounceRunnable, 500)
 
@@ -1163,11 +1088,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // =======================================================================
-    // FIX AUTO-CLOSE: Actual broadcast — dipanggil hanya setelah debounce selesai.
-    // Ini mencegah scheduleAllPrayers() dipanggil 20-30x berturut-turut saat
-    // user menggeser slider cepat.
-    // =======================================================================
     private fun performActualSave() {
         try {
             val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
@@ -1260,8 +1180,8 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/cyberzilla")))
             }
 
+            setupGlassBottomSheet(bottomSheetDialog)
             bottomSheetDialog.show()
-            styleGlassBottomSheet(bottomSheetDialog)
         }
     }
 
@@ -1354,7 +1274,6 @@ class MainActivity : AppCompatActivity() {
         updatePreview()
         saveSettingsQuietly()
     }
-
 
     private fun checkBatteryOptimizations() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

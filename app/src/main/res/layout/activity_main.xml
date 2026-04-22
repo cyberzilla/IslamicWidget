@@ -16,7 +16,10 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_liquid_glass"
-            android:layout_margin="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="0dp"
             android:paddingTop="16dp"
             android:paddingBottom="12dp"
             android:paddingStart="16dp"
@@ -76,17 +79,22 @@
                 android:textAlignment="center"/>
         </LinearLayout>
 
-        <androidx.core.widget.NestedScrollView
+        <com.cyberzilla.islamicwidget.TopFadingNestedScrollView
+            android:id="@+id/scroll_settings"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:padding="16dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:clipToPadding="false">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:paddingTop="16dp">
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
@@ -333,7 +341,7 @@
                     app:contentPadding="20dp"
                     android:clipChildren="false"
                     android:clipToPadding="false">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:animateLayoutChanges="true" android:clipChildren="false" android:clipToPadding="false">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:clipChildren="false" android:clipToPadding="false">
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sec_dnd" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" />
                             <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_auto_silent" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
@@ -565,7 +573,7 @@
                 </LinearLayout>
 
             </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
+        </com.cyberzilla.islamicwidget.TopFadingNestedScrollView>
     </LinearLayout>
 
     <FrameLayout

@@ -18,7 +18,6 @@ object AudioAdzanManager {
     var isTestingSubuh = false
         private set
 
-    // FIX A5: Simpan volume alarm asli sebelum diubah agar bisa di-restore
     private var originalAlarmVolume = -1
 
     fun toggleTestAdzan(
@@ -53,7 +52,6 @@ object AudioAdzanManager {
 
                 val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-                // FIX A5: Simpan volume asli SEBELUM mengubahnya
                 originalAlarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
 
                 val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
@@ -93,7 +91,6 @@ object AudioAdzanManager {
             isTestingRegular = false
             isTestingSubuh = false
 
-            // FIX A5: Restore volume alarm ke nilai asli setelah test selesai
             if (originalAlarmVolume >= 0 && context != null) {
                 try {
                     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

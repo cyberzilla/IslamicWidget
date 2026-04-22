@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Background untuk AlertDialog (confirm, reset, permission).
+     Berbeda dengan bg_liquid_glass_overlay: TANPA stroke/border
+     agar tidak ada border putih yang terlihat di light theme. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/glass_overlay_bg" />
+    <corners android:radius="24dp" />
+</shape>

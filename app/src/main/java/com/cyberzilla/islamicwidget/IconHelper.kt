@@ -13,9 +13,6 @@ object IconHelper {
     private const val TAG = "IconHelper"
     private const val PREF_PENDING_ICON_DAY = "pendingIconHijriDay"
 
-    // =======================================================================
-    // FIX AUTO-CLOSE: Cek apakah app sedang di foreground.
-    // =======================================================================
     private fun isAppInForeground(context: Context): Boolean {
         return try {
             val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
@@ -30,11 +27,6 @@ object IconHelper {
     }
 
     fun updateLauncherIcon(context: Context, hijriDay: Int) {
-        // =======================================================================
-        // FIX AUTO-CLOSE: Jika app sedang dibuka user (foreground), simpan
-        // pending day ke SharedPreferences. Icon akan diupdate saat user
-        // meninggalkan app (onStop) melalui executePendingIconUpdate().
-        // =======================================================================
         if (isAppInForeground(context)) {
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
             prefs.edit().putInt(PREF_PENDING_ICON_DAY, hijriDay).apply()
@@ -45,17 +37,11 @@ object IconHelper {
         performIconUpdate(context, hijriDay)
     }
 
-    // =======================================================================
-    // Dipanggil dari MainActivity.onStop() — saat Activity sudah tidak
-    // visible, aman untuk setComponentEnabledSetting tanpa risiko kill.
-    // Juga dipanggil saat widget refresh di background (normal path).
-    // =======================================================================
     fun executePendingIconUpdate(context: Context) {
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         val pendingDay = prefs.getInt(PREF_PENDING_ICON_DAY, -1)
         if (pendingDay == -1) return
 
-        // Hapus pending flag DULU sebelum eksekusi agar tidak double-execute
         prefs.edit().remove(PREF_PENDING_ICON_DAY).apply()
 
         Log.d(TAG, "Executing deferred icon update: day $pendingDay")
@@ -78,7 +64,6 @@ object IconHelper {
             actions.add(Pair(mainActivity, PackageManager.COMPONENT_ENABLED_STATE_DISABLED))
         }
 
-        // 2. Siapkan status untuk ke-30 Alias
         for (i in 1..30) {
             val aliasName = "$packageName.MainActivityAlias$i"
             val componentName = ComponentName(packageName, aliasName)
@@ -104,11 +89,10 @@ object IconHelper {
             }
         }
 
-        // Update cache setelah icon benar-benar berubah
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         prefs.edit().putInt("lastIconHijriDay", dayToSet).apply()
 
         Log.d(TAG, "Launcher icon updated to day $dayToSet")
     }
 }
-
+

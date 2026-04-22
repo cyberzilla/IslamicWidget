@@ -139,14 +139,6 @@ class SettingsManager(private val context: Context) {
         get() = prefs.getBoolean("isAdzanPlaying", false)
         set(value) = prefs.edit().putBoolean("isAdzanPlaying", value).apply()
 
-    /**
-     * BUG FIX #11: Menyimpan volume alarm asli ke SharedPreferences, bukan hanya variabel lokal.
-     * Jika AdzanService di-crash paksa oleh sistem sebelum onDestroy() dipanggil, volume alarm
-     * device user akan permanen berubah karena variabel lokal (originalAlarmVolume) ikut hilang
-     * bersama proses. Dengan menyimpan ke SharedPreferences, nilai ini tetap ada dan bisa
-     * di-restore saat service berikutnya dijalankan.
-     * Nilai -1 berarti tidak ada backup (volume belum pernah diubah oleh adzan).
-     */
     var adzanOriginalVolumeBackup: Int
         get() = prefs.getInt("adzanOriginalVolumeBackup", -1)
         set(value) = prefs.edit().putInt("adzanOriginalVolumeBackup", value).apply()
@@ -186,7 +178,6 @@ class SettingsManager(private val context: Context) {
 
         prefs.edit().clear().apply()
 
-        // FIX E5: Restore juga reset ghost DND flags agar tidak stuck silent
         prefs.edit()
             .putBoolean("IS_MUTED_BY_APP_DND", false)
             .putBoolean("IS_MUTED_BY_APP_RINGER", false)
@@ -200,10 +191,6 @@ class SettingsManager(private val context: Context) {
         locationName = currentLocName
     }
 
-    // =======================================================================
-    // FIX A2: Batch save — menulis SEMUA settings dalam 1 disk I/O operation.
-    // Mencegah data inconsistency dan I/O thrashing dari 30+ individual writes.
-    // =======================================================================
     fun saveAllSettings(
         previewScale: Int, calculationMethod: String,
         showClock: Boolean, showDate: Boolean, showPrayer: Boolean, showAdditional: Boolean,

@@ -55,7 +55,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
     private var tvCenterHeading: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Sinkronisasi Tema agar popup tidak bentrok dengan sistem Android
         try {
             val settingsManager = SettingsManager(this)
             when (settingsManager.appTheme) {
@@ -81,7 +80,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-            // 1. Load dari memori terakhir agar tidak blank/loading lama
             val settings = SettingsManager(this)
             val latStr = settings.latitude
             val lonStr = settings.longitude
@@ -100,7 +98,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 tvDegree?.text = getString(R.string.default_location)
             }
 
-            // 2. Diam-diam cari lokasi terbaru di background (Auto-Update GPS)
             fetchLatestLocation()
 
             sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -136,7 +133,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                         settings.latitude = location.latitude.toString()
                         settings.longitude = location.longitude.toString()
 
-                        // --- TAMBAHAN: Translate koordinat baru jadi Nama Kota untuk UI Settings ---
                         try {
                             val geocoder = android.location.Geocoder(this@CompassActivity, java.util.Locale.getDefault())
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -152,7 +148,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                                 settings.locationName = locName
                             }
                         } catch (e: Exception) {}
-                        // -------------------------------------------------------------------------
 
                         val updateIntent = Intent(this, IslamicWidgetProvider::class.java).apply {
                             action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
@@ -269,7 +264,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 }
             }
         } catch (e: Exception) {
-            // Gagal kalkulasi sensor secara periodik dapat diabaikan
         }
     }
 

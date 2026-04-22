@@ -12,7 +12,6 @@ class QuoteDatabaseHelper private constructor(private val context: Context) : SQ
         private const val DB_NAME = "quotes.sqlite"
         private const val DB_VERSION = 1
 
-        // FIX C1: Singleton pattern — mencegah multiple DB connection dari instantiasi berulang
         @Volatile
         private var INSTANCE: QuoteDatabaseHelper? = null
 
@@ -65,10 +64,6 @@ class QuoteDatabaseHelper private constructor(private val context: Context) : SQ
             result = Pair(quote, reference)
         }
         cursor.close()
-        // BUG FIX #5: Dihapus db.close() — SQLiteOpenHelper mengelola lifecycle
-        // koneksi database secara internal. Memanggil db.close() secara manual
-        // menyebabkan IllegalStateException jika fungsi ini dipanggil berulang
-        // (misalnya saat ada beberapa widget yang di-update bersamaan).
         return result
     }
 }

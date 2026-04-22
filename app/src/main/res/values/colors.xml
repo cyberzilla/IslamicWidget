@@ -16,7 +16,12 @@
     <color name="glass_card_bg">#4DFFFFFF</color>
     <color name="glass_card_stroke">#66FFFFFF</color>
     <color name="glass_bottom_btn_bg">#B3FFFFFF</color>
-    <color name="glass_overlay_bg">#A6FFFFFF</color>
+    <color name="glass_overlay_bg">#F2F0F1F5</color>
     <color name="glass_slider_track">#33000000</color>
-</resources>
 
+    <!-- Acrylic effect colors (light) -->
+    <color name="acrylic_sheen_top">#1AFFFFFF</color>
+    <color name="acrylic_grain_a">#08000000</color>
+    <color name="acrylic_grain_b">#05FFFFFF</color>
+    <color name="acrylic_border">#33FFFFFF</color>
+</resources>

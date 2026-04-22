@@ -9,8 +9,6 @@ import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
 
-// === Data Classes ===
-
 data class HilalResult(
     val isHilalVisible: Boolean,
     val moonAltitudeAtSunset: Double,
@@ -20,7 +18,6 @@ data class HilalResult(
     val isMoonsetAfterSunset: Boolean = false,
     val isConjunctionBeforeSunset: Boolean = false,
     val criteriaUsed: String = "",
-    // New detailed parameters
     val conjunctionTime: Date? = null,
     val moonsetTime: Date? = null,
     val sunAzimuth: Double = 0.0,
@@ -38,8 +35,6 @@ data class HijriDate(
 ) {
     override fun toString(): String = "$day $monthName $year H"
 }
-
-// === Calculator ===
 
 class HijriCalculator(
     private val latitude: Double,
@@ -60,10 +55,6 @@ class HijriCalculator(
         )
     }
 
-    // ================================================================
-    // PUBLIC API
-    // ================================================================
-
     fun evaluateHilal(
         dateToEvaluate: Date,
         criteria: HilalCriteria = HilalCriteria.NEO_MABIMS
@@ -76,44 +67,34 @@ class HijriCalculator(
 
         val checkTime = Time.fromMillisecondsSince1970(calendar.timeInMillis)
 
-        // Find sunset
         val sunsetAstroTime = searchRiseSet(Body.Sun, observer, Direction.Set, checkTime, 1.0)
             ?: return HilalResult(false, 0.0, 0.0, null, criteriaUsed = criteria.displayName)
 
-        // Moon position at sunset
         val moonEq = equator(Body.Moon, sunsetAstroTime, observer, EquatorEpoch.OfDate, Aberration.Corrected)
         val moonHor = horizon(sunsetAstroTime, observer, moonEq.ra, moonEq.dec, Refraction.Normal)
 
-        // Sun position at sunset
         val sunEq = equator(Body.Sun, sunsetAstroTime, observer, EquatorEpoch.OfDate, Aberration.Corrected)
         val sunHor = horizon(sunsetAstroTime, observer, sunEq.ra, sunEq.dec, Refraction.Normal)
 
-        // Elongation
         val elongation = calculateAngularDistance(sunEq.ra, sunEq.dec, moonEq.ra, moonEq.dec)
 
-        // Moon age (hours since last conjunction)
         val lastConjunction = findPreviousNewMoon(sunsetAstroTime)
         val moonAgeHours = (sunsetAstroTime.ut - lastConjunction.ut) * 24.0
 
-        // Is conjunction before sunset?
         val isConjunctionBeforeSunset = lastConjunction < sunsetAstroTime
 
-        // Moonset time
         val moonsetAstroTime = searchRiseSet(Body.Moon, observer, Direction.Set, sunsetAstroTime, 1.0)
         val isMoonsetAfterSunset = moonsetAstroTime != null && moonsetAstroTime > sunsetAstroTime
 
-        // Lag (minutes between sunset and moonset)
         val lagMinutes = if (moonsetAstroTime != null && moonsetAstroTime > sunsetAstroTime) {
             (moonsetAstroTime.ut - sunsetAstroTime.ut) * 24.0 * 60.0
         } else {
             0.0
         }
 
-        // Illumination fraction from elongation: (1 - cos(elongation)) / 2
         val elongationRad = Math.toRadians(elongation)
-        val illuminationFraction = (1.0 - cos(elongationRad)) / 2.0 * 100.0 // as percentage
+        val illuminationFraction = (1.0 - cos(elongationRad)) / 2.0 * 100.0
 
-        // Evaluate visibility
         val isVisible = evaluateVisibility(
             criteria = criteria,
             altitude = moonHor.altitude,
@@ -167,10 +148,6 @@ class HijriCalculator(
         }
     }
 
-    // ================================================================
-    // CRITERIA EVALUATION
-    // ================================================================
-
     private fun evaluateVisibility(
         criteria: HilalCriteria,
         altitude: Double,
@@ -190,10 +167,6 @@ class HijriCalculator(
             HilalCriteria.IJTIMA_QABLA_GHURUB -> isConjunctionBeforeSunset
         }
     }
-
-    // ================================================================
-    // MONTH START CALCULATION
-    // ================================================================
 
     private fun findMonthStartAfterConjunction(conjunction: Time, criteria: HilalCriteria): Date {
         for (dayOffset in 0..3) {
@@ -229,10 +202,6 @@ class HijriCalculator(
         return getNextGregorianDay(Date(fallbackTime.toMillisecondsSince1970()))
     }
 
-    // ================================================================
-    // HIJRI MONTH/YEAR MAPPING
-    // ================================================================
-
     private fun getHijriMonthYear(conjunction: Time): Pair<Int, Int> {
         val refConjunction = Time(2024, 7, 5, 22, 57, 0.0)
         val daysDiff = conjunction.ut - refConjunction.ut
@@ -253,10 +222,6 @@ class HijriCalculator(
 
         return Pair(hijriMonth, hijriYear)
     }
-
-    // ================================================================
-    // HELPER METHODS
-    // ================================================================
 
     private fun findPreviousNewMoon(fromTime: Time): Time {
         return searchMoonPhase(0.0, fromTime, -35.0)

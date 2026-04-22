@@ -2,6 +2,14 @@
     <color name="glass_card_bg">#14FFFFFF</color>
     <color name="glass_card_stroke">#00000000</color>
     <color name="glass_bottom_btn_bg">#1AFFFFFF</color>
-    <color name="glass_overlay_bg">#A6000000</color>
+    <!-- Warna senada dengan gradient bg_hyperos_main (navy-indigo #1E1B4B) -->
+    <!-- bukan solid black, agar bottom sheet menyatu dengan nuansa UI -->
+    <color name="glass_overlay_bg">#F2161340</color>
     <color name="glass_slider_track">#1AFFFFFF</color>
+
+    <!-- Acrylic effect colors (night) -->
+    <color name="acrylic_sheen_top">#15FFFFFF</color>
+    <color name="acrylic_grain_a">#08FFFFFF</color>
+    <color name="acrylic_grain_b">#05000000</color>
+    <color name="acrylic_border">#1AFFFFFF</color>
 </resources>

@@ -23,10 +23,6 @@ class SilentModeReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             "ACTION_PLAY_ADZAN" -> {
-                // =======================================================================
-                // FIX GHOST DATA: Reset status pending sebelum Adzan baru dimulai!
-                // Mencegah DND terhapus prematur saat Adzan diinterupsi.
-                // =======================================================================
                 prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
 
                 executeMute(context)

@@ -87,9 +87,6 @@ class DeveloperModeHelper(private val activity: Activity) {
         val unmuteMillis = targetMillis + (afterMins * 60 * 1000L)
 
         val prefs = activity.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
-        // =======================================================================
-        // FIX GHOST DATA: Sapu bersih PENDING_UNMUTE saat test baru dijadwalkan
-        // =======================================================================
         prefs.edit()
             .putBoolean("IS_TEST_MODE_ACTIVE", true)
             .putBoolean("PENDING_UNMUTE", false)

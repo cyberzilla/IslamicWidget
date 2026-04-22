@@ -26,12 +26,18 @@
         android:textStyle="bold"
         android:textColor="?android:attr/textColorPrimary" />
 
-    <ListView
-        android:id="@+id/lv_sheet_items"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:divider="@null"
-        android:dividerHeight="0dp"
-        android:paddingHorizontal="16dp"/>
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/ll_sheet_items"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"/>
+
+    </ScrollView>
 
 </LinearLayout>

@@ -1,10 +1,5 @@
 package com.cyberzilla.islamicwidget.utils
 
-/**
- * Enum representing various internationally recognized hilal visibility criteria.
- * Each criteria defines different thresholds for determining if the new crescent moon
- * (hilal) is considered visible, which determines the start of a new Hijri month.
- */
 enum class HilalCriteria(
     val displayName: String,
     val description: String

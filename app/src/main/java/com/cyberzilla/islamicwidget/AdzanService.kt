@@ -78,7 +78,6 @@ class AdzanService : Service() {
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
         if (serviceWakeLock?.isHeld == false) {
-            // FIX C3: Dikurangi dari 16 menit ke 6 menit (adzan biasanya < 5 menit)
             serviceWakeLock?.acquire(6 * 60 * 1000L)
         }
 
@@ -206,7 +205,6 @@ class AdzanService : Service() {
                     stopSelf()
                 } else {
                     try {
-                        // FIX C2: Gunakan cached settings, bukan instantiasi baru setiap 50ms
                         val internalVol = volume * (SettingsManager(this@AdzanService).adzanVolume / 100f)
                         mediaPlayer?.setVolume(internalVol, internalVol)
                         fadeHandler?.postDelayed(this, fadeInterval)
@@ -236,10 +234,6 @@ class AdzanService : Service() {
                     } catch (e: Exception) {}
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                    // =======================================================================
-                    // FIX ADZAN TERPOTONG KETIKA SCREEN OFF: Jangan ubah apapun.
-                    // Jika OS mencuri audio sementara karena Screen-Off Sound, biarkan saja.
-                    // =======================================================================
                     Log.d(TAG, "Audio focus transient loss diabaikan (Proteksi Screen Off)")
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
@@ -381,11 +375,6 @@ class AdzanService : Service() {
                 if (intent?.action == "android.media.VOLUME_CHANGED_ACTION" && !isFadingOut) {
                     val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
                     if (streamType == AudioManager.STREAM_ALARM || streamType == AudioManager.STREAM_RING) {
-                        // =======================================================================
-                        // FIX ADZAN TERPOTONG KETIKA SCREEN OFF
-                        // Wajib mengecek apakah angka volume aktual BENAR-BENAR bergeser, karena
-                        // OS Android mengirim broadcast palsu ini ketika Screen Off / Rerouting audio!
-                        // =======================================================================
                         val currentVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
                         if (currentVol != initialAlarmVolume && currentVol != -1) {
                             Log.d(TAG, "Deteksi perubahan Stream aktual via Broadcast. Stop Adzan.")
@@ -396,7 +385,6 @@ class AdzanService : Service() {
             }
         }
         try {
-            // FIX D4: Tambahkan flag RECEIVER_NOT_EXPORTED untuk Android 14+ (API 34)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"), Context.RECEIVER_NOT_EXPORTED)
             } else {

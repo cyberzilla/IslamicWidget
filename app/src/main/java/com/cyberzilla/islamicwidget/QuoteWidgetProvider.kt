@@ -78,7 +78,6 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     private fun showShimmer(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_quotes)
-            // --- INDEX 1 ADALAH SHIMMER SEKARANG ---
             views.setDisplayedChild(R.id.quote_flipper, 1)
             appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
         }
@@ -99,7 +98,6 @@ class QuoteWidgetProvider : AppWidgetProvider() {
 
         val alphaValue = settingsManager.quoteBgAlpha
 
-        // --- LOGIKA ROTASI BARU (Lompati Index 1) ---
         var currentChild = settingsManager.quoteDisplayedChild
         if (currentChild == 1) currentChild = 0
 
@@ -108,7 +106,6 @@ class QuoteWidgetProvider : AppWidgetProvider() {
 
         val tvQuoteId = if (nextChild == 0) R.id.tv_quote_text_0 else R.id.tv_quote_text_1
         val tvRefId = if (nextChild == 0) R.id.tv_quote_reference_0 else R.id.tv_quote_reference_1
-        // --------------------------------------------
 
         for (appWidgetId in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.widget_quotes)

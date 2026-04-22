@@ -4,15 +4,46 @@
         <item name="colorPrimary">@color/primary_color</item>
         <item name="colorPrimaryVariant">@color/primary_variant</item>
         <item name="colorOnPrimary">@color/white</item>
+        <!-- BottomSheetDialog default theme untuk SEMUA BottomSheet di app -->
+        <item name="bottomSheetDialogTheme">@style/GlassBottomSheetDialog</item>
     </style>
 
     <style name="GlassAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:background">@drawable/bg_liquid_glass_overlay</item>
+        <item name="android:background">@drawable/bg_alert_dialog_glass</item>
         <item name="backgroundTint">@android:color/transparent</item>
         <item name="colorSurface">@android:color/transparent</item>
         <item name="colorBackgroundFloating">@android:color/transparent</item>
         <item name="android:windowElevation">0dp</item>
         <item name="elevation">0dp</item>
+        <!-- Hapus shape outline bawaan Material -->
+        <item name="shapeAppearanceOverlay">@null</item>
+    </style>
+
+    <!-- ================================================================= -->
+    <!-- Theme untuk BottomSheetDialog: semua layer transparan dari awal    -->
+    <!-- sehingga tidak perlu clear background secara programmatic.          -->
+    <!-- Ini menyelesaikan masalah overlay yang kadang muncul kadang tidak   -->
+    <!-- karena timing setOnShowListener vs Material internal setup.         -->
+    <!-- ================================================================= -->
+    <style name="GlassBottomSheetDialog" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <!-- Window transparan, tanpa dim/scrim -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowIsFloating">false</item>
+        <!-- Hapus semua surface/floating color bawaan Material -->
+        <item name="colorSurface">@android:color/transparent</item>
+        <item name="colorBackgroundFloating">@android:color/transparent</item>
+        <!-- BottomSheet container styling -->
+        <item name="bottomSheetStyle">@style/GlassBottomSheetStyle</item>
+    </style>
+
+    <style name="GlassBottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <!-- Hapus backgroundTint Material default (sumber abu-abu!) -->
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="shapeAppearance">@null</item>
+        <item name="shapeAppearanceOverlay">@null</item>
+        <item name="android:elevation">0dp</item>
     </style>
 </resources>
