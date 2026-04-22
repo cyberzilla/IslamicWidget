@@ -74,6 +74,14 @@ class SettingsManager(private val context: Context) {
         get() = prefs.getInt("hijriOffset", 0)
         set(value) = prefs.edit().putInt("hijriOffset", value).apply()
 
+    var isAutoHijriOffset: Boolean
+        get() = prefs.getBoolean("isAutoHijriOffset", true)
+        set(value) = prefs.edit().putBoolean("isAutoHijriOffset", value).apply()
+
+    var hilalCriteria: String
+        get() = prefs.getString("hilalCriteria", "NEO_MABIMS") ?: "NEO_MABIMS"
+        set(value) = prefs.edit().putString("hilalCriteria", value).apply()
+
     var widgetTextColor: String
         get() = prefs.getString("widgetTextColor", "#FFFFFF") ?: "#FFFFFF"
         set(value) = prefs.edit().putString("widgetTextColor", value).apply()
@@ -201,6 +209,7 @@ class SettingsManager(private val context: Context) {
         showClock: Boolean, showDate: Boolean, showPrayer: Boolean, showAdditional: Boolean,
         fontSizeClock: Int, fontSizeDate: Int, fontSizePrayer: Int, fontSizeAdditional: Int,
         widgetBgRadius: Int, hijriOffset: Int,
+        isAutoHijriOffset: Boolean, hilalCriteria: String,
         widgetTextColor: String, widgetBgColor: String, isDayStartAtMaghrib: Boolean,
         dateFormat: String, hijriFormat: String,
         isAutoSilentEnabled: Boolean,
@@ -224,6 +233,8 @@ class SettingsManager(private val context: Context) {
             .putInt("fontSizeAdditional", fontSizeAdditional)
             .putInt("widgetBgRadius", widgetBgRadius)
             .putInt("hijriOffset", hijriOffset)
+            .putBoolean("isAutoHijriOffset", isAutoHijriOffset)
+            .putString("hilalCriteria", hilalCriteria)
             .putString("widgetTextColor", widgetTextColor)
             .putString("widgetBgColor", widgetBgColor)
             .putBoolean("isDayStartAtMaghrib", isDayStartAtMaghrib)

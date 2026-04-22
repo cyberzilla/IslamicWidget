@@ -35,6 +35,8 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.time.ExperimentalTime
+import com.cyberzilla.islamicwidget.utils.HilalCriteria
+import com.cyberzilla.islamicwidget.utils.HijriOffsetCalculator
 
 @OptIn(ExperimentalTime::class)
 class IslamicWidgetProvider : AppWidgetProvider() {
@@ -319,10 +321,26 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         val today = LocalDate.now()
         var hijriDate = HijrahDate.from(today)
-        var totalHijriOffset = settings.hijriOffset.toLong()
 
         val latString = settings.latitude
         val lonString = settings.longitude
+
+        var totalHijriOffset: Long
+
+        // === Auto Hijri Offset ===
+        if (settings.isAutoHijriOffset && latString != null && lonString != null) {
+            try {
+                val lat = latString.toDouble()
+                val lon = lonString.toDouble()
+                val criteria = HilalCriteria.fromName(settings.hilalCriteria)
+                totalHijriOffset = HijriOffsetCalculator.calculateAutoOffset(lat, lon, criteria).toLong()
+            } catch (e: Exception) {
+                totalHijriOffset = settings.hijriOffset.toLong()
+                Log.e(TAG, "Auto hijri offset error in widget, falling back to manual", e)
+            }
+        } else {
+            totalHijriOffset = settings.hijriOffset.toLong()
+        }
 
         // =======================================================================
         // FIX: KALKULASI HIJRIYAH DIPINDAH KE ZONA AMAN (LUAR BLOK ADZAN)

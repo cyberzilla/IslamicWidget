@@ -165,4 +165,7 @@
     <string name="update_install_failed">Failed to trigger automatic installation. Please open the file manually from Downloads.</string>
 
     <string name="reminder_fasting_tomorrow">Reminder: Tomorrow is %1$s</string>
+
+    <string name="auto_hijri_label">Auto Hijri Correction</string>
+    <string name="hilal_criteria_label">Hilal Criteria:</string>
 </resources>

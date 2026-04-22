@@ -165,4 +165,7 @@
     <string name="update_install_failed">فشل بدء التثبيت التلقائي. يرجى فتح الملف يدويًا من التنزيلات.</string>
 
     <string name="reminder_fasting_tomorrow">تذكير: غداً %1$s</string>
+
+    <string name="auto_hijri_label">تصحيح هجري تلقائي</string>
+    <string name="hilal_criteria_label">معايير الهلال:</string>
 </resources>

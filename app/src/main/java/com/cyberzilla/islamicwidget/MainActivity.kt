@@ -54,6 +54,8 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlin.time.ExperimentalTime
 import com.cyberzilla.islamicwidget.BuildConfig
+import com.cyberzilla.islamicwidget.utils.HilalCriteria
+import com.cyberzilla.islamicwidget.utils.HijriOffsetCalculator
 
 @OptIn(ExperimentalTime::class)
 class MainActivity : AppCompatActivity() {
@@ -68,6 +70,9 @@ class MainActivity : AppCompatActivity() {
     private val themeValues = arrayOf("SYSTEM", "LIGHT", "DARK")
 
     private val calcEntries = arrayOf("Muslim World League", "Egyptian", "Karachi", "Umm Al-Qura", "Dubai", "Qatar", "Kuwait", "Moonsighting Committee", "Singapore")
+
+    private val hilalCriteriaEntries = HilalCriteria.entries.map { it.displayName }.toTypedArray()
+    private val hilalCriteriaValues = HilalCriteria.entries.map { it.name }.toTypedArray()
     private val calcValues = arrayOf("MUSLIM_WORLD_LEAGUE", "EGYPTIAN", "KARACHI", "UMM_AL_QURA", "DUBAI", "QATAR", "KUWAIT", "MOON_SIGHTING_COMMITTEE", "SINGAPORE")
 
     private var currentTextColor = "#FFFFFF"
@@ -286,7 +291,31 @@ class MainActivity : AppCompatActivity() {
             val isShowPrayer = findViewById<SwitchCompat>(R.id.sw_show_prayer)?.isChecked ?: true
             val isShowAdd = findViewById<SwitchCompat>(R.id.sw_show_additional)?.isChecked ?: true
             val previewRadiusDp = (findViewById<SeekBar>(R.id.sb_radius)?.progress?.toFloat() ?: 16f) * scaleMultiplier
-            val offsetHijri = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
+            val isAutoHijri = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: settingsManager.isAutoHijriOffset
+            var offsetHijri = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
+
+            // Auto Hijri Offset: hitung offset otomatis dari kalkulasi lunar
+            if (isAutoHijri && settingsManager.latitude != null && settingsManager.longitude != null) {
+                try {
+                    val lat = settingsManager.latitude!!.toDouble()
+                    val lon = settingsManager.longitude!!.toDouble()
+                    val criteriaStr = hilalCriteriaValues[
+                        hilalCriteriaEntries.indexOf(
+                            findViewById<AutoCompleteTextView>(R.id.spinner_hilal_criteria)?.text?.toString() ?: ""
+                        ).takeIf { it >= 0 } ?: 0
+                    ]
+                    val criteria = HilalCriteria.fromName(criteriaStr)
+                    offsetHijri = HijriOffsetCalculator.calculateAutoOffset(lat, lon, criteria)
+
+                    // Update slider ke posisi auto (tanpa trigger listener)
+                    val seekBar = findViewById<SeekBar>(R.id.sb_hijri_offset)
+                    seekBar?.progress = offsetHijri + 2 // slider range 0..4, offset -2..+2
+                    val displayValue = if (offsetHijri > 0) "+$offsetHijri" else "$offsetHijri"
+                    findViewById<TextView>(R.id.tv_label_hijri)?.text = "$displayValue ✦"
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Auto hijri offset error", e)
+                }
+            }
 
             val currentLocales = AppCompatDelegate.getApplicationLocales()
             val activeLangCode = if (!currentLocales.isEmpty) currentLocales[0]!!.language else settingsManager.languageCode
@@ -677,7 +706,36 @@ class MainActivity : AppCompatActivity() {
         setupSlider(R.id.sb_fs_prayer, R.id.tv_fs_prayer, 8, 30, settingsManager.fontSizePrayer, false, "sp")
         setupSlider(R.id.sb_fs_additional, R.id.tv_fs_additional, 8, 24, settingsManager.fontSizeAdditional, false, "sp")
         setupSlider(R.id.sb_radius, R.id.tv_label_radius, 0, 60, settingsManager.widgetBgRadius, false, "dp")
+        // === Auto Hijri Offset Switch ===
+        findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.apply {
+            isChecked = settingsManager.isAutoHijriOffset
+            setOnCheckedChangeListener { _, isChecked ->
+                // Toggle slider enabled/disabled
+                findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !isChecked
+                findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_hilal_criteria)?.visibility =
+                    if (isChecked) View.VISIBLE else View.GONE
+                updatePreview()
+                saveSettingsQuietly()
+            }
+        }
+
+        // === Hilal Criteria Dropdown ===
+        findViewById<AutoCompleteTextView>(R.id.spinner_hilal_criteria)?.let { criteriaSpinner ->
+            criteriaSpinner.isSaveEnabled = false
+            criteriaSpinner.setDropdownItems(hilalCriteriaEntries)
+            val savedIdx = hilalCriteriaValues.indexOf(settingsManager.hilalCriteria).takeIf { it >= 0 } ?: 0
+            criteriaSpinner.setText(hilalCriteriaEntries[savedIdx], false)
+            criteriaSpinner.setOnItemClickListener { _, _, _, _ -> updatePreview(); saveSettingsQuietly() }
+        }
+
+        // Visibility: hilal criteria dropdown hanya tampil saat auto ON
+        findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_hilal_criteria)?.visibility =
+            if (settingsManager.isAutoHijriOffset) View.VISIBLE else View.GONE
+
         setupSlider(R.id.sb_hijri_offset, R.id.tv_label_hijri, -2, 2, settingsManager.hijriOffset, false, "")
+
+        // Disable slider saat auto mode ON
+        findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !settingsManager.isAutoHijriOffset
 
         currentTextColor = settingsManager.widgetTextColor
         currentBgColor = settingsManager.widgetBgColor
@@ -852,6 +910,12 @@ class MainActivity : AppCompatActivity() {
                 fontSizeAdditional = (findViewById<SeekBar>(R.id.sb_fs_additional)?.progress ?: 3) + 8,
                 widgetBgRadius = findViewById<SeekBar>(R.id.sb_radius)?.progress ?: 16,
                 hijriOffset = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2,
+                isAutoHijriOffset = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: true,
+                hilalCriteria = hilalCriteriaValues[
+                    hilalCriteriaEntries.indexOf(
+                        findViewById<AutoCompleteTextView>(R.id.spinner_hilal_criteria)?.text?.toString() ?: ""
+                    ).takeIf { it >= 0 } ?: 0
+                ],
                 widgetTextColor = currentTextColor,
                 widgetBgColor = currentBgColor,
                 isDayStartAtMaghrib = findViewById<CheckBox>(R.id.cb_day_start)?.isChecked ?: true,

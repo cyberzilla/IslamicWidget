@@ -165,4 +165,7 @@
     <string name="update_install_failed">Gagal memicu instalasi otomatis. Silakan buka file secara manual di folder Download.</string>
 
     <string name="reminder_fasting_tomorrow">Ingat, Besok %1$s</string>
+
+    <string name="auto_hijri_label">Auto Koreksi Hijriyah</string>
+    <string name="hilal_criteria_label">Kriteria Hilal:</string>
 </resources>
