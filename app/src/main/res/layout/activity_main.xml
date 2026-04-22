@@ -144,26 +144,30 @@
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_lang_theme" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp" />
 
-                        <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView
-                                android:id="@+id/spinner_language"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="none"
-                                android:textColor="?android:attr/textColorPrimary"
-                                android:popupBackground="@drawable/bg_liquid_glass_dropdown" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_language"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:text="Language"
+                            android:textColor="?android:attr/textColorPrimary"
+                            app:icon="@android:drawable/arrow_down_float"
+                            app:iconGravity="end"
+                            app:iconTint="?attr/colorPrimary"
+                            app:strokeColor="?attr/colorPrimary"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/theme_label" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginTop="12dp" android:layout_marginBottom="4dp"/>
-                        <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView
-                                android:id="@+id/spinner_theme"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="none"
-                                android:textColor="?android:attr/textColorPrimary"
-                                android:popupBackground="@drawable/bg_liquid_glass_dropdown" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_theme"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:text="Theme"
+                            android:textColor="?android:attr/textColorPrimary"
+                            app:icon="@android:drawable/arrow_down_float"
+                            app:iconGravity="end"
+                            app:iconTint="?attr/colorPrimary"
+                            app:strokeColor="?attr/colorPrimary"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -270,31 +274,36 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_calc" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="16dp" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/calc_method" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" android:layout_marginBottom="4dp"/>
 
-                        <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView
-                                android:id="@+id/spinner_calc_method"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="none"
-                                android:textColor="?android:attr/textColorPrimary"
-                                android:popupBackground="@drawable/bg_liquid_glass_dropdown"/>
-                        </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_calc_method"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:layout_marginBottom="16dp"
+                            android:text="Calculation Method"
+                            android:textColor="?android:attr/textColorPrimary"
+                            app:icon="@android:drawable/arrow_down_float"
+                            app:iconGravity="end"
+                            app:iconTint="?attr/colorPrimary"
+                            app:strokeColor="?attr/colorPrimary"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                             <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/auto_hijri_label" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
                             <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_auto_hijri" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
                         </LinearLayout>
 
-                        <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:id="@+id/til_hilal_criteria" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" app:boxStrokeColor="?attr/colorPrimary">
-                            <AutoCompleteTextView
-                                android:id="@+id/spinner_hilal_criteria"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="none"
-                                android:textColor="?android:attr/textColorPrimary"
-                                android:textSize="13sp"
-                                android:popupBackground="@drawable/bg_liquid_glass_dropdown" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_hilal_criteria"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:layout_marginBottom="12dp"
+                            android:text="Hilal Criteria"
+                            android:textColor="?android:attr/textColorPrimary"
+                            app:icon="@android:drawable/arrow_down_float"
+                            app:iconGravity="end"
+                            app:iconTint="?attr/colorPrimary"
+                            app:strokeColor="?attr/colorPrimary"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="8dp">
                             <TextView android:layout_width="140dp" android:layout_height="wrap_content" android:text="@string/hijri_offset" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
@@ -322,12 +331,42 @@
                     app:strokeWidth="1.5dp"
                     app:strokeColor="@color/glass_card_stroke"
                     app:contentPadding="20dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:animateLayoutChanges="true">
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sec_dnd" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" />
                             <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_auto_silent" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
                         </LinearLayout>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fajr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary"/>
+
+                        <LinearLayout
+                            android:id="@+id/btn_advanced_dnd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:paddingVertical="12dp"
+                            android:gravity="center_vertical">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/advanced_dnd_settings"
+                                android:textColor="?android:attr/textColorPrimary"
+                                android:textStyle="bold" />
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/sw_advanced_dnd"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:thumbTint="?attr/colorPrimary"/>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/layout_advanced_dnd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/fajr" android:textStyle="bold" android:textColor="?android:attr/textColorSecondary" android:layout_marginTop="8dp"/>
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/before" android:textSize="13sp"/>
                             <SeekBar android:id="@+id/sb_fajr_bef" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="60" android:progressTint="?android:attr/textColorSecondary" android:thumbTint="?android:attr/textColorSecondary" android:progressBackgroundTint="@color/glass_slider_track"/>
@@ -392,6 +431,7 @@
                             <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:text="@string/after" android:textSize="13sp"/>
                             <SeekBar android:id="@+id/sb_isha_aft" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:max="120" android:progressTint="?attr/colorPrimary" android:thumbTint="?attr/colorPrimary" android:progressBackgroundTint="@color/glass_slider_track"/>
                             <TextView android:id="@+id/tv_isha_aft" android:layout_width="40dp" android:layout_height="wrap_content" android:textColor="?android:attr/textColorPrimary" android:textStyle="bold" android:textSize="13sp" android:gravity="end"/>
+                        </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

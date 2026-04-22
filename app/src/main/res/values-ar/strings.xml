@@ -168,4 +168,6 @@
 
     <string name="auto_hijri_label">تصحيح هجري تلقائي</string>
     <string name="hilal_criteria_label">معايير الهلال:</string>
+
+    <string name="advanced_dnd_settings">إعدادات متقدمة</string>
 </resources>

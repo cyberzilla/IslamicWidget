@@ -56,6 +56,12 @@ import kotlin.time.ExperimentalTime
 import com.cyberzilla.islamicwidget.BuildConfig
 import com.cyberzilla.islamicwidget.utils.HilalCriteria
 import com.cyberzilla.islamicwidget.utils.HijriOffsetCalculator
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.widget.ListView
+import android.widget.ArrayAdapter
+import android.transition.TransitionManager
+import android.view.HapticFeedbackConstants
+import com.google.android.material.button.MaterialButton
 
 @OptIn(ExperimentalTime::class)
 class MainActivity : AppCompatActivity() {
@@ -246,6 +252,7 @@ class MainActivity : AppCompatActivity() {
 
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) seekBar?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                 val actualValue = progress + min
                 if (isFormatScale) {
                     textView.text = getString(R.string.preview_scale, actualValue)
@@ -260,6 +267,25 @@ class MainActivity : AppCompatActivity() {
                 saveSettingsQuietly()
             }
         })
+    }
+
+    
+    private fun showBottomSheetSelector(title: String, items: Array<String>, currentItem: String, onSelected: (Int) -> Unit) {
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_selector, null)
+        bottomSheetDialog.setContentView(view)
+
+        view.findViewById<TextView>(R.id.tv_sheet_title)?.text = title
+
+        val listView = view.findViewById<ListView>(R.id.lv_sheet_items)
+        val adapter = ArrayAdapter(this, R.layout.item_bottom_sheet, items)
+        listView?.adapter = adapter
+
+        listView?.setOnItemClickListener { _, _, position, _ ->
+            onSelected(position)
+            bottomSheetDialog.dismiss()
+        }
+        bottomSheetDialog.show()
     }
 
     private fun updateLocationUI() {
@@ -292,6 +318,7 @@ class MainActivity : AppCompatActivity() {
             val isShowAdd = findViewById<SwitchCompat>(R.id.sw_show_additional)?.isChecked ?: true
             val previewRadiusDp = (findViewById<SeekBar>(R.id.sb_radius)?.progress?.toFloat() ?: 16f) * scaleMultiplier
             val isAutoHijri = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: settingsManager.isAutoHijriOffset
+            findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !isAutoHijri
             var offsetHijri = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
 
             // Auto Hijri Offset: hitung offset otomatis dari kalkulasi lunar
@@ -301,7 +328,7 @@ class MainActivity : AppCompatActivity() {
                     val lon = settingsManager.longitude!!.toDouble()
                     val criteriaStr = hilalCriteriaValues[
                         hilalCriteriaEntries.indexOf(
-                            findViewById<AutoCompleteTextView>(R.id.spinner_hilal_criteria)?.text?.toString() ?: ""
+                            findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.text?.toString() ?: ""
                         ).takeIf { it >= 0 } ?: 0
                     ]
                     val criteria = HilalCriteria.fromName(criteriaStr)
@@ -315,6 +342,9 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     android.util.Log.e("MainActivity", "Auto hijri offset error", e)
                 }
+            } else if (findViewById<SeekBar>(R.id.sb_hijri_offset) != null) {
+                val displayValue = if (offsetHijri > 0) "+$offsetHijri" else "$offsetHijri"
+                findViewById<TextView>(R.id.tv_label_hijri)?.text = "$displayValue Hari"
             }
 
             val currentLocales = AppCompatDelegate.getApplicationLocales()
@@ -329,7 +359,7 @@ class MainActivity : AppCompatActivity() {
             val txtLastThird = localizedContext.getString(R.string.last_third)
             val txtQibla = localizedContext.getString(R.string.qibla)
 
-            val selectedCalcStr = findViewById<AutoCompleteTextView>(R.id.spinner_calc_method)?.text?.toString() ?: ""
+            val selectedCalcStr = findViewById<MaterialButton>(R.id.btn_calc_method)?.text?.toString() ?: ""
             val calcIdx = calcEntries.indexOf(selectedCalcStr).takeIf { it >= 0 } ?: 0
 
             val masehiPattern = findViewById<EditText>(R.id.et_date_format)?.text?.toString()?.ifEmpty { "en-US{EEEE, dd MMMM yyyy}" } ?: "en-US{EEEE, dd MMMM yyyy}"
@@ -618,70 +648,71 @@ class MainActivity : AppCompatActivity() {
         val currentLocales = AppCompatDelegate.getApplicationLocales()
         val activeLangCode = if (!currentLocales.isEmpty) currentLocales[0]!!.language else settingsManager.languageCode
 
-        findViewById<AutoCompleteTextView>(R.id.spinner_language)?.let { langSpinner ->
-            langSpinner.isSaveEnabled = false
-            langSpinner.setDropdownItems(languageEntries)
-            langSpinner.setText(languageEntries[languageValues.indexOf(activeLangCode).takeIf { it >= 0 } ?: 0], false)
+        findViewById<MaterialButton>(R.id.btn_language)?.let { btn ->
+            val initialIdx = languageValues.indexOf(activeLangCode).takeIf { it >= 0 } ?: 0
+            btn.text = languageEntries[initialIdx]
+            btn.setOnClickListener {
+                showBottomSheetSelector(getString(R.string.sec_lang_theme), languageEntries, btn.text.toString()) { pos ->
+                    val code = languageValues[pos]
+                    if (code != activeLangCode) {
+                        btn.text = languageEntries[pos]
+                        findViewById<android.widget.FrameLayout>(R.id.loading_overlay)?.visibility = android.view.View.VISIBLE
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            settingsManager.languageCode = code
 
-            langSpinner.setOnItemClickListener { _, _, pos, _ ->
-                val code = languageValues[pos]
-                if (code != activeLangCode) {
-                    findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        settingsManager.languageCode = code
+                            val newDateFormat: String
+                            val newHijriFormat: String
 
-                        val newDateFormat: String
-                        val newHijriFormat: String
-
-                        when (code) {
-                            "id" -> {
-                                newDateFormat = "id-ID{EEEE, dd MMMM yyyy}"
-                                newHijriFormat = "id-ID{dd MMMM yyyy} H"
+                            when (code) {
+                                "id" -> {
+                                    newDateFormat = "id-ID{EEEE, dd MMMM yyyy}"
+                                    newHijriFormat = "id-ID{dd MMMM yyyy} H"
+                                }
+                                "en" -> {
+                                    newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
+                                    newHijriFormat = "en-US{dd MMMM yyyy} AH"
+                                }
+                                "ar" -> {
+                                    newDateFormat = "ar-SA{EEEE, dd MMMM yyyy}"
+                                    newHijriFormat = "ar-SA{dd MMMM yyyy} هـ"
+                                }
+                                else -> {
+                                    newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
+                                    newHijriFormat = "en-US{dd MMMM yyyy} AH"
+                                }
                             }
-                            "en" -> {
-                                newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
-                                newHijriFormat = "en-US{dd MMMM yyyy} AH"
-                            }
-                            "ar" -> {
-                                newDateFormat = "ar-SA{EEEE, dd MMMM yyyy}"
-                                newHijriFormat = "ar-SA{dd MMMM yyyy} هـ"
-                            }
-                            else -> {
-                                newDateFormat = "en-US{EEEE, dd MMMM yyyy}"
-                                newHijriFormat = "en-US{dd MMMM yyyy} AH"
-                            }
-                        }
 
-                        settingsManager.dateFormat = newDateFormat
-                        settingsManager.hijriFormat = newHijriFormat
+                            settingsManager.dateFormat = newDateFormat
+                            settingsManager.hijriFormat = newHijriFormat
 
-                        findViewById<EditText>(R.id.et_date_format)?.setText(newDateFormat)
-                        findViewById<EditText>(R.id.et_hijri_format)?.setText(newHijriFormat)
+                            findViewById<android.widget.EditText>(R.id.et_date_format)?.setText(newDateFormat)
+                            findViewById<android.widget.EditText>(R.id.et_hijri_format)?.setText(newHijriFormat)
 
-                        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(code))
-                        saveSettingsQuietly()
+                            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(androidx.core.os.LocaleListCompat.forLanguageTags(code))
+                            saveSettingsQuietly()
 
-                        findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
-                    }, 300)
+                            findViewById<android.widget.FrameLayout>(R.id.loading_overlay)?.visibility = android.view.View.GONE
+                        }, 300)
+                    }
                 }
             }
         }
 
-        findViewById<AutoCompleteTextView>(R.id.spinner_theme)?.let { themeSpinner ->
-            themeSpinner.isSaveEnabled = false
-            themeSpinner.setDropdownItems(themeEntries)
-            themeSpinner.setText(themeEntries[themeValues.indexOf(settingsManager.appTheme).takeIf { it >= 0 } ?: 0], false)
-
-            themeSpinner.setOnItemClickListener { _, _, pos, _ ->
-                val newTheme = themeValues[pos]
-                if (settingsManager.appTheme != newTheme) {
-                    findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.VISIBLE
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        settingsManager.appTheme = newTheme
-                        applyAppTheme(newTheme)
-                        saveSettingsQuietly()
-                        findViewById<FrameLayout>(R.id.loading_overlay)?.visibility = View.GONE
-                    }, 300)
+        findViewById<MaterialButton>(R.id.btn_theme)?.let { btn ->
+            val initialIdx = themeValues.indexOf(settingsManager.appTheme).takeIf { it >= 0 } ?: 0
+            btn.text = themeEntries[initialIdx]
+            btn.setOnClickListener {
+                showBottomSheetSelector(getString(R.string.theme_label), themeEntries, btn.text.toString()) { pos ->
+                    btn.text = themeEntries[pos]
+                    settingsManager.appTheme = themeValues[pos]
+                    updatePreview()
+                    saveSettingsQuietly()
+                    val nightMode = when (themeValues[pos]) {
+                        "LIGHT" -> AppCompatDelegate.MODE_NIGHT_NO
+                        "DARK" -> AppCompatDelegate.MODE_NIGHT_YES
+                        else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                    }
+                    AppCompatDelegate.setDefaultNightMode(nightMode)
                 }
             }
         }
@@ -689,11 +720,16 @@ class MainActivity : AppCompatActivity() {
         setupSlider(R.id.sb_preview_scale, R.id.tv_preview_scale_label, 50, 150, settingsManager.previewScale, true, "")
         updateLocationUI()
 
-        findViewById<AutoCompleteTextView>(R.id.spinner_calc_method)?.let { calcSpinner ->
-            calcSpinner.isSaveEnabled = false
-            calcSpinner.setDropdownItems(calcEntries)
-            calcSpinner.setText(calcEntries[calcValues.indexOf(settingsManager.calculationMethod).takeIf { it >= 0 } ?: 0], false)
-            calcSpinner.setOnItemClickListener { _, _, _, _ -> updatePreview(); saveSettingsQuietly() }
+        findViewById<MaterialButton>(R.id.btn_calc_method)?.let { btn ->
+            val initialIdx = calcValues.indexOf(settingsManager.calculationMethod).takeIf { it >= 0 } ?: 0
+            btn.text = calcEntries[initialIdx]
+            btn.setOnClickListener {
+                showBottomSheetSelector(getString(R.string.calc_method), calcEntries, btn.text.toString()) { pos ->
+                    btn.text = calcEntries[pos]
+                    updatePreview()
+                    saveSettingsQuietly()
+                }
+            }
         }
 
         findViewById<SwitchCompat>(R.id.sw_show_clock)?.apply { isChecked = settingsManager.showClock; setOnCheckedChangeListener { _,_ -> updatePreview(); saveSettingsQuietly() } }
@@ -709,10 +745,11 @@ class MainActivity : AppCompatActivity() {
         // === Auto Hijri Offset Switch ===
         findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.apply {
             isChecked = settingsManager.isAutoHijriOffset
-            setOnCheckedChangeListener { _, isChecked ->
+            setOnCheckedChangeListener { view, isChecked ->
+                if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                 // Toggle slider enabled/disabled
                 findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !isChecked
-                findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_hilal_criteria)?.visibility =
+                findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.visibility =
                     if (isChecked) View.VISIBLE else View.GONE
                 updatePreview()
                 saveSettingsQuietly()
@@ -720,16 +757,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         // === Hilal Criteria Dropdown ===
-        findViewById<AutoCompleteTextView>(R.id.spinner_hilal_criteria)?.let { criteriaSpinner ->
-            criteriaSpinner.isSaveEnabled = false
-            criteriaSpinner.setDropdownItems(hilalCriteriaEntries)
+        findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.let { btn ->
             val savedIdx = hilalCriteriaValues.indexOf(settingsManager.hilalCriteria).takeIf { it >= 0 } ?: 0
-            criteriaSpinner.setText(hilalCriteriaEntries[savedIdx], false)
-            criteriaSpinner.setOnItemClickListener { _, _, _, _ -> updatePreview(); saveSettingsQuietly() }
+            btn.text = hilalCriteriaEntries[savedIdx]
+            btn.setOnClickListener {
+                showBottomSheetSelector(getString(R.string.hilal_criteria_label), hilalCriteriaEntries, btn.text.toString()) { pos ->
+                    btn.text = hilalCriteriaEntries[pos]
+                    updatePreview()
+                    saveSettingsQuietly()
+                }
+            }
         }
 
         // Visibility: hilal criteria dropdown hanya tampil saat auto ON
-        findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.til_hilal_criteria)?.visibility =
+        findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.visibility =
             if (settingsManager.isAutoHijriOffset) View.VISIBLE else View.GONE
 
         setupSlider(R.id.sb_hijri_offset, R.id.tv_label_hijri, -2, 2, settingsManager.hijriOffset, false, "")
@@ -763,6 +804,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
+        // === Advanced DND ===
+        val swAdvancedDnd = findViewById<SwitchCompat>(R.id.sw_advanced_dnd)
+        val advancedDndLayout = findViewById<View>(R.id.layout_advanced_dnd)
+        swAdvancedDnd?.isChecked = false
+        swAdvancedDnd?.setOnCheckedChangeListener { view, isChecked ->
+            if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            advancedDndLayout?.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+
         setupSlider(R.id.sb_fajr_bef, R.id.tv_fajr_bef, 0, 60, settingsManager.fajrBefore, false, "m")
         setupSlider(R.id.sb_fajr_aft, R.id.tv_fajr_aft, 0, 120, settingsManager.fajrAfter, false, "m")
         setupSlider(R.id.sb_dhuhr_bef, R.id.tv_dhuhr_bef, 0, 60, settingsManager.dhuhrBefore, false, "m")
@@ -778,7 +829,8 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.apply {
             isChecked = settingsManager.isAdzanAudioEnabled
-            setOnCheckedChangeListener { _, isChecked ->
+            setOnCheckedChangeListener { view, isChecked ->
+                if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                 if (isChecked) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -889,7 +941,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveSettingsQuietly() {
         try {
-            val calcSpinnerStr = findViewById<AutoCompleteTextView>(R.id.spinner_calc_method)?.text?.toString() ?: ""
+            val calcSpinnerStr = findViewById<MaterialButton>(R.id.btn_calc_method)?.text?.toString() ?: ""
 
             val newInterval = findViewById<SeekBar>(R.id.sb_quote_interval)?.progress ?: 0
 
@@ -913,7 +965,7 @@ class MainActivity : AppCompatActivity() {
                 isAutoHijriOffset = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: true,
                 hilalCriteria = hilalCriteriaValues[
                     hilalCriteriaEntries.indexOf(
-                        findViewById<AutoCompleteTextView>(R.id.spinner_hilal_criteria)?.text?.toString() ?: ""
+                        findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.text?.toString() ?: ""
                     ).takeIf { it >= 0 } ?: 0
                 ],
                 widgetTextColor = currentTextColor,
@@ -1128,21 +1180,6 @@ class MainActivity : AppCompatActivity() {
         saveSettingsQuietly()
     }
 
-    private fun AutoCompleteTextView.setDropdownItems(items: Array<String>) {
-        val noFilterAdapter = object : ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, items) {
-            override fun getFilter(): Filter {
-                return object : Filter() {
-                    override fun performFiltering(constraint: CharSequence?): FilterResults {
-                        return FilterResults().apply { values = items; count = items.size }
-                    }
-                    override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                        notifyDataSetChanged()
-                    }
-                }
-            }
-        }
-        this.setAdapter(noFilterAdapter)
-    }
 
     private fun checkBatteryOptimizations() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

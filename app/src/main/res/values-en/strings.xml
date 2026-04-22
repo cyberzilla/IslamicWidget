@@ -168,4 +168,6 @@
 
     <string name="auto_hijri_label">Auto Hijri Correction</string>
     <string name="hilal_criteria_label">Hilal Criteria:</string>
+
+    <string name="advanced_dnd_settings">Advanced Settings</string>
 </resources>
