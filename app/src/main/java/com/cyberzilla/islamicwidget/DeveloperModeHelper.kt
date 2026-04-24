@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.text.method.ScrollingMovementMethod
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.SeekBar
@@ -75,16 +74,12 @@ class DeveloperModeHelper(private val activity: Activity) {
     private fun setupLogViewer() {
         tvLogPath.text = "📁 ${AdzanLogger.getLogFilePath(activity)}"
 
-        // Enable scrolling on the TextView itself (avoid nested ScrollView)
-        tvLogContent.movementMethod = ScrollingMovementMethod.getInstance()
-
-        // Intercept touch so parent scroll doesn't steal scroll events from log area
-        tvLogContent.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                v.parent.requestDisallowInterceptTouchEvent(true)
-            }
-            if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
-                v.parent.requestDisallowInterceptTouchEvent(false)
+        // NestedScrollView menangani scroll — intercept touch agar parent scroll tidak mencuri gesture
+        val scrollLog = activity.findViewById<androidx.core.widget.NestedScrollView>(R.id.devScrollLog)
+        scrollLog?.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> v.parent.requestDisallowInterceptTouchEvent(true)
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.parent.requestDisallowInterceptTouchEvent(false)
             }
             false
         }

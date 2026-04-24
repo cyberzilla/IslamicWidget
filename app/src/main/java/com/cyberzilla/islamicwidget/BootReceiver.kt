@@ -16,6 +16,7 @@ class BootReceiver : BroadcastReceiver() {
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         prefs.edit()
             .putBoolean("isAdzanPlaying", false)
+            .putLong("adzanPlayStartTime", 0L)
             .putBoolean("PENDING_UNMUTE", false)
             .putBoolean("IS_TEST_MODE_ACTIVE", false)
             .remove("LAST_SCHEDULE_FINGERPRINT")

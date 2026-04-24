@@ -28,10 +28,15 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        val pendingResult = goAsync()
         showShimmer(context, appWidgetManager, appWidgetIds)
 
         Handler(Looper.getMainLooper()).postDelayed({
-            updateAllWidgets(context, appWidgetManager, appWidgetIds)
+            try {
+                updateAllWidgets(context, appWidgetManager, appWidgetIds)
+            } finally {
+                pendingResult.finish()
+            }
         }, 500)
     }
 
@@ -43,15 +48,22 @@ class QuoteWidgetProvider : AppWidgetProvider() {
 
         when (intent.action) {
             ACTION_RANDOM_QUOTE -> {
+                val pendingResult = goAsync()
                 showShimmer(context, appWidgetManager, appWidgetIds)
 
-                Handler(Looper.getMainLooper()).postDelayed({
-                    updateAllWidgets(context, appWidgetManager, appWidgetIds)
+                // Reschedule alarm SEBELUM postDelayed agar selalu terjalan
+                // meskipun proses di-kill sebelum Handler callback
+                val settings = SettingsManager(context)
+                val interval = settings.quoteUpdateInterval
+                if (interval > 0) {
+                    QuoteUpdateManager.setAutoUpdate(context, interval)
+                }
 
-                    val settings = SettingsManager(context)
-                    val interval = settings.quoteUpdateInterval
-                    if (interval > 0) {
-                        QuoteUpdateManager.setAutoUpdate(context, interval)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    try {
+                        updateAllWidgets(context, appWidgetManager, appWidgetIds)
+                    } finally {
+                        pendingResult.finish()
                     }
                 }, 500)
             }
@@ -128,7 +140,7 @@ class QuoteWidgetProvider : AppWidgetProvider() {
                 action = ACTION_RANDOM_QUOTE
             }
             val randomPendingIntent = PendingIntent.getBroadcast(
-                context, appWidgetId, randomIntent,
+                context, appWidgetId + 2000, randomIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.btn_random_quote, randomPendingIntent)
@@ -139,7 +151,7 @@ class QuoteWidgetProvider : AppWidgetProvider() {
                 putExtra("EXTRA_REFERENCE", quoteRef)
             }
             val sharePendingIntent = PendingIntent.getBroadcast(
-                context, appWidgetId, shareIntent,
+                context, appWidgetId + 3000, shareIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.btn_share_quote, sharePendingIntent)

@@ -259,21 +259,29 @@
             android:layout_marginBottom="8dp"
             android:fontFamily="monospace"/>
 
-        <TextView
-            android:id="@+id/devTvLogContent"
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/devScrollLog"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            android:text="(Belum ada log)"
-            android:textColor="?android:attr/textColorSecondary"
-            android:textSize="10sp"
-            android:fontFamily="monospace"
-            android:lineSpacingMultiplier="1.3"
             android:background="#0AFFFFFF"
-            android:padding="8dp"
             android:scrollbars="vertical"
             android:overScrollMode="always"
             android:fadeScrollbars="false"
-            android:gravity="top"/>
+            android:fillViewport="false">
+
+            <TextView
+                android:id="@+id/devTvLogContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="(Belum ada log)"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:lineSpacingMultiplier="1.3"
+                android:padding="8dp"
+                android:gravity="top"/>
+
+        </androidx.core.widget.NestedScrollView>
 
     </LinearLayout>
 
