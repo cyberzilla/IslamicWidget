@@ -197,6 +197,84 @@
                 app:cornerRadius="16dp"/>
         </LinearLayout>
 
+        <!-- ==================== LOG AREA ==================== -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="?android:attr/textColorSecondary"
+            android:alpha="0.3"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="📋 Event Log"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/devBtnRefreshLog"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Refresh"
+                android:textSize="10sp"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:cornerRadius="12dp"
+                app:strokeColor="?attr/colorPrimary"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginEnd="4dp"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/devBtnClearLog"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Clear"
+                android:textSize="10sp"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:cornerRadius="12dp"
+                app:strokeColor="?attr/colorError"
+                android:textColor="?attr/colorError"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/devTvLogPath"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Path: ..."
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="9sp"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="monospace"/>
+
+        <TextView
+            android:id="@+id/devTvLogContent"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:text="(Belum ada log)"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="10sp"
+            android:fontFamily="monospace"
+            android:lineSpacingMultiplier="1.3"
+            android:background="#0AFFFFFF"
+            android:padding="8dp"
+            android:scrollbars="vertical"
+            android:overScrollMode="always"
+            android:fadeScrollbars="false"
+            android:gravity="top"/>
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

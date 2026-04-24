@@ -25,6 +25,9 @@ class SilentModeReceiver : BroadcastReceiver() {
             "ACTION_PLAY_ADZAN" -> {
                 prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
 
+                val prayerIdForLog = intent.getIntExtra("PRAYER_ID", 0)
+                AdzanLogger.logAdzanFired(context, prayerIdForLog)
+
                 executeMute(context)
 
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -44,6 +47,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, context.getString(R.string.log_error_play_adzan, e.message))
+                    AdzanLogger.log(context, AdzanLogger.Event.ADZAN_ERROR, "Gagal start AdzanService: ${e.message}")
                 }
             }
 
@@ -72,6 +76,7 @@ class SilentModeReceiver : BroadcastReceiver() {
 
             "ACTION_MUTE" -> {
                 Log.d(TAG, "ACTION_MUTE: Mengeksekusi Silent Mode")
+                AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED, "ACTION_MUTE diterima")
                 executeMute(context)
             }
 
@@ -81,10 +86,12 @@ class SilentModeReceiver : BroadcastReceiver() {
 
                 if (settings.isAdzanPlaying) {
                     Log.w(TAG, "Adzan masih bermain! Menahan perintah unmute sampai Adzan selesai.")
+                    AdzanLogger.log(context, AdzanLogger.Event.UNMUTE_DEFERRED, "Unmute ditahan karena adzan masih bermain")
                     prefs.edit().putBoolean("PENDING_UNMUTE", true).apply()
                     return
                 }
 
+                AdzanLogger.log(context, AdzanLogger.Event.UNMUTE_EXECUTED, "ACTION_UNMUTE dieksekusi")
                 executeUnmute(context)
             }
         }
@@ -124,6 +131,7 @@ class SilentModeReceiver : BroadcastReceiver() {
         try {
             if (notificationManager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
                 notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+                AdzanLogger.logMuteExecuted(context, "DND Priority")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Gagal mengaktifkan DND: ${e.message}")
@@ -143,6 +151,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                 val prevFilter = prefs.getInt("PREF_PREV_FILTER", NotificationManager.INTERRUPTION_FILTER_ALL)
                 notificationManager.setInterruptionFilter(prevFilter)
                 Log.d(TAG, "Perangkat sukses dikembalikan dari DND ke state Normal.")
+                AdzanLogger.logUnmuteExecuted(context, "DND -> Normal")
             }
 
             if (wasMutedByAppRinger) {

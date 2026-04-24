@@ -6,6 +6,8 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.text.method.ScrollingMovementMethod
+import android.view.MotionEvent
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
@@ -26,6 +28,12 @@ class DeveloperModeHelper(private val activity: Activity) {
 
     private val btnTest: Button = activity.findViewById(R.id.devBtnTest)
     private val btnCancel: Button = activity.findViewById(R.id.devBtnCancel)
+
+    // Log area
+    private val tvLogContent: TextView = activity.findViewById(R.id.devTvLogContent)
+    private val tvLogPath: TextView = activity.findViewById(R.id.devTvLogPath)
+    private val btnRefreshLog: Button = activity.findViewById(R.id.devBtnRefreshLog)
+    private val btnClearLog: Button = activity.findViewById(R.id.devBtnClearLog)
 
     fun setup() {
         val cal = Calendar.getInstance()
@@ -59,6 +67,62 @@ class DeveloperModeHelper(private val activity: Activity) {
         btnCancel.setOnClickListener {
             cancelDeveloperTest()
         }
+
+        // Log area setup
+        setupLogViewer()
+    }
+
+    private fun setupLogViewer() {
+        tvLogPath.text = "📁 ${AdzanLogger.getLogFilePath(activity)}"
+
+        // Enable scrolling on the TextView itself (avoid nested ScrollView)
+        tvLogContent.movementMethod = ScrollingMovementMethod.getInstance()
+
+        // Intercept touch so parent scroll doesn't steal scroll events from log area
+        tvLogContent.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                v.parent.requestDisallowInterceptTouchEvent(true)
+            }
+            if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
+                v.parent.requestDisallowInterceptTouchEvent(false)
+            }
+            false
+        }
+
+        refreshLogContent()
+
+        btnRefreshLog.setOnClickListener {
+            refreshLogContent()
+            Toast.makeText(activity, "✅ Log di-refresh", Toast.LENGTH_SHORT).show()
+        }
+
+        btnClearLog.setOnClickListener {
+            AdzanLogger.clearLog(activity)
+            refreshLogContent()
+            Toast.makeText(activity, "🗑 Log dihapus", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun refreshLogContent() {
+        // Coba tampilkan dari file dulu (lebih lengkap), fallback ke memory
+        val fileLog = AdzanLogger.readFileLog(activity)
+        if (fileLog.isNotEmpty() && !fileLog.startsWith("(")) {
+            // Tampilkan baris terakhir di atas (reverse order) agar terbaru terlihat pertama
+            val lines = fileLog.trim().lines()
+            val reversed = lines.reversed().take(200)
+            tvLogContent.text = if (reversed.isEmpty()) "(Belum ada log)" else reversed.joinToString("\n")
+        } else {
+            // Fallback ke memory log
+            val memoryLogs = AdzanLogger.getMemoryLogs()
+            if (memoryLogs.isEmpty()) {
+                tvLogContent.text = "(Belum ada log)"
+            } else {
+                tvLogContent.text = memoryLogs.reversed().joinToString("\n")
+            }
+        }
+
+        // Auto scroll ke atas (terbaru)
+        tvLogContent.scrollTo(0, 0)
     }
 
     private fun updateTexts() {
@@ -128,6 +192,19 @@ class DeveloperModeHelper(private val activity: Activity) {
             }
         }
 
+        // Log test scheduling
+        AdzanLogger.log(activity, AdzanLogger.Event.ADZAN_SCHEDULED,
+            "DEV TEST dijadwalkan: Adzan=${String.format("%02d:%02d", hour, minute)} | Mute=-${beforeMins}mnt | Unmute=+${afterMins}mnt")
+        if (beforeMins > 0) {
+            AdzanLogger.logScheduled(activity, 99, muteMillis, "TEST_MUTE")
+        }
+        AdzanLogger.logScheduled(activity, 99, targetMillis, "TEST_ADZAN")
+        if (afterMins > 0) {
+            AdzanLogger.logScheduled(activity, 99, unmuteMillis, "TEST_UNMUTE")
+        }
+
+        refreshLogContent()
+
         Toast.makeText(activity, "✅ Tes Dijadwalkan!\nMute: -$beforeMins mnt | Adzan: ${String.format("%02d:%02d", hour, minute)} | Unmute: +$afterMins mnt", Toast.LENGTH_LONG).show()
     }
 
@@ -151,6 +228,9 @@ class DeveloperModeHelper(private val activity: Activity) {
         alarmManager.cancel(adzanPi)
         alarmManager.cancel(mutePi)
         alarmManager.cancel(unmutePi)
+
+        AdzanLogger.log(activity, AdzanLogger.Event.ALARM_CANCELLED, "DEV TEST dibatalkan")
+        refreshLogContent()
 
         Toast.makeText(activity, "❌ Tes Adzan Dibatalkan", Toast.LENGTH_SHORT).show()
     }

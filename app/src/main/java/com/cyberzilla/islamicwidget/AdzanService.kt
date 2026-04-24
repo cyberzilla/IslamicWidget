@@ -129,6 +129,7 @@ class AdzanService : Service() {
                 }
 
                 if (keyEvent?.action == KeyEvent.ACTION_DOWN) {
+                    AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Media button (hardware)")
                     fadeOutAndStop()
                     return true
                 }
@@ -167,10 +168,16 @@ class AdzanService : Service() {
             action = "ACTION_UPDATE_WIDGETS_BROADCAST"
         })
 
+        AdzanLogger.logAdzanPlayStart(this, prayerId, isSubuh)
         playAdzan(isSubuh, settings)
 
         safetyHandler = Handler(Looper.getMainLooper())
-        safetyRunnable = Runnable { if (!isFadingOut) stopSelf() }
+        safetyRunnable = Runnable {
+            if (!isFadingOut) {
+                AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Safety timeout (${MAX_SERVICE_DURATION_MS/1000}s)")
+                stopSelf()
+            }
+        }
         safetyHandler?.postDelayed(safetyRunnable!!, MAX_SERVICE_DURATION_MS)
 
         return START_STICKY
@@ -240,6 +247,7 @@ class AdzanService : Service() {
                     Log.d(TAG, "Audio focus duck diabaikan")
                 }
                 AudioManager.AUDIOFOCUS_LOSS -> {
+                    AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Audio focus loss permanen")
                     fadeOutAndStop()
                 }
             }
@@ -347,7 +355,10 @@ class AdzanService : Service() {
                     } else false
                 }
 
-                setOnCompletionListener { fadeOutAndStop() }
+                setOnCompletionListener {
+                    AdzanLogger.logAdzanCompleted(this@AdzanService, prayerId)
+                    fadeOutAndStop()
+                }
 
                 start()
             }
@@ -357,6 +368,7 @@ class AdzanService : Service() {
 
         } catch (e: Exception) {
             Log.e(TAG, "Gagal memutar adzan", e)
+            AdzanLogger.log(this, AdzanLogger.Event.ADZAN_ERROR, "Gagal memutar adzan: ${e.message}")
             stopSelf()
         }
     }
@@ -365,7 +377,10 @@ class AdzanService : Service() {
         val volumeProvider = object : VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 100, 50) {
             override fun onAdjustVolume(direction: Int) {
                 Log.d(TAG, "Tombol Volume Hardware ditekan via Provider. Stop Adzan.")
-                if (!isFadingOut) fadeOutAndStop()
+                if (!isFadingOut) {
+                    AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Volume hardware button")
+                    fadeOutAndStop()
+                }
             }
         }
         mediaSession?.setPlaybackToRemote(volumeProvider)
@@ -378,6 +393,7 @@ class AdzanService : Service() {
                         val currentVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
                         if (currentVol != initialAlarmVolume && currentVol != -1) {
                             Log.d(TAG, "Deteksi perubahan Stream aktual via Broadcast. Stop Adzan.")
+                            AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Volume stream berubah (broadcast)")
                             fadeOutAndStop()
                         }
                     }
@@ -400,6 +416,7 @@ class AdzanService : Service() {
                 val currentAlarmVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
                 if (currentAlarmVol != initialAlarmVolume && currentAlarmVol != -1) {
                     Log.d(TAG, "Observer mendeteksi nilai absolut Volume bergeser. Stop Adzan.")
+                    AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Volume observer mendeteksi perubahan")
                     fadeOutAndStop()
                 }
             }

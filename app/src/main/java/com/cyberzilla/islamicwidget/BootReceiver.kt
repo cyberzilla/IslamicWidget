@@ -11,6 +11,8 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
+        AdzanLogger.log(context, AdzanLogger.Event.BOOT_RESCHEDULE, "Boot completed, menjadwalkan ulang semua alarm")
+
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         prefs.edit()
             .putBoolean("isAdzanPlaying", false)

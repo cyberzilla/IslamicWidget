@@ -142,6 +142,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         UpdateHelper.checkForUpdates(context)
+        AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE, "onUpdate dipanggil untuk ${appWidgetIds.size} widget")
         scheduleAllPrayers(context)
 
         for (appWidgetId in appWidgetIds) {
@@ -229,6 +230,15 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 Triple(todayPT.maghrib.asDate(), tomorrowPT.maghrib.asDate(), 4),
                 Triple(todayPT.isha.asDate(), tomorrowPT.isha.asDate(), 5),
             )
+
+            // Diagnostic: log semua waktu sholat yang dihitung untuk hari ini (presisi detik)
+            val diagFmt = java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.US)
+            val prayerNames = arrayOf("Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya")
+            val diagSb = StringBuilder("scheduleAllPrayers [$today] loc=($lat,$lon) method=${settings.calculationMethod}\n")
+            for ((i, pair) in prayerPairs.withIndex()) {
+                diagSb.append("  ${prayerNames[i]}: ${diagFmt.format(pair.first)} (epoch=${pair.first.time})\n")
+            }
+            AdzanLogger.log(context, AdzanLogger.Event.ALARM_SCHEDULED, diagSb.toString().trim())
 
             var isInsideAnySilentWindow = false
 
@@ -459,6 +469,15 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.tv_maghrib_time, timeFormatter.format(prayerTimes.maghrib.asDate()))
                     views.setTextViewText(R.id.tv_isha_time, timeFormatter.format(prayerTimes.isha.asDate()))
 
+                    // Diagnostic: log waktu sholat yang ditampilkan di widget vs epoch asli
+                    val diagFmt2 = SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.US)
+                    AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE,
+                        "Display: Subuh=${timeFormatter.format(prayerTimes.fajr.asDate())}(${diagFmt2.format(prayerTimes.fajr.asDate())}) " +
+                        "Dzuhur=${timeFormatter.format(prayerTimes.dhuhr.asDate())}(${diagFmt2.format(prayerTimes.dhuhr.asDate())}) " +
+                        "Ashar=${timeFormatter.format(prayerTimes.asr.asDate())}(${diagFmt2.format(prayerTimes.asr.asDate())}) " +
+                        "loc=($cachedLat,$cachedLon)"
+                    )
+
                     views.setTextViewText(R.id.tv_sunrise, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
                     views.setTextViewText(R.id.tv_last_third, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
                     views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
@@ -676,6 +695,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)
                 putExtra("PRAYER_ID", requestCodeId)
+                putExtra("PRAYER_TIME_MILLIS", prayerTime.time)
             }
             val adzanPendingIntent = PendingIntent.getBroadcast(context, RC_ADZAN, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
@@ -685,8 +705,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 } else {
                     alarmManager.setExact(AlarmManager.RTC_WAKEUP, prayerTime.time, adzanPendingIntent)
                 }
+                AdzanLogger.logScheduled(context, requestCodeId, prayerTime.time, "ADZAN")
             } catch (e: SecurityException) {
                 Log.e(TAG, "Gagal menjadwalkan alarm adzan", e)
+                AdzanLogger.log(context, AdzanLogger.Event.ADZAN_ERROR, "SecurityException saat menjadwalkan adzan ID=$requestCodeId: ${e.message}")
             }
         }
 
@@ -721,10 +743,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         try {
             if (now <= muteTimeMillis) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteTimeMillis, mutePendingIntent)
+                AdzanLogger.logScheduled(context, requestCodeId, muteTimeMillis, "MUTE")
             } else if (now in (muteTimeMillis + 1)..unmuteTimeMillis) {
                 alarmManager.cancel(mutePendingIntent)
             }
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
+            AdzanLogger.logScheduled(context, requestCodeId, unmuteTimeMillis, "UNMUTE")
         } catch (e: SecurityException) {
             Log.e(TAG, "SecurityException menjadwalkan silent mode", e)
         }
