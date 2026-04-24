@@ -46,6 +46,17 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         private const val STATE_NORMAL = 0
         private const val STATE_LOADING = 1
         private const val STATE_ADZAN = 2
+
+        /**
+         * Membersihkan cache jadwal, memaksa scheduleAllPrayers() berjalan penuh
+         * pada panggilan berikutnya.
+         */
+        fun clearScheduleCache(context: Context) {
+            context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+                .edit()
+                .remove("LAST_SCHEDULE_FINGERPRINT")
+                .apply()
+        }
     }
 
     private fun dpToPx(context: Context, dp: Float): Float {
@@ -83,6 +94,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         if (intent.action == "com.cyberzilla.islamicwidget.ACTION_FORCE_REFRESH") {
             val appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) ?: return
             val appWidgetManager = AppWidgetManager.getInstance(context)
+
+            // Hapus cache jadwal agar force refresh benar-benar menjadwalkan ulang
+            clearScheduleCache(context)
 
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_islamic)
@@ -143,7 +157,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         UpdateHelper.checkForUpdates(context)
         AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE, "onUpdate dipanggil untuk ${appWidgetIds.size} widget")
-        scheduleAllPrayers(context)
+        scheduleAllPrayers(context, forceReschedule = false)
 
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
@@ -192,7 +206,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         } * 60 * 1000L
     }
 
-    private fun scheduleAllPrayers(context: Context) {
+    private fun scheduleAllPrayers(context: Context, forceReschedule: Boolean = false) {
         val settings = SettingsManager(context)
         val latString = settings.latitude
         val lonString = settings.longitude
@@ -207,6 +221,21 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val todayPT = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
             val tomorrowPT = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, tomorrow)
             val now = System.currentTimeMillis()
+
+            // === OPTIMASI: Cek apakah jadwal sudah di-schedule dengan data identik ===
+            // Fingerprint berisi tanggal + epoch semua waktu sholat, sehingga jika
+            // ada perubahan lokasi/metode/hari, fingerprint akan berbeda.
+            val fingerprint = "$today|${todayPT.fajr.asDate().time}|${todayPT.dhuhr.asDate().time}|" +
+                    "${todayPT.asr.asDate().time}|${todayPT.maghrib.asDate().time}|${todayPT.isha.asDate().time}"
+
+            val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+            val lastFingerprint = prefs.getString("LAST_SCHEDULE_FINGERPRINT", null)
+
+            if (!forceReschedule && fingerprint == lastFingerprint) {
+                // Jadwal sudah identik, cukup cek silent window tanpa re-schedule alarm
+                checkAndEnforceSilentWindow(context, todayPT, settings, now)
+                return
+            }
 
             fun getAfterMillis(id: Int, prayerTime: Date): Long {
                 val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
@@ -259,7 +288,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 }
             }
 
-            val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+            // Simpan fingerprint setelah semua alarm berhasil di-schedule
+            prefs.edit().putString("LAST_SCHEDULE_FINGERPRINT", fingerprint).apply()
+
             val currentlyMutedDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
             val currentlyMutedRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
             val isTestMode = prefs.getBoolean("IS_TEST_MODE_ACTIVE", false)
@@ -277,6 +308,65 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error menjadwalkan sholat", e)
+        }
+    }
+
+    /**
+     * Lightweight check: hanya cek apakah saat ini berada di dalam silent window
+     * dan enforce mute/unmute state, TANPA re-schedule alarm (karena sudah di-set).
+     */
+    private fun checkAndEnforceSilentWindow(
+        context: Context,
+        prayerTimes: com.batoulapps.adhan2.PrayerTimes,
+        settings: SettingsManager,
+        now: Long
+    ) {
+        val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        val isTestMode = prefs.getBoolean("IS_TEST_MODE_ACTIVE", false)
+        val currentlyMutedDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
+        val currentlyMutedRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
+
+        val prayerDates = listOf(
+            Pair(prayerTimes.fajr.asDate(), 1),
+            Pair(prayerTimes.dhuhr.asDate(), 2),
+            Pair(prayerTimes.asr.asDate(), 3),
+            Pair(prayerTimes.maghrib.asDate(), 4),
+            Pair(prayerTimes.isha.asDate(), 5),
+        )
+
+        var isInsideAnySilentWindow = false
+        for ((prayerTime, id) in prayerDates) {
+            val beforeMillis = getBeforeMillis(context, id, prayerTime)
+            val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
+            cal.time = prayerTime
+            val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
+            val afterMillis = when (id) {
+                1 -> settings.fajrAfter
+                2 -> if (isFriday) settings.fridayAfter else settings.dhuhrAfter
+                3 -> settings.asrAfter
+                4 -> settings.maghribAfter
+                5 -> settings.ishaAfter
+                else -> 0
+            } * 60 * 1000L
+
+            val muteTime = prayerTime.time - beforeMillis
+            val unmuteTime = prayerTime.time + afterMillis
+            if (now >= muteTime && now < unmuteTime) {
+                isInsideAnySilentWindow = true
+                break
+            }
+        }
+
+        if (isInsideAnySilentWindow) {
+            if (!(currentlyMutedDnd || currentlyMutedRinger) && settings.isAutoSilentEnabled && !isTestMode) {
+                val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                context.sendBroadcast(muteIntent)
+            }
+        } else {
+            if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode) {
+                val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
+                context.sendBroadcast(unmuteIntent)
+            }
         }
     }
 

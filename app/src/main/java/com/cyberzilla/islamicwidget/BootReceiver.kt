@@ -18,6 +18,7 @@ class BootReceiver : BroadcastReceiver() {
             .putBoolean("isAdzanPlaying", false)
             .putBoolean("PENDING_UNMUTE", false)
             .putBoolean("IS_TEST_MODE_ACTIVE", false)
+            .remove("LAST_SCHEDULE_FINGERPRINT")
             .apply()
 
         val appWidgetManager = AppWidgetManager.getInstance(context)

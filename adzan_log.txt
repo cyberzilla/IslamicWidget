@@ -1,53 +1,500 @@
-[2026-04-24 16:47:23.911] ADZAN_SCHEDULED: DEV TEST dijadwalkan: Adzan=16:49 | Mute=-2mnt | Unmute=+5mnt
-[2026-04-24 16:47:23.938] ALARM_SCHEDULED: TEST_MUTE untuk TEST dijadwalkan pada 16:47:00
-[2026-04-24 16:47:23.941] ALARM_SCHEDULED: TEST_ADZAN untuk TEST dijadwalkan pada 16:49:00
-[2026-04-24 16:47:23.944] ALARM_SCHEDULED: TEST_UNMUTE untuk TEST dijadwalkan pada 16:54:00
-[2026-04-24 16:47:28.928] MUTE_EXECUTED: ACTION_MUTE diterima
-[2026-04-24 16:47:28.965] MUTE_EXECUTED: Perangkat di-mute via DND Priority
-[2026-04-24 16:49:00.029] ADZAN_FIRED: Receiver menerima ACTION_PLAY_ADZAN untuk TEST
-[2026-04-24 16:49:00.086] ADZAN_PLAY_START: MediaPlayer mulai memutar adzan Regular untuk TEST
-[2026-04-24 16:49:00.348] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
-[2026-04-24 16:49:00.355] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-24] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Isya: 19:10:00.000 (epoch=1777029000000)
+[2026-04-24 23:07:12.586] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-24 23:07:12.613] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-24 23:07:12.636] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-24 23:07:12.679] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-24 23:07:12.700] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-24 23:07:12.718] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-24 23:07:12.739] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-24 23:07:12.755] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-24 23:07:12.772] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-24 23:07:12.798] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-24 23:07:12.814] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-24 23:07:12.828] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-24 23:07:12.844] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-24 23:07:12.863] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-24 23:07:12.883] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-24 23:07:13.002] WIDGET_UPDATE: Display: Subuh=04:44 AM(04:44:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-24 23:53:05.725] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-24 23:53:05.772] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-24] loc=(-5.1801497,119.4101553) method=SINGAPORE
   Subuh: 04:44:00.000 (epoch=1776977040000)
   Dzuhur: 12:02:00.000 (epoch=1777003320000)
   Ashar: 15:21:00.000 (epoch=1777015260000)
   Maghrib: 18:00:00.000 (epoch=1777024800000)
   Isya: 19:10:00.000 (epoch=1777029000000)
-[2026-04-24 16:49:00.361] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
-[2026-04-24 16:49:00.366] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
-[2026-04-24 16:49:00.369] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
-[2026-04-24 16:49:00.375] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
-[2026-04-24 16:49:00.380] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
-[2026-04-24 16:49:00.384] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
-[2026-04-24 16:49:00.392] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
-[2026-04-24 16:49:00.398] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
-[2026-04-24 16:49:00.403] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
-[2026-04-24 16:49:00.412] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 18:00:00
-[2026-04-24 16:49:00.419] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:55:00
-[2026-04-24 16:49:00.429] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:35:00
-[2026-04-24 16:49:00.446] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
-[2026-04-24 16:49:00.459] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
-[2026-04-24 16:49:00.470] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
-[2026-04-24 16:49:06.507] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
-[2026-04-24 16:49:06.514] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-24] loc=(-5.1801497,119.4101553) method=SINGAPORE
-  Subuh: 04:44:00.000 (epoch=1776977040000)
-  Dzuhur: 12:02:00.000 (epoch=1777003320000)
-  Ashar: 15:21:00.000 (epoch=1777015260000)
-  Maghrib: 18:00:00.000 (epoch=1777024800000)
-  Isya: 19:10:00.000 (epoch=1777029000000)
-[2026-04-24 16:49:06.521] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
-[2026-04-24 16:49:06.526] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
-[2026-04-24 16:49:06.530] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
-[2026-04-24 16:49:06.541] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
-[2026-04-24 16:49:06.549] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
-[2026-04-24 16:49:06.561] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
-[2026-04-24 16:49:06.572] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
-[2026-04-24 16:49:06.583] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
-[2026-04-24 16:49:06.591] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
-[2026-04-24 16:49:06.605] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 18:00:00
-[2026-04-24 16:49:06.616] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:55:00
-[2026-04-24 16:49:06.622] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:35:00
-[2026-04-24 16:49:06.630] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
-[2026-04-24 16:49:06.638] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
-[2026-04-24 16:49:06.644] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
-[2026-04-24 16:49:06.673] WIDGET_UPDATE: Display: Subuh=04:44 AM(04:44:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-24 23:53:05.798] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-24 23:53:05.815] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-24 23:53:05.832] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-24 23:53:05.863] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-24 23:53:05.894] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-24 23:53:05.909] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-24 23:53:05.935] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-24 23:53:05.949] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-24 23:53:05.965] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-24 23:53:05.986] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-24 23:53:06.016] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-24 23:53:06.387] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-24 23:53:06.738] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-24 23:53:07.071] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-24 23:53:07.407] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-24 23:53:07.828] WIDGET_UPDATE: Display: Subuh=04:44 AM(04:44:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 00:00:32.365] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 00:00:32.488] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 00:00:32.530] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 00:00:32.552] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 00:00:32.567] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 00:00:32.589] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 00:00:32.605] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 00:00:32.622] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 00:00:32.644] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 00:00:32.660] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 00:00:32.677] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 00:00:32.698] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 00:00:32.718] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 00:00:32.736] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 00:00:32.757] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 00:00:32.775] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 00:00:32.790] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 00:00:32.890] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 00:16:32.023] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 00:16:32.068] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 00:16:32.097] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 00:16:32.116] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 00:16:32.135] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 00:16:32.156] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 00:16:32.173] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 00:16:32.191] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 00:16:32.211] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 00:16:32.231] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 00:16:32.247] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 00:16:32.269] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 00:16:32.287] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 00:16:32.302] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 00:16:32.323] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 00:16:32.342] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 00:16:32.357] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 00:16:32.440] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 00:51:28.009] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 00:51:28.182] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 00:51:28.526] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 00:51:28.861] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 00:51:28.875] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 00:51:28.894] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 00:51:28.909] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 00:51:28.923] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 00:51:28.941] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 00:51:28.956] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 00:51:28.971] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 00:51:28.988] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 00:51:29.003] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 00:51:29.019] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 00:51:29.038] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 00:51:29.053] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 00:51:29.066] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 00:51:29.142] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 01:17:58.950] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 01:17:59.000] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 01:17:59.187] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 01:17:59.522] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 01:17:59.856] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 01:17:59.882] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 01:17:59.897] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 01:17:59.910] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 01:17:59.927] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 01:17:59.941] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 01:17:59.953] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 01:17:59.970] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 01:17:59.983] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 01:17:59.995] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 01:18:00.013] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 01:18:00.026] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 01:18:00.040] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 01:18:00.121] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 01:53:06.941] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 01:53:06.969] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 01:53:06.988] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 01:53:07.002] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 01:53:07.015] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 01:53:07.032] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 01:53:07.044] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 01:53:07.057] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 01:53:07.075] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 01:53:07.088] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 01:53:07.100] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 01:53:07.118] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 01:53:07.131] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 01:53:07.143] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 01:53:07.162] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 01:53:07.175] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 01:53:07.187] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 01:53:07.256] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 02:14:25.478] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 02:14:25.667] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 02:14:25.879] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 02:14:25.924] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 02:14:25.994] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 02:14:26.067] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 02:14:26.105] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 02:14:26.134] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 02:14:26.196] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 02:14:26.226] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 02:14:26.264] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 02:14:26.344] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 02:14:26.386] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 02:14:26.412] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 02:14:26.606] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 02:14:26.667] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 02:14:26.749] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 02:14:26.910] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 02:35:34.249] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 02:35:34.437] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 02:35:34.806] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 02:35:35.161] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 02:35:35.504] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 02:35:35.838] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 02:35:36.170] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 02:35:36.508] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 02:35:36.842] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 02:35:37.170] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 02:35:37.503] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 02:35:37.841] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 02:35:37.856] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 02:35:37.869] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 02:35:37.886] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 02:35:37.899] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 02:35:37.910] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 02:35:37.987] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 03:23:06.887] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 03:23:06.920] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 03:23:06.939] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 03:23:06.955] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 03:23:06.967] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 03:23:06.984] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 03:23:11.897] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 03:23:11.912] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 03:23:11.928] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 03:23:11.942] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 03:23:11.955] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 03:23:11.971] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 03:23:11.984] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 03:25:33.895] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 03:25:33.916] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 03:25:33.930] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 03:25:33.943] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 03:25:34.011] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 03:36:25.892] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 03:36:25.928] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 03:36:25.947] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 03:36:25.962] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 03:36:25.974] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 03:36:25.990] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 03:36:26.003] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 03:36:26.014] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 03:36:26.030] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 03:36:26.042] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 03:36:26.054] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 03:36:26.072] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 03:36:26.085] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 03:36:26.097] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 03:36:26.114] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 03:36:26.127] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 03:36:26.139] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 03:36:26.208] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 04:13:34.864] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 04:13:34.907] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 04:13:34.924] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 04:13:35.000] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 04:13:35.104] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 04:13:35.207] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:13:35.220] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:13:35.231] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 04:13:35.248] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 04:13:35.262] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 04:13:35.274] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 04:13:35.291] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 04:13:35.305] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 04:13:35.317] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 04:13:35.334] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:13:35.350] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:13:35.363] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 04:13:35.435] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 04:34:31.848] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 04:34:31.882] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 04:34:31.937] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 04:34:32.047] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 04:34:32.157] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 04:34:32.271] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:34:32.336] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:34:32.348] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 04:34:32.365] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 04:34:32.378] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 04:34:32.390] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 04:34:32.409] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 04:34:32.424] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 04:34:32.435] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 04:34:32.452] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:34:32.467] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:34:32.478] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 04:34:32.556] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 04:40:32.336] ADZAN_FIRED: Receiver menerima ACTION_PLAY_ADZAN untuk Subuh
+[2026-04-25 04:40:32.443] MUTE_EXECUTED: Perangkat di-mute via DND Priority
+[2026-04-25 04:40:32.625] ADZAN_PLAY_START: MediaPlayer mulai memutar adzan Subuh untuk Subuh
+[2026-04-25 04:40:32.858] MUTE_EXECUTED: ACTION_MUTE diterima
+[2026-04-25 04:40:32.975] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 04:40:33.083] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 04:40:33.200] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 04:40:33.534] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 04:40:33.867] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 04:40:33.888] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:40:33.905] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:40:33.925] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 04:40:33.948] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 04:40:33.967] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 04:40:33.984] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 04:40:34.006] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 04:40:34.024] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 04:40:34.040] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 04:40:34.062] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:40:34.078] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:40:34.096] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 04:40:34.130] UNMUTE_DEFERRED: Unmute ditahan karena adzan masih bermain
+[2026-04-25 04:43:00.023] MUTE_EXECUTED: ACTION_MUTE diterima
+[2026-04-25 04:43:00.037] ADZAN_FIRED: Receiver menerima ACTION_PLAY_ADZAN untuk Subuh
+[2026-04-25 04:43:00.060] ADZAN_PLAY_START: MediaPlayer mulai memutar adzan Subuh untuk Subuh
+[2026-04-25 04:43:00.333] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 04:43:00.660] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 04:43:00.998] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 04:43:01.337] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:43:01.355] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:43:01.371] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 04:43:01.393] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 04:43:01.408] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 04:43:01.417] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 04:43:01.429] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 04:43:01.437] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 04:43:01.443] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 04:43:01.452] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:43:01.459] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:43:01.465] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 04:46:43.498] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 04:46:43.510] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 04:46:43.518] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 04:46:43.526] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:46:43.533] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:46:43.540] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 04:46:43.552] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 04:46:43.560] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 04:46:43.568] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 04:46:43.579] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 04:46:43.587] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 04:46:43.596] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 04:46:43.606] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:46:43.616] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:46:43.623] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 04:47:28.047] ADZAN_COMPLETED: Adzan Subuh selesai diputar sampai akhir (natural completion)
+[2026-04-25 04:47:28.613] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 04:47:28.639] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 04:47:28.655] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 04:47:28.673] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:47:28.687] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 04:47:28.699] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 04:47:28.717] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 04:47:28.732] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 04:47:28.743] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 04:47:28.761] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 04:47:28.778] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 04:47:28.792] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 04:47:28.810] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:47:28.824] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 04:47:28.838] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 04:47:28.925] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 05:01:08.870] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 05:01:08.926] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 05:01:08.945] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 05:01:08.970] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 05:01:08.994] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 05:01:09.008] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 05:01:09.039] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 05:01:09.061] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 05:01:09.074] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 05:01:09.100] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 05:01:09.115] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 05:01:09.129] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 05:01:09.238] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 05:01:09.251] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 05:01:09.262] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 05:01:09.329] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 05:30:32.739] UNMUTE_EXECUTED: ACTION_UNMUTE dieksekusi
+[2026-04-25 05:30:32.949] UNMUTE_EXECUTED: Perangkat di-unmute via DND -> Normal
+[2026-04-25 05:33:31.844] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 05:33:31.974] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 05:33:32.099] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 05:33:32.225] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 05:33:32.344] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 05:33:32.697] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 05:33:32.719] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 05:33:32.738] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 05:33:32.761] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 05:33:32.789] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 05:33:32.815] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 05:33:32.853] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 05:33:32.882] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 05:33:32.905] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 05:33:32.934] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 05:33:32.957] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 05:33:32.984] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 05:33:33.115] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 05:34:16.731] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 05:34:16.769] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 05:34:17.117] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 05:34:17.474] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 05:34:17.560] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 05:34:17.587] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 05:34:17.615] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 05:34:17.635] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 05:34:17.658] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 05:34:17.678] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 05:34:17.698] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 05:34:17.725] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 05:34:17.748] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 05:34:17.769] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 05:34:17.794] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 05:34:17.812] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 05:34:17.827] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 05:34:17.932] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 05:36:49.304] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 05:36:49.535] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 05:36:49.643] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 05:36:49.739] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 05:36:49.822] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 05:36:49.914] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 05:36:49.993] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 05:36:50.068] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 05:36:50.155] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 05:36:50.235] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 05:36:50.311] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 05:36:50.422] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 05:36:50.522] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 05:36:50.609] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 05:36:50.741] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 05:36:50.786] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 05:36:50.813] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 05:36:51.164] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)
+[2026-04-25 06:00:45.914] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-04-25 06:00:45.966] ALARM_SCHEDULED: scheduleAllPrayers [2026-04-25] loc=(-5.1801497,119.4101553) method=SINGAPORE
+  Subuh: 04:43:00.000 (epoch=1777063380000)
+  Dzuhur: 12:02:00.000 (epoch=1777089720000)
+  Ashar: 15:21:00.000 (epoch=1777101660000)
+  Maghrib: 17:59:00.000 (epoch=1777111140000)
+  Isya: 19:10:00.000 (epoch=1777115400000)
+[2026-04-25 06:00:45.995] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 06:00:46.016] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:43:00
+[2026-04-25 06:00:46.038] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:28:00
+[2026-04-25 06:00:46.063] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 06:00:46.084] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:02:00
+[2026-04-25 06:00:46.106] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:37:00
+[2026-04-25 06:00:46.131] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:21:00
+[2026-04-25 06:00:46.155] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:16:00
+[2026-04-25 06:00:46.175] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 15:56:00
+[2026-04-25 06:00:46.198] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:00
+[2026-04-25 06:00:46.223] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:00
+[2026-04-25 06:00:46.244] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:00
+[2026-04-25 06:00:46.269] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 06:00:46.290] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:10:00
+[2026-04-25 06:00:46.308] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:05:00
+[2026-04-25 06:00:46.436] WIDGET_UPDATE: Display: Subuh=04:43 AM(04:43:00.000) Dzuhur=12:02 PM(12:02:00.000) Ashar=03:21 PM(15:21:00.000) loc=(-5.1801497,119.4101553)

@@ -184,6 +184,7 @@ class SettingsManager(private val context: Context) {
             .putBoolean("PENDING_UNMUTE", false)
             .putBoolean("IS_TEST_MODE_ACTIVE", false)
             .putBoolean("isAdzanPlaying", false)
+            .remove("LAST_SCHEDULE_FINGERPRINT")
             .apply()
 
         latitude = currentLat
@@ -247,6 +248,7 @@ class SettingsManager(private val context: Context) {
             .putInt("quoteUpdateInterval", quoteUpdateInterval)
             .putInt("quoteFontSize", quoteFontSize)
             .putInt("quoteBgAlpha", quoteBgAlpha)
+            .remove("LAST_SCHEDULE_FINGERPRINT")
             .apply()
     }
 }

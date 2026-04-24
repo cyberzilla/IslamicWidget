@@ -23,9 +23,20 @@ class SilentModeReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             "ACTION_PLAY_ADZAN" -> {
-                prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
-
+                val settings = SettingsManager(context)
                 val prayerIdForLog = intent.getIntExtra("PRAYER_ID", 0)
+
+                // === FIX: Guard duplikasi adzan ===
+                // Jika adzan sudah sedang bermain, abaikan trigger duplikat.
+                // Ini mencegah bug dimana cancel+reschedule alarm saat widget update
+                // bisa menyebabkan alarm lama fire sebelum di-cancel.
+                if (settings.isAdzanPlaying) {
+                    AdzanLogger.log(context, AdzanLogger.Event.ADZAN_SKIPPED,
+                        "Adzan untuk prayer ID=$prayerIdForLog diabaikan karena adzan lain masih bermain")
+                    return
+                }
+
+                prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
                 AdzanLogger.logAdzanFired(context, prayerIdForLog)
 
                 executeMute(context)

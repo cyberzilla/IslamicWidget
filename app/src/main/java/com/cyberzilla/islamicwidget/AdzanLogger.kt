@@ -19,7 +19,7 @@ object AdzanLogger {
     private const val TAG = "AdzanLogger"
     private const val LOG_DIR_NAME = "IslamicWidget"
     private const val LOG_FILE_NAME = "adzan_log.txt"
-    private const val MAX_LOG_LINES = 500
+    private const val MAX_LOG_LINES = 1500
     private const val MAX_MEMORY_ENTRIES = 200
 
     // In-memory circular log untuk ditampilkan di developer area
@@ -46,6 +46,7 @@ object AdzanLogger {
         ADZAN_COMPLETED,
         ADZAN_INTERRUPTED,
         ADZAN_ERROR,
+        ADZAN_SKIPPED,
 
         // System
         WIDGET_UPDATE,
