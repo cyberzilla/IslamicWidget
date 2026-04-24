@@ -190,8 +190,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private fun getBeforeMillis(context: Context, requestCodeId: Int, prayerTime: Date): Long {
-        val settings = SettingsManager(context)
+    private fun getBeforeMillis(settings: SettingsManager, requestCodeId: Int, prayerTime: Date): Long {
         val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
         cal.time = prayerTime
         val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
@@ -272,7 +271,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             var isInsideAnySilentWindow = false
 
             for ((todayTime, tomorrowTime, id) in prayerPairs) {
-                val beforeMillis = getBeforeMillis(context, id, todayTime)
+                val beforeMillis = getBeforeMillis(settings, id, todayTime)
                 val muteTimeToday = todayTime.time - beforeMillis
                 val unmuteTimeToday = todayTime.time + getAfterMillis(id, todayTime)
 
@@ -336,7 +335,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         var isInsideAnySilentWindow = false
         for ((prayerTime, id) in prayerDates) {
-            val beforeMillis = getBeforeMillis(context, id, prayerTime)
+            val beforeMillis = getBeforeMillis(settings, id, prayerTime)
             val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
             cal.time = prayerTime
             val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
@@ -415,7 +414,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val rectF = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
         canvas.drawRoundRect(rectF, radiusPx, radiusPx, paint)
         views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
-        appWidgetManager.updateAppWidget(appWidgetId, views)
 
         val today = LocalDate.now()
         var hijriDate = HijrahDate.from(today)
@@ -710,6 +708,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.tv_hijri_date, hijriFormatted)
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
+        bgBitmap.recycle()
     }
 
     @SuppressLint("ScheduleExactAlarm")

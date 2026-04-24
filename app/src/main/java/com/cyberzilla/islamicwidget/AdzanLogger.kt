@@ -54,6 +54,10 @@ object AdzanLogger {
         AUDIO_FOCUS_CHANGE,
     }
 
+    // Background executor untuk file I/O agar tidak blocking main thread
+    private val fileExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
+    private var writeCount = 0
+
     /**
      * Log sebuah event. Otomatis menyimpan ke file dan memory.
      *
@@ -74,18 +78,24 @@ object AdzanLogger {
             }
         }
 
-        // Simpan ke file secara async untuk tidak blocking main thread
-        try {
-            val logFile = getLogFile(context)
-            if (logFile != null) {
-                logFile.parentFile?.mkdirs()
-                logFile.appendText("$entry\n")
+        // Simpan ke file secara ASYNC agar tidak blocking main thread / BroadcastReceiver
+        val appContext = context.applicationContext
+        fileExecutor.execute {
+            try {
+                val logFile = getLogFile(appContext)
+                if (logFile != null) {
+                    logFile.parentFile?.mkdirs()
+                    logFile.appendText("$entry\n")
 
-                // Trim jika terlalu besar
-                trimLogFile(logFile)
+                    // Trim hanya setiap 50 tulis, bukan setiap kali (hemat I/O)
+                    writeCount++
+                    if (writeCount % 50 == 0) {
+                        trimLogFile(logFile)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Gagal menulis log ke file", e)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Gagal menulis log ke file", e)
         }
     }
 

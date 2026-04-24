@@ -21,6 +21,10 @@ object UpdateHelper {
     private val executor = Executors.newSingleThreadExecutor()
 
     fun checkForUpdates(context: Context) {
+        val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        val lastCheck = prefs.getLong("LAST_UPDATE_CHECK", 0L)
+        if (System.currentTimeMillis() - lastCheck < 6 * 60 * 60 * 1000L) return
+
         val handler = Handler(Looper.getMainLooper())
 
         executor.execute {
@@ -44,6 +48,8 @@ object UpdateHelper {
                     val jsonObject = JSONObject(responseBuilder.toString())
                     val elementsArray = jsonObject.getJSONArray("elements")
                     val latestVersionName = elementsArray.getJSONObject(0).getString("versionName")
+
+                    prefs.edit().putLong("LAST_UPDATE_CHECK", System.currentTimeMillis()).apply()
 
                     handler.post {
                         val settings = SettingsManager(context)

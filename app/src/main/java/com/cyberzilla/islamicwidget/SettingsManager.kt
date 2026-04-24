@@ -136,8 +136,22 @@ class SettingsManager(private val context: Context) {
         set(value) = prefs.edit().putString("customAdzanSubuhUri", value).apply()
 
     var isAdzanPlaying: Boolean
-        get() = prefs.getBoolean("isAdzanPlaying", false)
-        set(value) = prefs.edit().putBoolean("isAdzanPlaying", value).apply()
+        get() {
+            val playing = prefs.getBoolean("isAdzanPlaying", false)
+            if (playing) {
+                val startTime = prefs.getLong("adzanPlayStartTime", 0L)
+                if (startTime > 0 && System.currentTimeMillis() - startTime > 15 * 60 * 1000L) {
+                    prefs.edit().putBoolean("isAdzanPlaying", false).putLong("adzanPlayStartTime", 0L).commit()
+                    return false
+                }
+            }
+            return playing
+        }
+        set(value) {
+            prefs.edit().putBoolean("isAdzanPlaying", value)
+                .putLong("adzanPlayStartTime", if (value) System.currentTimeMillis() else 0L)
+                .commit()
+        }
 
     var adzanOriginalVolumeBackup: Int
         get() = prefs.getInt("adzanOriginalVolumeBackup", -1)

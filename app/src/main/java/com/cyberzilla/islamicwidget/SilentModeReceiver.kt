@@ -57,6 +57,7 @@ class SilentModeReceiver : BroadcastReceiver() {
                         context.startService(serviceIntent)
                     }
                 } catch (e: Exception) {
+                    if (bridgeLock.isHeld) bridgeLock.release()
                     Log.e(TAG, context.getString(R.string.log_error_play_adzan, e.message))
                     AdzanLogger.log(context, AdzanLogger.Event.ADZAN_ERROR, "Gagal start AdzanService: ${e.message}")
                 }
