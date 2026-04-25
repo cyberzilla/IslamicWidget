@@ -70,6 +70,7 @@ class SilentModeReceiver : BroadcastReceiver() {
 
                 val fadeOutIntent = Intent(context, AdzanService::class.java).apply {
                     action = "ACTION_FADE_OUT"
+                    putExtra("INTERRUPT_SOURCE", "internal")
                 }
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

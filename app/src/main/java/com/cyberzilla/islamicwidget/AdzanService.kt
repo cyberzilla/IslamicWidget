@@ -68,6 +68,11 @@ class AdzanService : Service() {
         }
 
         if (intent.action == "ACTION_FADE_OUT") {
+            // Determine source: jika bukan dari internal (safety/completion), ini dari notifikasi
+            val source = intent.getStringExtra("INTERRUPT_SOURCE") ?: "Notification tap/swipe"
+            if (source != "internal") {
+                AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, source)
+            }
             fadeOutAndStop()
             return START_NOT_STICKY
         }
@@ -104,8 +109,17 @@ class AdzanService : Service() {
 
         createNotificationChannel(localizedContext)
 
-        val directStopIntent = Intent(this, AdzanService::class.java).apply { action = "ACTION_FADE_OUT" }
-        val stopPendingIntent = PendingIntent.getService(this, 0, directStopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val tapStopIntent = Intent(this, AdzanService::class.java).apply {
+            action = "ACTION_FADE_OUT"
+            putExtra("INTERRUPT_SOURCE", "Notifikasi di-tap")
+        }
+        val stopPendingIntent = PendingIntent.getService(this, 0, tapStopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        val swipeStopIntent = Intent(this, AdzanService::class.java).apply {
+            action = "ACTION_FADE_OUT"
+            putExtra("INTERRUPT_SOURCE", "Notifikasi di-swipe")
+        }
+        val deletePendingIntent = PendingIntent.getService(this, 1, swipeStopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         mediaSession = MediaSessionCompat(this, "AdzanSessionHidden")
         mediaSession?.setFlags(
@@ -135,8 +149,14 @@ class AdzanService : Service() {
                 }
                 return super.onMediaButtonEvent(mediaButtonEvent)
             }
-            override fun onStop() { fadeOutAndStop() }
-            override fun onPause() { fadeOutAndStop() }
+            override fun onStop() {
+                AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "MediaSession stop (sistem/earphone)")
+                fadeOutAndStop()
+            }
+            override fun onPause() {
+                AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "MediaSession pause (sistem/earphone)")
+                fadeOutAndStop()
+            }
         })
 
         mediaSession?.isActive = true
@@ -146,7 +166,7 @@ class AdzanService : Service() {
             .setContentText(localizedContext.getString(R.string.notif_desc_adzan))
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentIntent(stopPendingIntent)
-            .setDeleteIntent(stopPendingIntent)
+            .setDeleteIntent(deletePendingIntent)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_EVENT)
