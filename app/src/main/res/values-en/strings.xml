@@ -182,6 +182,8 @@
     <string name="update_notification_title">%1$s Update</string>
     <string name="update_download_desc">Downloading version %1$s...</string>
     <string name="update_install_failed">Failed to trigger automatic installation. Please open the file manually from Downloads.</string>
+    <string name="update_download_complete">Download complete! Tap to install.</string>
+    <string name="update_download_failed">Failed to download update. Check your internet connection.</string>
 
     <string name="reminder_fasting_tomorrow">Reminder: Tomorrow is %1$s</string>
 

@@ -185,9 +185,6 @@ class SettingsManager(private val context: Context) {
         get() = prefs.getString("apkDownloadUrl", "") ?: ""
         set(value) = prefs.edit().putString("apkDownloadUrl", value).apply()
 
-    var latestDownloadId: Long
-        get() = prefs.getLong("latestDownloadId", -1L)
-        set(value) = prefs.edit().putLong("latestDownloadId", value).apply()
 
     fun restoreDefaults() {
         val currentLat = latitude

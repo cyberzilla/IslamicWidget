@@ -95,6 +95,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             // Hapus cache jadwal agar force refresh benar-benar menjadwalkan ulang
             clearScheduleCache(context)
 
+            // Force check update dengan cooldown pendek (2 menit) agar tidak spam
+            UpdateHelper.checkForUpdates(context, force = true)
+
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_islamic)
                 views.setDisplayedChild(R.id.master_flipper, STATE_LOADING)

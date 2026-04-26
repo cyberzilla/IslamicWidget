@@ -20,10 +20,11 @@ object UpdateHelper {
 
     private val executor = Executors.newSingleThreadExecutor()
 
-    fun checkForUpdates(context: Context) {
+    fun checkForUpdates(context: Context, force: Boolean = false) {
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         val lastCheck = prefs.getLong("LAST_UPDATE_CHECK", 0L)
-        if (System.currentTimeMillis() - lastCheck < 6 * 60 * 60 * 1000L) return
+        val cooldown = if (force) 2 * 60 * 1000L else 6 * 60 * 60 * 1000L
+        if (System.currentTimeMillis() - lastCheck < cooldown) return
 
         val handler = Handler(Looper.getMainLooper())
 

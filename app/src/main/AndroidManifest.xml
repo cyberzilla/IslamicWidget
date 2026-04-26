@@ -135,11 +135,7 @@
 
         <receiver android:name=".WidgetPinReceiver" android:exported="false" />
 
-        <receiver android:name=".UpdateReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
-            </intent-filter>
-        </receiver>
+        <receiver android:name=".UpdateReceiver" android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
