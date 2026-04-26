@@ -4,12 +4,15 @@ import android.content.Context
 import com.cyberzilla.islamicwidget.utils.CalculationMethod
 import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
 import com.cyberzilla.islamicwidget.utils.PrayerTimes
+import io.github.cosinekitty.astronomy.EclipseKind
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAccessor
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 object IslamicAppUtils {
 
@@ -125,6 +128,59 @@ object IslamicAppUtils {
             context.getString(R.string.reminder_fasting_tomorrow, joinedInfo)
         } else {
             joinedInfo
+        }
+    }
+
+    /**
+     * Menghasilkan teks reminder gerhana (Kusuf/Khusuf) yang akan datang.
+     * Hanya gerhana yang terlihat dari lokasi user dan terjadi dalam 1 hari ke depan.
+     * Gerhana penumbra tidak dimasukkan.
+     */
+    fun getEclipseReminderInfo(
+        context: Context,
+        latitude: Double,
+        longitude: Double
+    ): String {
+        return try {
+            val eclipses = IslamicAstronomy.getUpcomingEclipses(latitude, longitude, lookAheadDays = 1)
+            if (eclipses.isEmpty()) return ""
+
+            val is24Hour = android.text.format.DateFormat.is24HourFormat(context)
+            val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
+            val dateTimePattern = if (is24Hour) "dd/MM HH:mm" else "dd/MM hh:mm a"
+            val timeFormatter = SimpleDateFormat(timePattern, Locale.getDefault())
+            val dateTimeFormatter = SimpleDateFormat(dateTimePattern, Locale.getDefault())
+            timeFormatter.timeZone = TimeZone.getDefault()
+            dateTimeFormatter.timeZone = TimeZone.getDefault()
+
+            val reminderList = mutableListOf<String>()
+
+            for (eclipse in eclipses) {
+                val kindStr = when (eclipse.kind) {
+                    EclipseKind.Total -> context.getString(R.string.eclipse_kind_total)
+                    EclipseKind.Partial -> context.getString(R.string.eclipse_kind_partial)
+                    EclipseKind.Annular -> context.getString(R.string.eclipse_kind_annular)
+                    else -> continue // Skip Penumbral
+                }
+
+                val timeStr = when (eclipse.daysUntil) {
+                    0 -> context.getString(R.string.eclipse_today, timeFormatter.format(eclipse.peakTime))
+                    1 -> context.getString(R.string.eclipse_tomorrow, timeFormatter.format(eclipse.peakTime))
+                    else -> context.getString(R.string.eclipse_in_days, eclipse.daysUntil, dateTimeFormatter.format(eclipse.peakTime))
+                }
+
+                val reminderText = if (eclipse.type == "SOLAR") {
+                    context.getString(R.string.sunnah_solar_eclipse, kindStr) + " • $timeStr"
+                } else {
+                    context.getString(R.string.sunnah_lunar_eclipse, kindStr) + " • $timeStr"
+                }
+
+                reminderList.add(reminderText)
+            }
+
+            reminderList.joinToString("\n")
+        } catch (e: Exception) {
+            ""
         }
     }
 }

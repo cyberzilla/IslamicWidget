@@ -598,6 +598,15 @@ class MainActivity : AppCompatActivity() {
                             flipper?.addView(sunnahView)
                         }
 
+                        // Eclipse reminder (Sholat Gerhana)
+                        val eclipseInfo = IslamicAppUtils.getEclipseReminderInfo(localizedContext, lat, lon)
+                        if (eclipseInfo.isNotEmpty()) {
+                            val eclipseView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
+                            eclipseView.text = eclipseInfo
+                            eclipseView.setTextColor(Color.parseColor("#FF7043"))
+                            flipper?.addView(eclipseView)
+                        }
+
                         if (isUpdateAvailable) {
                             val updateMsg = localizedContext.getString(R.string.update_available_msg, settingsManager.latestVersionName)
                             val updateView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView

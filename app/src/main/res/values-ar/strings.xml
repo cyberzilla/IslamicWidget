@@ -125,6 +125,15 @@
     <string name="sunnah_thursday">🌙 صِيَامُ يَوْمِ الْخَمِيسِ</string>
     <string name="sunnah_friday">📖 قِرَاءَةُ سُورَةِ الْكَهْفِ</string>
 
+    <string name="sunnah_solar_eclipse">☀️ صَلَاةُ كُسُوفِ الشَّمْسِ (%1$s)</string>
+    <string name="sunnah_lunar_eclipse">🌑 صَلَاةُ خُسُوفِ الْقَمَرِ (%1$s)</string>
+    <string name="eclipse_today">الْيَوْمَ السَّاعَةَ %1$s</string>
+    <string name="eclipse_tomorrow">غَدًا السَّاعَةَ %1$s</string>
+    <string name="eclipse_in_days">بَعْدَ %1$d أَيَّامٍ (%2$s)</string>
+    <string name="eclipse_kind_total">كُلِّيّ</string>
+    <string name="eclipse_kind_partial">جُزْئِيّ</string>
+    <string name="eclipse_kind_annular">حَلَقِيّ</string>
+
     <string name="quote_loading">جاري تحميل الاقتباس...</string>
     <string name="quote_default_reference">- مرجع</string>
     <string name="quote_empty_data">لا توجد بيانات اقتباس.</string>

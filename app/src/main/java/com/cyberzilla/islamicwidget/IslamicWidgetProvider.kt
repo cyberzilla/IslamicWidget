@@ -664,6 +664,18 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                             views.addView(R.id.container_additional_flipper, sunnahView)
                         }
 
+                        // Eclipse reminder (Sholat Gerhana)
+                        val eclipseInfo = IslamicAppUtils.getEclipseReminderInfo(localizedContext, cachedLat, cachedLon)
+                        if (eclipseInfo.isNotEmpty()) {
+                            val eclipseView = RemoteViews(context.packageName, R.layout.item_flipper_text)
+                            eclipseView.setTextViewText(R.id.tv_item_text, eclipseInfo)
+                            eclipseView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                            eclipseView.setTextColor(R.id.tv_item_text, Color.parseColor("#FF7043"))
+                            val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                            eclipseView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
+                            views.addView(R.id.container_additional_flipper, eclipseView)
+                        }
+
                         if (isUpdateAvailable) {
                             val updateMessage = localizedContext.getString(R.string.update_available_msg, settings.latestVersionName)
                             val updateView = RemoteViews(context.packageName, R.layout.item_flipper_text)

@@ -125,6 +125,15 @@
     <string name="sunnah_thursday">🌙 Puasa Sunnah Kamis</string>
     <string name="sunnah_friday">📖 Sunnah Al-Kahfi</string>
 
+    <string name="sunnah_solar_eclipse">☀️ Sholat Gerhana Matahari (%1$s)</string>
+    <string name="sunnah_lunar_eclipse">🌑 Sholat Gerhana Bulan (%1$s)</string>
+    <string name="eclipse_today">Hari ini pukul %1$s</string>
+    <string name="eclipse_tomorrow">Besok pukul %1$s</string>
+    <string name="eclipse_in_days">%1$d hari lagi (%2$s)</string>
+    <string name="eclipse_kind_total">Total</string>
+    <string name="eclipse_kind_partial">Sebagian</string>
+    <string name="eclipse_kind_annular">Cincin</string>
+
     <string name="quote_loading">Memuat quote...</string>
     <string name="quote_default_reference">- Referensi</string>
     <string name="quote_empty_data">Tidak ada data quote.</string>

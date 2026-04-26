@@ -564,4 +564,74 @@ object IslamicAstronomy {
     private fun Time.toDate(): Date {
         return Date(this.toMillisecondsSince1970())
     }
+
+    // =================================================================================
+    // ECLIPSE PREDICTION ENGINE (Sholat Gerhana Kusuf/Khusuf)
+    // =================================================================================
+
+    data class EclipseReminder(
+        val type: String,           // "SOLAR" atau "LUNAR"
+        val kind: EclipseKind,      // Total, Partial, Annular (no Penumbral)
+        val peakTime: Date,         // Waktu puncak gerhana (UTC -> local)
+        val daysUntil: Int          // 0 = hari ini, 1 = besok
+    )
+
+    /**
+     * Mencari gerhana bulan dan matahari yang akan datang dan terlihat dari lokasi user.
+     * Hanya mengembalikan gerhana yang terjadi dalam [lookAheadDays] hari ke depan.
+     * Gerhana penumbra difilter (tidak disyariatkan sholat gerhana).
+     */
+    fun getUpcomingEclipses(
+        latitude: Double,
+        longitude: Double,
+        elevation: Double = 0.0,
+        lookAheadDays: Int = 1
+    ): List<EclipseReminder> {
+        val results = mutableListOf<EclipseReminder>()
+        val observer = Observer(latitude, longitude, elevation)
+        val now = Date()
+        val nowTime = Time.fromMillisecondsSince1970(now.time)
+        val cutoffMillis = now.time + (lookAheadDays.toLong() + 1) * 86400000L
+
+        try {
+            // --- Gerhana Bulan (Lunar Eclipse) ---
+            // Gerhana bulan terlihat dari seluruh sisi malam bumi
+            val lunarEclipse = searchLunarEclipse(nowTime)
+            val lunarPeakDate = lunarEclipse.peak.toDate()
+            if (lunarPeakDate.time <= cutoffMillis && lunarEclipse.kind != EclipseKind.Penumbral) {
+                val daysUntil = ((lunarPeakDate.time - now.time) / 86400000L).toInt().coerceAtLeast(0)
+                results.add(
+                    EclipseReminder(
+                        type = "LUNAR",
+                        kind = lunarEclipse.kind,
+                        peakTime = lunarPeakDate,
+                        daysUntil = daysUntil
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            // Silently ignore lunar eclipse search errors
+        }
+
+        try {
+            // --- Gerhana Matahari Lokal (Solar Eclipse visible from user location) ---
+            val solarEclipse = searchLocalSolarEclipse(nowTime, observer)
+            val solarPeakDate = solarEclipse.peak.time.toDate()
+            if (solarPeakDate.time <= cutoffMillis && solarEclipse.peak.altitude > 0.0) {
+                val daysUntil = ((solarPeakDate.time - now.time) / 86400000L).toInt().coerceAtLeast(0)
+                results.add(
+                    EclipseReminder(
+                        type = "SOLAR",
+                        kind = solarEclipse.kind,
+                        peakTime = solarPeakDate,
+                        daysUntil = daysUntil
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            // Silently ignore solar eclipse search errors
+        }
+
+        return results
+    }
 }

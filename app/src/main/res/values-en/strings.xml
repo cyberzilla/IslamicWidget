@@ -125,6 +125,15 @@
     <string name="sunnah_thursday">🌙 Thursday Sunnah Fasting</string>
     <string name="sunnah_friday">📖 Read Surah Al-Kahf</string>
 
+    <string name="sunnah_solar_eclipse">☀️ Solar Eclipse Prayer (%1$s)</string>
+    <string name="sunnah_lunar_eclipse">🌑 Lunar Eclipse Prayer (%1$s)</string>
+    <string name="eclipse_today">Today at %1$s</string>
+    <string name="eclipse_tomorrow">Tomorrow at %1$s</string>
+    <string name="eclipse_in_days">In %1$d days (%2$s)</string>
+    <string name="eclipse_kind_total">Total</string>
+    <string name="eclipse_kind_partial">Partial</string>
+    <string name="eclipse_kind_annular">Annular</string>
+
     <string name="quote_loading">Loading quote...</string>
     <string name="quote_default_reference">- Reference</string>
     <string name="quote_empty_data">No quote data available.</string>
