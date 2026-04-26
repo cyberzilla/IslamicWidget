@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.hardware.GeomagneticField
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -30,16 +31,20 @@ import java.util.Locale
 class CompassActivity : AppCompatActivity(), SensorEventListener {
 
     private var sensorManager: SensorManager? = null
+    private var rotationVectorSensor: Sensor? = null
     private var accelerometer: Sensor? = null
     private var magnetometer: Sensor? = null
+    private var useRotationVector = false
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private var gravity = FloatArray(3)
     private var geomagnetic = FloatArray(3)
     private var qiblaDegree = 0f
+    private var magneticDeclination = 0f
 
     private var isGravityInit = false
     private var isGeomagneticInit = false
+    private var isFirstReading = true
 
     private var currentAzimuth = 0f
     private var dialRotation = 0f
@@ -85,7 +90,10 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
             if (latStr != null && lonStr != null) {
                 try {
-                    qiblaDegree = IslamicAstronomy.calculateQibla(latStr.toDouble(), lonStr.toDouble()).toFloat()
+                    val lat = latStr.toDouble()
+                    val lon = lonStr.toDouble()
+                    qiblaDegree = IslamicAstronomy.calculateQibla(lat, lon).toFloat()
+                    computeDeclination(lat, lon)
 
                     val title = getString(R.string.compass_title_qibla)
                     tvDegree?.text = String.format(Locale.getDefault(), "%s %.1f°", title, qiblaDegree)
@@ -99,10 +107,18 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
             fetchLatestLocation()
 
             sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-            accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-            magnetometer = sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-            if (accelerometer == null || magnetometer == null) {
+            // Prefer rotation vector sensor (fused, more accurate & smoother)
+            rotationVectorSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+            if (rotationVectorSensor != null) {
+                useRotationVector = true
+            } else {
+                // Fallback to accelerometer + magnetometer
+                accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+                magnetometer = sensorManager?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+            }
+
+            if (rotationVectorSensor == null && (accelerometer == null || magnetometer == null)) {
                 Toast.makeText(this, getString(R.string.toast_no_compass_sensor), Toast.LENGTH_LONG).show()
                 tvDegree?.text = getString(R.string.compass_sensor_unavailable)
             }
@@ -122,6 +138,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 .addOnSuccessListener { location ->
                     if (location != null && !isDestroyed) {
                         qiblaDegree = IslamicAstronomy.calculateQibla(location.latitude, location.longitude).toFloat()
+                        computeDeclination(location.latitude, location.longitude)
 
                         val title = getString(R.string.compass_title_qibla)
                         tvDegree?.text = String.format(java.util.Locale.getDefault(), "%s %.1f°", title, qiblaDegree)
@@ -157,14 +174,35 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
+    /**
+     * Hitung magnetic declination (selisih antara magnetic north dan true north)
+     * menggunakan model IGRF/WMM via GeomagneticField.
+     * Tanpa koreksi ini, kompas menunjuk ke magnetic north, bukan true north,
+     * sehingga arah Qibla bisa meleset beberapa derajat.
+     */
+    private fun computeDeclination(lat: Double, lon: Double) {
+        val geoField = GeomagneticField(
+            lat.toFloat(), lon.toFloat(), 0f,
+            System.currentTimeMillis()
+        )
+        magneticDeclination = geoField.declination
+    }
+
     override fun onResume() {
         super.onResume()
+        isFirstReading = true
         try {
-            accelerometer?.let {
-                sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
-            }
-            magnetometer?.let {
-                sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            if (useRotationVector) {
+                rotationVectorSensor?.let {
+                    sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+                }
+            } else {
+                accelerometer?.let {
+                    sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+                }
+                magnetometer?.let {
+                    sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+                }
             }
         } catch (e: Exception) {}
     }
@@ -185,78 +223,106 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
-        val alpha = 0.95f
 
         try {
             synchronized(this) {
-                if (event.sensor.type == Sensor.TYPE_ACCELEROMETER && event.values.size >= 3) {
-                    if (!isGravityInit) {
-                        gravity[0] = event.values[0]
-                        gravity[1] = event.values[1]
-                        gravity[2] = event.values[2]
-                        isGravityInit = true
-                    } else {
-                        gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0]
-                        gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1]
-                        gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2]
-                    }
-                }
+                var azimuth: Float? = null
 
-                if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD && event.values.size >= 3) {
-                    if (!isGeomagneticInit) {
-                        geomagnetic[0] = event.values[0]
-                        geomagnetic[1] = event.values[1]
-                        geomagnetic[2] = event.values[2]
-                        isGeomagneticInit = true
-                    } else {
-                        geomagnetic[0] = alpha * geomagnetic[0] + (1 - alpha) * event.values[0]
-                        geomagnetic[1] = alpha * geomagnetic[1] + (1 - alpha) * event.values[1]
-                        geomagnetic[2] = alpha * geomagnetic[2] + (1 - alpha) * event.values[2]
-                    }
-                }
+                if (useRotationVector && event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+                    // Rotation vector sensor: fused by hardware, lebih akurat & stabil
+                    val rotationMatrix = FloatArray(9)
+                    SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
+                    val orientation = FloatArray(3)
+                    SensorManager.getOrientation(rotationMatrix, orientation)
+                    azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
 
-                if (isGravityInit && isGeomagneticInit) {
-                    val r = FloatArray(9)
-                    val i = FloatArray(9)
-                    if (SensorManager.getRotationMatrix(r, i, gravity, geomagnetic)) {
-                        val orientation = FloatArray(3)
-                        SensorManager.getOrientation(r, orientation)
+                } else if (!useRotationVector) {
+                    // Fallback: accelerometer + magnetometer manual fusion
+                    val alpha = 0.85f
 
-                        var azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
-                        if (azimuth < 0) azimuth += 360f
-
-                        val rawDelta = getShortestDelta(currentAzimuth, azimuth)
-                        if (Math.abs(rawDelta) > 0.8f) {
-                            currentAzimuth += rawDelta * 0.04f
-                        }
-
-                        val displayDegree = (currentAzimuth % 360 + 360) % 360
-                        tvCenterHeading?.text = String.format(Locale.getDefault(), "%d°", displayDegree.toInt())
-
-                        val targetDial = -currentAzimuth
-                        val targetNeedle = qiblaDegree - currentAzimuth
-
-                        val dialDelta = getShortestDelta(dialRotation, targetDial)
-                        dialVelocity += dialDelta * 0.008f
-                        dialVelocity *= 0.88f
-                        dialRotation += dialVelocity
-
-                        val needleDelta = getShortestDelta(needleRotation, targetNeedle)
-                        needleVelocity += needleDelta * 0.002f
-                        needleVelocity *= 0.95f
-                        needleRotation += needleVelocity
-
-                        flDial?.rotation = dialRotation
-                        ivNeedle?.rotation = needleRotation
-
-                        val qiblaDiff = Math.abs(getShortestDelta(displayDegree, qiblaDegree))
-                        if (qiblaDiff < 2.0f) {
-                            ivStaticNeedle?.setImageResource(R.drawable.ic_green_circle_needle)
-                            ivNeedle?.setImageResource(R.drawable.ic_kaaba_indicator_green)
+                    if (event.sensor.type == Sensor.TYPE_ACCELEROMETER && event.values.size >= 3) {
+                        if (!isGravityInit) {
+                            gravity = event.values.copyOf()
+                            isGravityInit = true
                         } else {
-                            ivStaticNeedle?.setImageResource(R.drawable.ic_red_circle_needle)
-                            ivNeedle?.setImageResource(R.drawable.ic_kaaba_indicator)
+                            for (idx in 0..2) {
+                                gravity[idx] = alpha * gravity[idx] + (1 - alpha) * event.values[idx]
+                            }
                         }
+                    }
+
+                    if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD && event.values.size >= 3) {
+                        if (!isGeomagneticInit) {
+                            geomagnetic = event.values.copyOf()
+                            isGeomagneticInit = true
+                        } else {
+                            for (idx in 0..2) {
+                                geomagnetic[idx] = alpha * geomagnetic[idx] + (1 - alpha) * event.values[idx]
+                            }
+                        }
+                    }
+
+                    if (isGravityInit && isGeomagneticInit) {
+                        val r = FloatArray(9)
+                        val i = FloatArray(9)
+                        if (SensorManager.getRotationMatrix(r, i, gravity, geomagnetic)) {
+                            val orientation = FloatArray(3)
+                            SensorManager.getOrientation(r, orientation)
+                            azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
+                        }
+                    }
+                }
+
+                if (azimuth != null) {
+                    // Koreksi magnetic declination: konversi magnetic north → true north
+                    azimuth += magneticDeclination
+                    if (azimuth < 0f) azimuth += 360f
+                    if (azimuth >= 360f) azimuth -= 360f
+
+                    if (isFirstReading) {
+                        // Snap langsung ke heading aktual saat launch
+                        // agar kompas tidak "berputar" dari 0° ke heading sebenarnya
+                        currentAzimuth = azimuth
+                        dialRotation = -currentAzimuth
+                        needleRotation = qiblaDegree - currentAzimuth
+                        dialVelocity = 0f
+                        needleVelocity = 0f
+                        isFirstReading = false
+                    } else {
+                        val rawDelta = getShortestDelta(currentAzimuth, azimuth)
+                        if (Math.abs(rawDelta) > 0.3f) {
+                            currentAzimuth += rawDelta * 0.12f
+                        }
+                    }
+
+                    val displayDegree = (currentAzimuth % 360 + 360) % 360
+                    tvCenterHeading?.text = String.format(Locale.getDefault(), "%d°", displayDegree.toInt())
+
+                    val targetDial = -currentAzimuth
+                    val targetNeedle = qiblaDegree - currentAzimuth
+
+                    // Spring-damper: spring 0.04 (was 0.008), damping 0.82 (was 0.88)
+                    // Lebih responsif tanpa mengorbankan kehalusan
+                    val dialDelta = getShortestDelta(dialRotation, targetDial)
+                    dialVelocity += dialDelta * 0.04f
+                    dialVelocity *= 0.82f
+                    dialRotation += dialVelocity
+
+                    val needleDelta = getShortestDelta(needleRotation, targetNeedle)
+                    needleVelocity += needleDelta * 0.04f
+                    needleVelocity *= 0.82f
+                    needleRotation += needleVelocity
+
+                    flDial?.rotation = dialRotation
+                    ivNeedle?.rotation = needleRotation
+
+                    val qiblaDiff = Math.abs(getShortestDelta(displayDegree, qiblaDegree))
+                    if (qiblaDiff < 2.0f) {
+                        ivStaticNeedle?.setImageResource(R.drawable.ic_green_circle_needle)
+                        ivNeedle?.setImageResource(R.drawable.ic_kaaba_indicator_green)
+                    } else {
+                        ivStaticNeedle?.setImageResource(R.drawable.ic_red_circle_needle)
+                        ivNeedle?.setImageResource(R.drawable.ic_kaaba_indicator)
                     }
                 }
             }
