@@ -21,8 +21,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import com.batoulapps.adhan2.Coordinates
-import com.batoulapps.adhan2.Qibla
+import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -86,8 +85,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
             if (latStr != null && lonStr != null) {
                 try {
-                    val coordinates = Coordinates(latStr.toDouble(), lonStr.toDouble())
-                    qiblaDegree = Qibla(coordinates).direction.toFloat()
+                    qiblaDegree = IslamicAstronomy.calculateQibla(latStr.toDouble(), lonStr.toDouble()).toFloat()
 
                     val title = getString(R.string.compass_title_qibla)
                     tvDegree?.text = String.format(Locale.getDefault(), "%s %.1f°", title, qiblaDegree)
@@ -123,8 +121,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
             fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                 .addOnSuccessListener { location ->
                     if (location != null && !isDestroyed) {
-                        val coordinates = Coordinates(location.latitude, location.longitude)
-                        qiblaDegree = Qibla(coordinates).direction.toFloat()
+                        qiblaDegree = IslamicAstronomy.calculateQibla(location.latitude, location.longitude).toFloat()
 
                         val title = getString(R.string.compass_title_qibla)
                         tvDegree?.text = String.format(java.util.Locale.getDefault(), "%s %.1f°", title, qiblaDegree)

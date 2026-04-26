@@ -6,8 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import com.batoulapps.adhan2.Coordinates
-import com.batoulapps.adhan2.Qibla
+import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
 import java.util.Locale
 
 class CompassWidgetProvider : AppWidgetProvider() {
@@ -28,8 +27,7 @@ class CompassWidgetProvider : AppWidgetProvider() {
 
         if (latStr != null && lonStr != null) {
             try {
-                val coordinates = Coordinates(latStr.toDouble(), lonStr.toDouble())
-                val qiblaDegree = Qibla(coordinates).direction.toFloat()
+                val qiblaDegree = IslamicAstronomy.calculateQibla(latStr.toDouble(), lonStr.toDouble()).toFloat()
                 degreeText = String.format(Locale.getDefault(), "%.1f°", qiblaDegree)
             } catch (e: Exception) {
                 degreeText = "Err"

@@ -23,9 +23,9 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
-import com.batoulapps.adhan2.Coordinates
-import com.batoulapps.adhan2.Qibla
-import com.batoulapps.adhan2.SunnahTimes
+import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
+import com.cyberzilla.islamicwidget.utils.HilalCriteria
+import com.cyberzilla.islamicwidget.utils.PrayerTimes as IAstroPrayerTimes
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -34,11 +34,8 @@ import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import kotlin.time.ExperimentalTime
-import com.cyberzilla.islamicwidget.utils.HilalCriteria
-import com.cyberzilla.islamicwidget.utils.HijriOffsetCalculator
 
-@OptIn(ExperimentalTime::class)
+
 class IslamicWidgetProvider : AppWidgetProvider() {
 
     companion object {
@@ -224,8 +221,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             // === OPTIMASI: Cek apakah jadwal sudah di-schedule dengan data identik ===
             // Fingerprint berisi tanggal + epoch semua waktu sholat, sehingga jika
             // ada perubahan lokasi/metode/hari, fingerprint akan berbeda.
-            val fingerprint = "$today|${todayPT.fajr.asDate().time}|${todayPT.dhuhr.asDate().time}|" +
-                    "${todayPT.asr.asDate().time}|${todayPT.maghrib.asDate().time}|${todayPT.isha.asDate().time}"
+            val fingerprint = "$today|${todayPT.fajr.time}|${todayPT.dhuhr.time}|" +
+                    "${todayPT.asr.time}|${todayPT.maghrib.time}|${todayPT.isha.time}"
 
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
             val lastFingerprint = prefs.getString("LAST_SCHEDULE_FINGERPRINT", null)
@@ -252,11 +249,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             }
 
             val prayerPairs = listOf(
-                Triple(todayPT.fajr.asDate(), tomorrowPT.fajr.asDate(), 1),
-                Triple(todayPT.dhuhr.asDate(), tomorrowPT.dhuhr.asDate(), 2),
-                Triple(todayPT.asr.asDate(), tomorrowPT.asr.asDate(), 3),
-                Triple(todayPT.maghrib.asDate(), tomorrowPT.maghrib.asDate(), 4),
-                Triple(todayPT.isha.asDate(), tomorrowPT.isha.asDate(), 5),
+                Triple(todayPT.fajr, tomorrowPT.fajr, 1),
+                Triple(todayPT.dhuhr, tomorrowPT.dhuhr, 2),
+                Triple(todayPT.asr, tomorrowPT.asr, 3),
+                Triple(todayPT.maghrib, tomorrowPT.maghrib, 4),
+                Triple(todayPT.isha, tomorrowPT.isha, 5),
             )
 
             // Diagnostic: log semua waktu sholat yang dihitung untuk hari ini (presisi detik)
@@ -316,7 +313,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
      */
     private fun checkAndEnforceSilentWindow(
         context: Context,
-        prayerTimes: com.batoulapps.adhan2.PrayerTimes,
+        prayerTimes: IAstroPrayerTimes,
         settings: SettingsManager,
         now: Long
     ) {
@@ -326,11 +323,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val currentlyMutedRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
 
         val prayerDates = listOf(
-            Pair(prayerTimes.fajr.asDate(), 1),
-            Pair(prayerTimes.dhuhr.asDate(), 2),
-            Pair(prayerTimes.asr.asDate(), 3),
-            Pair(prayerTimes.maghrib.asDate(), 4),
-            Pair(prayerTimes.isha.asDate(), 5),
+            Pair(prayerTimes.fajr, 1),
+            Pair(prayerTimes.dhuhr, 2),
+            Pair(prayerTimes.asr, 3),
+            Pair(prayerTimes.maghrib, 4),
+            Pair(prayerTimes.isha, 5),
         )
 
         var isInsideAnySilentWindow = false
@@ -428,7 +425,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 val lat = latString.toDouble()
                 val lon = lonString.toDouble()
                 val criteria = HilalCriteria.fromName(settings.hilalCriteria)
-                totalHijriOffset = HijriOffsetCalculator.calculateAutoOffset(lat, lon, criteria).toLong()
+                totalHijriOffset = IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria ?: HilalCriteria.NEO_MABIMS).toLong()
             } catch (e: Exception) {
                 totalHijriOffset = settings.hijriOffset.toLong()
                 Log.e(TAG, "Auto hijri offset error in widget, falling back to manual", e)
@@ -437,7 +434,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             totalHijriOffset = settings.hijriOffset.toLong()
         }
 
-        var cachedPrayerTimes: com.batoulapps.adhan2.PrayerTimes? = null
+        var cachedPrayerTimes: IAstroPrayerTimes? = null
         var cachedLat = 0.0
         var cachedLon = 0.0
 
@@ -446,7 +443,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 cachedLat = latString.toDouble()
                 cachedLon = lonString.toDouble()
                 cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
-                if (settings.isDayStartAtMaghrib && Date().after(cachedPrayerTimes!!.maghrib.asDate())) {
+                if (settings.isDayStartAtMaghrib && Date().after(cachedPrayerTimes!!.maghrib)) {
                     totalHijriOffset += 1L
                 }
             } catch (e: Exception) {}
@@ -530,11 +527,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             if (latString != null && lonString != null && cachedPrayerTimes != null) {
                 try {
                     val prayerTimes = cachedPrayerTimes!!
-                    val sunnahTimes = SunnahTimes(prayerTimes)
-                    val qibla = Qibla(Coordinates(cachedLat, cachedLon))
+                    val tomorrowPrayer = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today.plusDays(1))
+                    val sunnahTimes = IslamicAstronomy.getSunnahTimes(prayerTimes, tomorrowPrayer)
+                    val qiblaDegree = IslamicAstronomy.calculateQibla(cachedLat, cachedLon)
 
                     val currentTime = Date()
-                    val maghribTime = prayerTimes.maghrib.asDate()
+                    val maghribTime = prayerTimes.maghrib
 
                     if (isFriday && currentTime.after(maghribTime)) {
                         views.setTextViewText(R.id.label_dhuhr, localizedContext.getString(R.string.dhuhr))
@@ -546,35 +544,35 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                             isAfterMaghrib = true
                         }
                     }
-                    val isBeforeFajr = currentTime.before(prayerTimes.fajr.asDate())
+                    val isBeforeFajr = currentTime.before(prayerTimes.fajr)
 
                     val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
                     timeFormatter.timeZone = TimeZone.getDefault()
 
-                    views.setTextViewText(R.id.tv_fajr_time, timeFormatter.format(prayerTimes.fajr.asDate()))
-                    views.setTextViewText(R.id.tv_dhuhr_time, timeFormatter.format(prayerTimes.dhuhr.asDate()))
-                    views.setTextViewText(R.id.tv_asr_time, timeFormatter.format(prayerTimes.asr.asDate()))
-                    views.setTextViewText(R.id.tv_maghrib_time, timeFormatter.format(prayerTimes.maghrib.asDate()))
-                    views.setTextViewText(R.id.tv_isha_time, timeFormatter.format(prayerTimes.isha.asDate()))
+                    views.setTextViewText(R.id.tv_fajr_time, timeFormatter.format(prayerTimes.fajr))
+                    views.setTextViewText(R.id.tv_dhuhr_time, timeFormatter.format(prayerTimes.dhuhr))
+                    views.setTextViewText(R.id.tv_asr_time, timeFormatter.format(prayerTimes.asr))
+                    views.setTextViewText(R.id.tv_maghrib_time, timeFormatter.format(prayerTimes.maghrib))
+                    views.setTextViewText(R.id.tv_isha_time, timeFormatter.format(prayerTimes.isha))
 
                     // Diagnostic: log waktu sholat yang ditampilkan di widget vs epoch asli
                     val diagFmt2 = SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.US)
                     AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE,
-                        "Display: Subuh=${timeFormatter.format(prayerTimes.fajr.asDate())}(${diagFmt2.format(prayerTimes.fajr.asDate())}) " +
-                        "Dzuhur=${timeFormatter.format(prayerTimes.dhuhr.asDate())}(${diagFmt2.format(prayerTimes.dhuhr.asDate())}) " +
-                        "Ashar=${timeFormatter.format(prayerTimes.asr.asDate())}(${diagFmt2.format(prayerTimes.asr.asDate())}) " +
+                        "Display: Subuh=${timeFormatter.format(prayerTimes.fajr)}(${diagFmt2.format(prayerTimes.fajr)}) " +
+                        "Dzuhur=${timeFormatter.format(prayerTimes.dhuhr)}(${diagFmt2.format(prayerTimes.dhuhr)}) " +
+                        "Ashar=${timeFormatter.format(prayerTimes.asr)}(${diagFmt2.format(prayerTimes.asr)}) " +
                         "loc=($cachedLat,$cachedLon)"
                     )
 
-                    views.setTextViewText(R.id.tv_sunrise, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
-                    views.setTextViewText(R.id.tv_last_third, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
-                    views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
+                    views.setTextViewText(R.id.tv_sunrise, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise)}")
+                    views.setTextViewText(R.id.tv_last_third, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight)}")
+                    views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qiblaDegree))
 
                     val now = Date()
                     val highlightColor = Color.parseColor("#FFC107")
                     val defaultColor = textColor
 
-                    val prayerDates = arrayOf(prayerTimes.fajr.asDate(), prayerTimes.dhuhr.asDate(), prayerTimes.asr.asDate(), prayerTimes.maghrib.asDate(), prayerTimes.isha.asDate())
+                    val prayerDates = arrayOf(prayerTimes.fajr, prayerTimes.dhuhr, prayerTimes.asr, prayerTimes.maghrib, prayerTimes.isha)
                     val labels = arrayOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
                     val times = arrayOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
 
@@ -593,7 +591,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                         views.setTextColor(times[i], colorToUse)
                     }
 
-                    scheduleDateChangeUpdate(context, prayerTimes.maghrib.asDate(), prayerTimes.fajr.asDate(), appWidgetId, settings.isDayStartAtMaghrib)
+                    scheduleDateChangeUpdate(context, prayerTimes.maghrib, prayerTimes.fajr, appWidgetId, settings.isDayStartAtMaghrib)
 
                     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                     val currentVersionName = packageInfo.versionName ?: "1.0"
@@ -606,9 +604,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                         views.removeAllViews(R.id.container_additional_flipper)
 
                         val normalView = RemoteViews(context.packageName, R.layout.item_flipper_normal)
-                        normalView.setTextViewText(R.id.tv_sunrise_flip, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}")
-                        normalView.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}")
-                        normalView.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction))
+                        normalView.setTextViewText(R.id.tv_sunrise_flip, "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise)}")
+                        normalView.setTextViewText(R.id.tv_last_third_flip, "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight)}")
+                        normalView.setTextViewText(R.id.tv_qibla_flip, String.format(selectedLocale, "%s: %.1f°", txtQibla, qiblaDegree))
 
                         val flipTextIds = listOf(R.id.tv_sunrise_flip, R.id.tv_last_third_flip, R.id.tv_qibla_flip, R.id.tv_divider_1_flip, R.id.tv_divider_2_flip)
                         for (id in flipTextIds) {

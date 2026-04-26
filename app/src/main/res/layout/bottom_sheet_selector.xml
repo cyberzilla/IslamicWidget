@@ -26,10 +26,11 @@
         android:textStyle="bold"
         android:textColor="?android:attr/textColorPrimary" />
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:overScrollMode="never">
 
         <LinearLayout
             android:id="@+id/ll_sheet_items"
@@ -38,6 +39,6 @@
             android:orientation="vertical"
             android:paddingHorizontal="16dp"/>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>

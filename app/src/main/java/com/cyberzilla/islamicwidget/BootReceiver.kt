@@ -13,6 +13,10 @@ class BootReceiver : BroadcastReceiver() {
 
         AdzanLogger.log(context, AdzanLogger.Event.BOOT_RESCHEDULE, "Boot completed, menjadwalkan ulang semua alarm")
 
+        // === FIX: Cancel semua stale alarm sebelum re-schedule ===
+        val settings = SettingsManager(context)
+        settings.cancelAllSilentAlarms()
+
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         prefs.edit()
             .putBoolean("isAdzanPlaying", false)
@@ -35,7 +39,6 @@ class BootReceiver : BroadcastReceiver() {
             context.sendBroadcast(islamicIntent)
         }
 
-        val settings = SettingsManager(context)
         val quoteInterval = settings.quoteUpdateInterval
         if (quoteInterval > 0) {
             QuoteUpdateManager.setAutoUpdate(context, quoteInterval)

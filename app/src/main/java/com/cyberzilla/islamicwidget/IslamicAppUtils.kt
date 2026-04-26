@@ -1,20 +1,15 @@
 package com.cyberzilla.islamicwidget
 
 import android.content.Context
-import com.batoulapps.adhan2.CalculationMethod
-import com.batoulapps.adhan2.Coordinates
-import com.batoulapps.adhan2.PrayerTimes
-import com.batoulapps.adhan2.data.DateComponents
+import com.cyberzilla.islamicwidget.utils.CalculationMethod
+import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
+import com.cyberzilla.islamicwidget.utils.PrayerTimes
 import java.time.LocalDate
 import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAccessor
+import java.util.Calendar
 import java.util.Locale
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
-
-@OptIn(ExperimentalTime::class)
-fun Instant.asDate() = java.util.Date(toEpochMilliseconds())
 
 object IslamicAppUtils {
 
@@ -61,24 +56,30 @@ object IslamicAppUtils {
     }
 
     fun getCalculationMethod(methodStr: String): CalculationMethod {
-        return when (methodStr) {
-            "EGYPTIAN" -> CalculationMethod.EGYPTIAN
-            "KARACHI" -> CalculationMethod.KARACHI
-            "UMM_AL_QURA" -> CalculationMethod.UMM_AL_QURA
-            "DUBAI" -> CalculationMethod.DUBAI
-            "QATAR" -> CalculationMethod.QATAR
-            "KUWAIT" -> CalculationMethod.KUWAIT
-            "MOON_SIGHTING_COMMITTEE" -> CalculationMethod.MOON_SIGHTING_COMMITTEE
-            "SINGAPORE" -> CalculationMethod.SINGAPORE
-            else -> CalculationMethod.MUSLIM_WORLD_LEAGUE
+        return try {
+            CalculationMethod.valueOf(methodStr)
+        } catch (e: Exception) {
+            CalculationMethod.MUSLIM_WORLD_LEAGUE
         }
     }
 
     fun calculatePrayerTimes(lat: Double, lon: Double, methodStr: String, today: LocalDate): PrayerTimes {
-        val coordinates = Coordinates(lat, lon)
-        val dateComponents = DateComponents(today.year, today.monthValue, today.dayOfMonth)
         val method = getCalculationMethod(methodStr)
-        return PrayerTimes(coordinates, dateComponents, method.parameters)
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.YEAR, today.year)
+            set(Calendar.MONTH, today.monthValue - 1)
+            set(Calendar.DAY_OF_MONTH, today.dayOfMonth)
+            set(Calendar.HOUR_OF_DAY, 12)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return IslamicAstronomy.calculatePrayerTimes(
+            date = cal.time,
+            latitude = lat,
+            longitude = lon,
+            method = method
+        )
     }
 
     fun getSunnahFastingInfo(context: Context, hijriDate: HijrahDate, today: LocalDate, isAfterMaghrib: Boolean, isBeforeFajr: Boolean): String {

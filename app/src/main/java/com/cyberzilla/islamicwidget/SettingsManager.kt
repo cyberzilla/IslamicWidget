@@ -1,7 +1,11 @@
 package com.cyberzilla.islamicwidget
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.util.Log
 
 class SettingsManager(private val context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
@@ -204,6 +208,60 @@ class SettingsManager(private val context: Context) {
         latitude = currentLat
         longitude = currentLon
         locationName = currentLocName
+
+        // === FIX: Cancel semua stale alarm dari AlarmManager ===
+        // AlarmManager alarms TIDAK ikut terhapus saat clear cache/data,
+        // sehingga harus di-cancel manual saat reset.
+        cancelAllSilentAlarms()
+    }
+
+    /**
+     * Membatalkan SEMUA alarm MUTE/UNMUTE/ADZAN yang ter-schedule di AlarmManager.
+     * Dipanggil saat restoreDefaults() untuk mencegah stale alarm fire
+     * setelah user reset aplikasi.
+     */
+    fun cancelAllSilentAlarms() {
+        try {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+            for (id in 1..5) {
+                val rcMute = 10000 + id
+                val rcUnmute = 20000 + id
+                val rcAdzan = 30000 + id
+
+                val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
+                val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_PLAY_ADZAN" }
+
+                PendingIntent.getBroadcast(context, rcMute, muteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
+                    alarmManager.cancel(it); it.cancel()
+                }
+                PendingIntent.getBroadcast(context, rcUnmute, unmuteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
+                    alarmManager.cancel(it); it.cancel()
+                }
+                PendingIntent.getBroadcast(context, rcAdzan, adzanIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
+                    alarmManager.cancel(it); it.cancel()
+                }
+            }
+
+            // Cancel juga alarm dari developer test mode (request codes 990x)
+            for (rc in 9901..9903) {
+                val action = when (rc) {
+                    9901 -> "ACTION_PLAY_ADZAN"
+                    9902 -> "ACTION_MUTE"
+                    9903 -> "ACTION_UNMUTE"
+                    else -> continue
+                }
+                val intent = Intent(context, SilentModeReceiver::class.java).apply { this.action = action }
+                PendingIntent.getBroadcast(context, rc, intent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
+                    alarmManager.cancel(it); it.cancel()
+                }
+            }
+
+            Log.d("SettingsManager", "Semua stale alarm berhasil di-cancel")
+        } catch (e: Exception) {
+            Log.e("SettingsManager", "Gagal cancel stale alarms", e)
+        }
     }
 
     fun saveAllSettings(

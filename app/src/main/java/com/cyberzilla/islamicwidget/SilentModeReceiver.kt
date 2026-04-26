@@ -18,13 +18,21 @@ class SilentModeReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
 
         when (intent.action) {
             "ACTION_PLAY_ADZAN" -> {
                 val settings = SettingsManager(context)
                 val prayerIdForLog = intent.getIntExtra("PRAYER_ID", 0)
+
+                // === FIX: Guard fitur adzan audio ===
+                // Jika adzan audio dimatikan (atau stale alarm dari sebelum reset),
+                // abaikan trigger ini sepenuhnya.
+                if (!settings.isAdzanAudioEnabled) {
+                    AdzanLogger.log(context, AdzanLogger.Event.ADZAN_SKIPPED,
+                        "Adzan untuk prayer ID=$prayerIdForLog diabaikan: isAdzanAudioEnabled=false (kemungkinan stale alarm)")
+                    return
+                }
 
                 // === FIX: Guard duplikasi adzan ===
                 // Jika adzan sudah sedang bermain, abaikan trigger duplikat.
@@ -39,7 +47,10 @@ class SilentModeReceiver : BroadcastReceiver() {
                 prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
                 AdzanLogger.logAdzanFired(context, prayerIdForLog)
 
-                executeMute(context)
+                // === FIX: Hanya mute jika Auto Silent aktif ===
+                if (settings.isAutoSilentEnabled) {
+                    executeMute(context)
+                }
 
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
                 val bridgeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:BridgeLock")
@@ -88,6 +99,14 @@ class SilentModeReceiver : BroadcastReceiver() {
             }
 
             "ACTION_MUTE" -> {
+                val settings = SettingsManager(context)
+                // === FIX: Guard utama — cegah stale alarm mute setelah reset/clear cache ===
+                if (!settings.isAutoSilentEnabled) {
+                    Log.d(TAG, "ACTION_MUTE diabaikan: isAutoSilentEnabled=false (kemungkinan stale alarm)")
+                    AdzanLogger.log(context, AdzanLogger.Event.MUTE_SKIPPED,
+                        "ACTION_MUTE diabaikan karena Auto Silent dimatikan (stale alarm?)")
+                    return
+                }
                 Log.d(TAG, "ACTION_MUTE: Mengeksekusi Silent Mode")
                 AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED, "ACTION_MUTE diterima")
                 executeMute(context)
@@ -96,6 +115,17 @@ class SilentModeReceiver : BroadcastReceiver() {
             "ACTION_UNMUTE" -> {
                 Log.d(TAG, "ACTION_UNMUTE: Jadwal Unmute tiba")
                 val settings = SettingsManager(context)
+
+                // === FIX: Jika auto silent dimatikan tapi ada stale unmute, tetap jalankan ===
+                // Ini penting agar perangkat yang terlanjur di-mute oleh stale alarm bisa di-unmute.
+                val wasMutedByApp = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
+                                    prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
+                if (!settings.isAutoSilentEnabled && !wasMutedByApp) {
+                    Log.d(TAG, "ACTION_UNMUTE diabaikan: Auto Silent off dan tidak ada mute aktif dari app")
+                    AdzanLogger.log(context, AdzanLogger.Event.UNMUTE_EXECUTED,
+                        "ACTION_UNMUTE diabaikan (stale alarm, tidak ada mute aktif)")
+                    return
+                }
 
                 if (settings.isAdzanPlaying) {
                     Log.w(TAG, "Adzan masih bermain! Menahan perintah unmute sampai Adzan selesai.")

@@ -38,9 +38,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
-import com.batoulapps.adhan2.Coordinates
-import com.batoulapps.adhan2.Qibla
-import com.batoulapps.adhan2.SunnahTimes
+import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
+import com.cyberzilla.islamicwidget.utils.HilalCriteria
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -52,16 +51,13 @@ import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import kotlin.time.ExperimentalTime
 import com.cyberzilla.islamicwidget.BuildConfig
-import com.cyberzilla.islamicwidget.utils.HilalCriteria
-import com.cyberzilla.islamicwidget.utils.HijriOffsetCalculator
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import android.view.HapticFeedbackConstants
 import com.google.android.material.button.MaterialButton
 
-@OptIn(ExperimentalTime::class)
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -73,11 +69,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var themeEntries: Array<String>
     private val themeValues = arrayOf("SYSTEM", "LIGHT", "DARK")
 
-    private val calcEntries = arrayOf("Muslim World League", "Egyptian", "Karachi", "Umm Al-Qura", "Dubai", "Qatar", "Kuwait", "Moonsighting Committee", "Singapore")
+    private val calcEntries = arrayOf("Kemenag", "JAKIM", "Singapore", "Muslim World League", "North America (ISNA)", "Moonsighting Committee", "Egyptian", "Karachi", "Umm Al-Qura", "Dubai", "Qatar", "Kuwait", "Tehran", "Turkey", "Morocco")
 
     private val hilalCriteriaEntries = HilalCriteria.entries.map { it.displayName }.toTypedArray()
     private val hilalCriteriaValues = HilalCriteria.entries.map { it.name }.toTypedArray()
-    private val calcValues = arrayOf("MUSLIM_WORLD_LEAGUE", "EGYPTIAN", "KARACHI", "UMM_AL_QURA", "DUBAI", "QATAR", "KUWAIT", "MOON_SIGHTING_COMMITTEE", "SINGAPORE")
+    private val calcValues = arrayOf("KEMENAG", "JAKIM", "SINGAPORE", "MUSLIM_WORLD_LEAGUE", "NORTH_AMERICA", "MOON_SIGHTING_COMMITTEE", "EGYPTIAN", "KARACHI", "UMM_AL_QURA", "DUBAI", "QATAR", "KUWAIT", "TEHRAN", "TURKEY", "MOROCCO")
 
     private var currentTextColor = "#FFFFFF"
     private var currentBgColor = "#00000000"
@@ -299,8 +295,15 @@ class MainActivity : AppCompatActivity() {
             bottomSheet.elevation = 0f
 
             val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
             behavior.skipCollapsed = true
+            behavior.isFitToContents = true
+            behavior.peekHeight = resources.displayMetrics.heightPixels
+
+            // Tunda STATE_EXPANDED sampai setelah layout pass selesai
+            // agar tinggi sheet sudah terukur dengan benar
+            bottomSheet.post {
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            }
 
             (bottomSheet as? android.view.ViewGroup)?.clipChildren = false
             bottomSheet.parent?.let { parent ->
@@ -343,6 +346,17 @@ class MainActivity : AppCompatActivity() {
 
         view.findViewById<TextView>(R.id.tv_sheet_title)?.text = title
 
+        // Batasi tinggi NestedScrollView agar tidak melebihi 55% layar
+        val scrollView = findNestedScrollView(view)
+        scrollView?.let { nsv ->
+            val maxHeight = (resources.displayMetrics.heightPixels * 0.55).toInt()
+            nsv.post {
+                if (nsv.height > maxHeight) {
+                    nsv.layoutParams = nsv.layoutParams.apply { height = maxHeight }
+                }
+            }
+        }
+
         val container = view.findViewById<LinearLayout>(R.id.ll_sheet_items) ?: return
         val selectedIndex = items.indexOf(currentItem).takeIf { it >= 0 } ?: -1
 
@@ -351,7 +365,7 @@ class MainActivity : AppCompatActivity() {
             tv.text = items[i]
 
             if (i == selectedIndex) {
-                tv.text = "✓  ${items[i]}"
+                tv.text = "\u2713  ${items[i]}"
                 val typedValue = TypedValue()
                 theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, typedValue, true)
                 tv.setTextColor(typedValue.data)
@@ -367,6 +381,17 @@ class MainActivity : AppCompatActivity() {
 
         setupGlassBottomSheet(bottomSheetDialog)
         bottomSheetDialog.show()
+    }
+
+    private fun findNestedScrollView(view: View): androidx.core.widget.NestedScrollView? {
+        if (view is androidx.core.widget.NestedScrollView) return view
+        if (view is ViewGroup) {
+            for (i in 0 until view.childCount) {
+                val found = findNestedScrollView(view.getChildAt(i))
+                if (found != null) return found
+            }
+        }
+        return null
     }
 
     private fun updateLocationUI() {
@@ -412,7 +437,7 @@ class MainActivity : AppCompatActivity() {
                         ).takeIf { it >= 0 } ?: 0
                     ]
                     val criteria = HilalCriteria.fromName(criteriaStr)
-                    offsetHijri = HijriOffsetCalculator.calculateAutoOffset(lat, lon, criteria)
+                    offsetHijri = IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria ?: HilalCriteria.NEO_MABIMS)
 
                     val seekBar = findViewById<SeekBar>(R.id.sb_hijri_offset)
                     seekBar?.progress = offsetHijri + 2
@@ -472,36 +497,37 @@ class MainActivity : AppCompatActivity() {
                     val lon = settingsManager.longitude!!.toDouble()
 
                     val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, calcValues[calcIdx], today)
-                    val sunnahTimes = SunnahTimes(prayerTimes)
-                    val qibla = Qibla(Coordinates(lat, lon))
+                    val tomorrowPrayer = IslamicAppUtils.calculatePrayerTimes(lat, lon, calcValues[calcIdx], today.plusDays(1))
+                    val sunnahTimes = IslamicAstronomy.getSunnahTimes(prayerTimes, tomorrowPrayer)
+                    val qiblaDegree = IslamicAstronomy.calculateQibla(lat, lon)
 
                     val currentTime = Date()
                     var isAfterMaghrib = false
-                    if (findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && currentTime.after(prayerTimes.maghrib.asDate())) {
+                    if (findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && currentTime.after(prayerTimes.maghrib)) {
                         totalHijriOffset += 1L
                         isAfterMaghrib = true
                     }
-                    val isBeforeFajr = currentTime.before(prayerTimes.fajr.asDate())
+                    val isBeforeFajr = currentTime.before(prayerTimes.fajr)
 
                     val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
                     timeFormatter.timeZone = TimeZone.getDefault()
 
-                    findViewById<TextView>(R.id.tv_fajr_time)?.text = timeFormatter.format(prayerTimes.fajr.asDate())
-                    findViewById<TextView>(R.id.tv_dhuhr_time)?.text = timeFormatter.format(prayerTimes.dhuhr.asDate())
-                    findViewById<TextView>(R.id.tv_asr_time)?.text = timeFormatter.format(prayerTimes.asr.asDate())
-                    findViewById<TextView>(R.id.tv_maghrib_time)?.text = timeFormatter.format(prayerTimes.maghrib.asDate())
-                    findViewById<TextView>(R.id.tv_isha_time)?.text = timeFormatter.format(prayerTimes.isha.asDate())
+                    findViewById<TextView>(R.id.tv_fajr_time)?.text = timeFormatter.format(prayerTimes.fajr)
+                    findViewById<TextView>(R.id.tv_dhuhr_time)?.text = timeFormatter.format(prayerTimes.dhuhr)
+                    findViewById<TextView>(R.id.tv_asr_time)?.text = timeFormatter.format(prayerTimes.asr)
+                    findViewById<TextView>(R.id.tv_maghrib_time)?.text = timeFormatter.format(prayerTimes.maghrib)
+                    findViewById<TextView>(R.id.tv_isha_time)?.text = timeFormatter.format(prayerTimes.isha)
 
-                    findViewById<TextView>(R.id.tv_sunrise)?.text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}"
-                    findViewById<TextView>(R.id.tv_last_third)?.text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}"
-                    findViewById<TextView>(R.id.tv_qibla)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction)
+                    findViewById<TextView>(R.id.tv_sunrise)?.text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise)}"
+                    findViewById<TextView>(R.id.tv_last_third)?.text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight)}"
+                    findViewById<TextView>(R.id.tv_qibla)?.text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qiblaDegree)
 
                     val prayerDatesForPreview = arrayOf(
-                        prayerTimes.fajr.asDate(),
-                        prayerTimes.dhuhr.asDate(),
-                        prayerTimes.asr.asDate(),
-                        prayerTimes.maghrib.asDate(),
-                        prayerTimes.isha.asDate()
+                        prayerTimes.fajr,
+                        prayerTimes.dhuhr,
+                        prayerTimes.asr,
+                        prayerTimes.maghrib,
+                        prayerTimes.isha
                     )
                     for (i in prayerDatesForPreview.indices) {
                         if (Date().before(prayerDatesForPreview[i])) {
@@ -526,9 +552,9 @@ class MainActivity : AppCompatActivity() {
                         flipper?.removeAllViews()
 
                         val normalView = layoutInflater.inflate(R.layout.item_flipper_normal, flipper, false)
-                        normalView.findViewById<TextView>(R.id.tv_sunrise_flip)?.apply { text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise.asDate())}" }
-                        normalView.findViewById<TextView>(R.id.tv_last_third_flip)?.apply { text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight.asDate())}" }
-                        normalView.findViewById<TextView>(R.id.tv_qibla_flip)?.apply { text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qibla.direction) }
+                        normalView.findViewById<TextView>(R.id.tv_sunrise_flip)?.apply { text = "$txtSunrise: ${timeFormatter.format(prayerTimes.sunrise)}" }
+                        normalView.findViewById<TextView>(R.id.tv_last_third_flip)?.apply { text = "$txtLastThird: ${timeFormatter.format(sunnahTimes.lastThirdOfTheNight)}" }
+                        normalView.findViewById<TextView>(R.id.tv_qibla_flip)?.apply { text = String.format(selectedLocale, "%s: %.1f°", txtQibla, qiblaDegree) }
                         flipper?.addView(normalView)
 
                         try {

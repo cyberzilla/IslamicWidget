@@ -1,6 +1,6 @@
-# Mengamankan library Adhan2 KMP agar tidak dirusak oleh Minify
--keep class com.batoulapps.adhan2.** { *; }
--keepclassmembers class com.batoulapps.adhan2.** { *; }
+# Mengamankan engine IslamicAstronomy kustom
+-keep class com.cyberzilla.islamicwidget.utils.IslamicAstronomy { *; }
+-keep class com.cyberzilla.islamicwidget.utils.IslamicAstronomy$* { *; }
 
 # Mengamankan library Astronomy (cosinekitty) untuk kalkulasi lunar Hijriyah
 -keep class io.github.cosinekitty.astronomy.** { *; }

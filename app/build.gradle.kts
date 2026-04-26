@@ -14,8 +14,8 @@ android {
         applicationId = "com.cyberzilla.islamicwidget"
         minSdk = 26
         targetSdk = 36
-        versionCode = 29
-        versionName = "1.5.3"
+        versionCode = 30
+        versionName = "1.5.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -51,10 +51,10 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
-    // Mesin Utama Widget Kita
-    implementation("com.batoulapps.adhan:adhan2:0.0.6")
+    // Mesin Astronomi Kustom (VSOP87 via astronomy.kt + IslamicAstronomy.kt)
+
     implementation("com.google.android.gms:play-services-location:21.2.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+
 
     implementation("androidx.media:media:1.7.1")
 }
