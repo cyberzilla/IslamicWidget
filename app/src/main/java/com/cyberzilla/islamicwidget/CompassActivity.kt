@@ -44,7 +44,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
     private var isGravityInit = false
     private var isGeomagneticInit = false
-    private var isFirstReading = true
 
     private var currentAzimuth = 0f
     private var dialRotation = 0f
@@ -190,7 +189,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onResume() {
         super.onResume()
-        isFirstReading = true
         try {
             if (useRotationVector) {
                 rotationVectorSensor?.let {
@@ -274,25 +272,18 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 }
 
                 if (azimuth != null) {
-                    // Koreksi magnetic declination: konversi magnetic north → true north
-                    azimuth += magneticDeclination
+                    // Koreksi magnetic declination HANYA untuk fallback accel+mag.
+                    // TYPE_ROTATION_VECTOR sudah menghasilkan true north secara internal,
+                    // jadi TIDAK boleh ditambah declination lagi (akan double-correction).
+                    if (!useRotationVector) {
+                        azimuth += magneticDeclination
+                    }
                     if (azimuth < 0f) azimuth += 360f
                     if (azimuth >= 360f) azimuth -= 360f
 
-                    if (isFirstReading) {
-                        // Snap langsung ke heading aktual saat launch
-                        // agar kompas tidak "berputar" dari 0° ke heading sebenarnya
-                        currentAzimuth = azimuth
-                        dialRotation = -currentAzimuth
-                        needleRotation = qiblaDegree - currentAzimuth
-                        dialVelocity = 0f
-                        needleVelocity = 0f
-                        isFirstReading = false
-                    } else {
-                        val rawDelta = getShortestDelta(currentAzimuth, azimuth)
-                        if (Math.abs(rawDelta) > 0.3f) {
-                            currentAzimuth += rawDelta * 0.12f
-                        }
+                    val rawDelta = getShortestDelta(currentAzimuth, azimuth)
+                    if (Math.abs(rawDelta) > 0.3f) {
+                        currentAzimuth += rawDelta * 0.12f
                     }
 
                     val displayDegree = (currentAzimuth % 360 + 360) % 360
