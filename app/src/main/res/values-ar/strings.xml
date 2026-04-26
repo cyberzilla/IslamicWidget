@@ -191,5 +191,25 @@
     <string name="auto_hijri_label">تصحيح هجري تلقائي</string>
     <string name="hilal_criteria_label">معايير الهلال:</string>
 
-    <string name="advanced_dnd_settings">إعدادات متقدمة</string>
+    <string name="advanced_dnd_settings">الإعدادات المتقدمة</string>
+
+    <string name="hilal_dialog_title">🌙 معلومات الهلال</string>
+    <string name="hilal_phase">طور القمر:</string>
+    <string name="hilal_conjunction">الاقتران:</string>
+    <string name="hilal_moon_age">عمر القمر:</string>
+    <string name="hilal_hours">ساعات</string>
+    <string name="hilal_section_position">📍 الموقع عند الغروب</string>
+    <string name="hilal_sunset">الغروب:</string>
+    <string name="hilal_moonset">غروب القمر:</string>
+    <string name="hilal_altitude">ارتفاع الهلال:</string>
+    <string name="hilal_elongation">الاستطالة:</string>
+    <string name="hilal_sun_azimuth">سمت الشمس:</string>
+    <string name="hilal_moon_azimuth">سمت القمر:</string>
+    <string name="hilal_illumination">الإضاءة:</string>
+    <string name="hilal_section_criteria">📐 معايير الرؤية</string>
+    <string name="hilal_criteria_used">المعيار:</string>
+    <string name="hilal_conj_before_sunset">الاقتران قبل الغروب:</string>
+    <string name="hilal_moonset_after_sunset">غروب القمر بعد الشمس:</string>
+    <string name="hilal_visible">✅ الهلال مرئي وفق المعايير</string>
+    <string name="hilal_not_visible">❌ الهلال غير مرئي وفق المعايير</string>
 </resources>

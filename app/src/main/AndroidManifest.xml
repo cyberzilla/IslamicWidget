@@ -42,6 +42,11 @@
             android:theme="@style/Theme.CompassPopup"
             android:exported="true" />
 
+        <activity
+            android:name=".HilalInfoActivity"
+            android:theme="@style/Theme.CompassPopup"
+            android:exported="false" />
+
         <activity-alias android:name=".MainActivityAlias1" android:enabled="false" android:exported="true" android:icon="@drawable/ic_icon_1" android:targetActivity=".MainActivity">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity-alias>

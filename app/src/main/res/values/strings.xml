@@ -192,4 +192,24 @@
     <string name="hilal_criteria_label">Kriteria Hilal:</string>
 
     <string name="advanced_dnd_settings">Pengaturan Lanjutan</string>
+
+    <string name="hilal_dialog_title">🌙 Informasi Hilal</string>
+    <string name="hilal_phase">Fase Bulan:</string>
+    <string name="hilal_conjunction">Ijtimak:</string>
+    <string name="hilal_moon_age">Umur Bulan:</string>
+    <string name="hilal_hours">jam</string>
+    <string name="hilal_section_position">📍 Posisi saat Maghrib</string>
+    <string name="hilal_sunset">Maghrib:</string>
+    <string name="hilal_moonset">Bulan Terbenam:</string>
+    <string name="hilal_altitude">Tinggi Hilal:</string>
+    <string name="hilal_elongation">Elongasi:</string>
+    <string name="hilal_sun_azimuth">Azimut Matahari:</string>
+    <string name="hilal_moon_azimuth">Azimut Bulan:</string>
+    <string name="hilal_illumination">Iluminasi:</string>
+    <string name="hilal_section_criteria">📐 Kriteria Visibilitas</string>
+    <string name="hilal_criteria_used">Kriteria:</string>
+    <string name="hilal_conj_before_sunset">Ijtimak sebelum Maghrib:</string>
+    <string name="hilal_moonset_after_sunset">Bulan terbenam setelah Matahari:</string>
+    <string name="hilal_visible">✅ Hilal TERLIHAT menurut kriteria</string>
+    <string name="hilal_not_visible">❌ Hilal TIDAK TERLIHAT menurut kriteria</string>
 </resources>

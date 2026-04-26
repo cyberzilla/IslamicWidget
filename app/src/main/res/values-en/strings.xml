@@ -192,4 +192,24 @@
     <string name="hilal_criteria_label">Hilal Criteria:</string>
 
     <string name="advanced_dnd_settings">Advanced Settings</string>
+
+    <string name="hilal_dialog_title">🌙 Hilal Information</string>
+    <string name="hilal_phase">Moon Phase:</string>
+    <string name="hilal_conjunction">Conjunction:</string>
+    <string name="hilal_moon_age">Moon Age:</string>
+    <string name="hilal_hours">hours</string>
+    <string name="hilal_section_position">📍 Position at Sunset</string>
+    <string name="hilal_sunset">Sunset:</string>
+    <string name="hilal_moonset">Moonset:</string>
+    <string name="hilal_altitude">Hilal Altitude:</string>
+    <string name="hilal_elongation">Elongation:</string>
+    <string name="hilal_sun_azimuth">Sun Azimuth:</string>
+    <string name="hilal_moon_azimuth">Moon Azimuth:</string>
+    <string name="hilal_illumination">Illumination:</string>
+    <string name="hilal_section_criteria">📐 Visibility Criteria</string>
+    <string name="hilal_criteria_used">Criteria:</string>
+    <string name="hilal_conj_before_sunset">Conjunction before sunset:</string>
+    <string name="hilal_moonset_after_sunset">Moonset after sunset:</string>
+    <string name="hilal_visible">✅ Hilal VISIBLE per criteria</string>
+    <string name="hilal_not_visible">❌ Hilal NOT VISIBLE per criteria</string>
 </resources>

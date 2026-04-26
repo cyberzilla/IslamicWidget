@@ -159,13 +159,24 @@ class LunarWidgetProvider : AppWidgetProvider() {
             views.setViewVisibility(R.id.container_date_info, View.GONE)
         }
 
-        // Open app on click
-        val openAppIntent = Intent(context, MainActivity::class.java)
-        val pendingOpenApp = PendingIntent.getActivity(
-            context, appWidgetId + 7000, openAppIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.iv_moon_phase, pendingOpenApp)
+        // Click behavior based on widget size
+        if (!showDates) {
+            // 1x1 widget: tap moon → show Hilal info dialog
+            val hilalIntent = Intent(context, HilalInfoActivity::class.java)
+            val pendingHilal = PendingIntent.getActivity(
+                context, appWidgetId + 7000, hilalIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.iv_moon_phase, pendingHilal)
+        } else {
+            // Wider widget: tap moon → open main app
+            val openAppIntent = Intent(context, MainActivity::class.java)
+            val pendingOpenApp = PendingIntent.getActivity(
+                context, appWidgetId + 7000, openAppIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.iv_moon_phase, pendingOpenApp)
+        }
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
