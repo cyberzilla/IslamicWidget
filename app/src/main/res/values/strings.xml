@@ -184,6 +184,7 @@
     <string name="update_install_failed">Gagal memicu instalasi otomatis. Silakan buka file secara manual di folder Download.</string>
     <string name="update_download_complete">Unduhan selesai! Ketuk untuk menginstal.</string>
     <string name="update_download_failed">Gagal mengunduh pembaruan. Periksa koneksi internet Anda.</string>
+    <string name="update_installing">Memasang pembaruan…</string>
 
     <string name="reminder_fasting_tomorrow">Ingat, Besok %1$s</string>
 

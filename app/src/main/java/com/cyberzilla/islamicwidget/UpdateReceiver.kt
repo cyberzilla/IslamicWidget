@@ -49,9 +49,20 @@ class UpdateReceiver : BroadcastReceiver() {
                 return
             }
 
-            Toast.makeText(context, localizedContext.getString(R.string.update_download_start), Toast.LENGTH_SHORT).show()
-
             val fileName = "update_islamicwidget_${settings.latestVersionName}.apk"
+            val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            val targetFile = File(downloadDir, fileName)
+
+            // Jika APK sudah terdownload dengan versi yang sama → langsung install
+            // Safety net: jika user cancel installer atau notifikasi terhapus,
+            // tap lagi di widget langsung memicu install tanpa re-download
+            if (targetFile.exists() && targetFile.length() > 100_000) {
+                Toast.makeText(context, localizedContext.getString(R.string.update_installing), Toast.LENGTH_SHORT).show()
+                installApk(context, localizedContext, fileName)
+                return
+            }
+
+            Toast.makeText(context, localizedContext.getString(R.string.update_download_start), Toast.LENGTH_SHORT).show()
             startInternalDownload(context, localizedContext, apkUrl, fileName, settings)
         }
     }
@@ -96,12 +107,6 @@ class UpdateReceiver : BroadcastReceiver() {
                 }
 
                 val targetFile = File(downloadDir, fileName)
-                // Skip download if file already exists with reasonable size (>100KB)
-                if (targetFile.exists() && targetFile.length() > 100_000) {
-                    notificationManager.cancel(NOTIFICATION_ID)
-                    installApk(context, localizedContext, fileName)
-                    return@execute
-                }
 
                 val url = URL(apkUrl)
                 connection = url.openConnection() as HttpURLConnection

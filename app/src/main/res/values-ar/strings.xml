@@ -184,6 +184,7 @@
     <string name="update_install_failed">فشل بدء التثبيت التلقائي. يرجى فتح الملف يدويًا من التنزيلات.</string>
     <string name="update_download_complete">اكتمل التنزيل! انقر للتثبيت.</string>
     <string name="update_download_failed">فشل تنزيل التحديث. تحقق من اتصالك بالإنترنت.</string>
+    <string name="update_installing">جاري تثبيت التحديث…</string>
 
     <string name="reminder_fasting_tomorrow">تذكير: غداً %1$s</string>
 
