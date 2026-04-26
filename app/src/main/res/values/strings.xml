@@ -134,6 +134,15 @@
     <string name="eclipse_kind_partial">Sebagian</string>
     <string name="eclipse_kind_annular">Cincin</string>
 
+    <string name="moon_new">Bulan Baru</string>
+    <string name="moon_waxing_crescent">Sabit Awal</string>
+    <string name="moon_first_quarter">Kuartal Pertama</string>
+    <string name="moon_waxing_gibbous">Cembung Awal</string>
+    <string name="moon_full">Bulan Purnama</string>
+    <string name="moon_waning_gibbous">Cembung Akhir</string>
+    <string name="moon_last_quarter">Kuartal Akhir</string>
+    <string name="moon_waning_crescent">Sabit Akhir</string>
+
     <string name="quote_loading">Memuat quote...</string>
     <string name="quote_default_reference">- Referensi</string>
     <string name="quote_empty_data">Tidak ada data quote.</string>

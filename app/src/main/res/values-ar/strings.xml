@@ -134,6 +134,15 @@
     <string name="eclipse_kind_partial">جُزْئِيّ</string>
     <string name="eclipse_kind_annular">حَلَقِيّ</string>
 
+    <string name="moon_new">هلال جديد</string>
+    <string name="moon_waxing_crescent">هلال متزايد</string>
+    <string name="moon_first_quarter">تربيع أول</string>
+    <string name="moon_waxing_gibbous">أحدب متزايد</string>
+    <string name="moon_full">بدر</string>
+    <string name="moon_waning_gibbous">أحدب متناقص</string>
+    <string name="moon_last_quarter">تربيع أخير</string>
+    <string name="moon_waning_crescent">هلال متناقص</string>
+
     <string name="quote_loading">جاري تحميل الاقتباس...</string>
     <string name="quote_default_reference">- مرجع</string>
     <string name="quote_empty_data">لا توجد بيانات اقتباس.</string>
