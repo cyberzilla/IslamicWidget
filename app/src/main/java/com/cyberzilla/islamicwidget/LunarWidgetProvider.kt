@@ -91,8 +91,10 @@ class LunarWidgetProvider : AppWidgetProvider() {
         val moonSizePx = dpToPx(context, minHeightDp.coerceAtLeast(80).toFloat()).toInt().coerceAtLeast(256)
 
         // === Moon Phase Rendering ===
+        val lat = settings.latitude?.toDoubleOrNull()
+        val lon = settings.longitude?.toDoubleOrNull()
         val moonData = MoonPhaseRenderer.getCurrentMoonPhase()
-        val moonBitmap = MoonPhaseRenderer.renderMoonPhase(moonSizePx)
+        val moonBitmap = MoonPhaseRenderer.renderMoonPhase(moonSizePx, latitude = lat, longitude = lon)
         val phaseName = MoonPhaseRenderer.getPhaseName(moonData.phaseAngle)
         val illuminationPct = (moonData.illuminationFraction * 100).toInt()
 

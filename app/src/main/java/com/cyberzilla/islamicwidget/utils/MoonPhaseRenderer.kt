@@ -1,15 +1,15 @@
 package com.cyberzilla.islamicwidget.utils
 
 import android.graphics.*
-import io.github.cosinekitty.astronomy.Body
-import io.github.cosinekitty.astronomy.Time
-import io.github.cosinekitty.astronomy.illumination
-import io.github.cosinekitty.astronomy.moonPhase
+import io.github.cosinekitty.astronomy.*
 import java.util.Calendar
 import java.util.TimeZone
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.tan
 
 /**
  * Renders a beautiful, detailed moon phase bitmap using Canvas.
@@ -63,18 +63,82 @@ object MoonPhaseRenderer {
 
     /**
      * Renders a detailed moon phase bitmap.
-     * @param sizePx  Size of the output bitmap in pixels (square)
-     * @param bgColor Background color (transparent by default)
+     * @param sizePx   Size of the output bitmap in pixels (square)
+     * @param bgColor  Background color (transparent by default)
+     * @param latitude Observer latitude (null = no rotation, Northern Hemisphere default)
+     * @param longitude Observer longitude (null = no rotation)
      */
-    fun renderMoonPhase(sizePx: Int, bgColor: Int = Color.TRANSPARENT): Bitmap {
+    fun renderMoonPhase(
+        sizePx: Int,
+        bgColor: Int = Color.TRANSPARENT,
+        latitude: Double? = null,
+        longitude: Double? = null
+    ): Bitmap {
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(bgColor)
 
         val phaseData = getCurrentMoonPhase()
-        drawMoon(canvas, sizePx, phaseData)
+
+        // Rotate canvas by parallactic angle so the moon appears as seen from user's location
+        if (latitude != null && longitude != null) {
+            val parallacticAngle = calculateParallacticAngle(latitude, longitude)
+            canvas.save()
+            canvas.rotate(parallacticAngle.toFloat(), sizePx / 2f, sizePx / 2f)
+            drawMoon(canvas, sizePx, phaseData)
+            canvas.restore()
+        } else {
+            drawMoon(canvas, sizePx, phaseData)
+        }
 
         return bitmap
+    }
+
+    /**
+     * Menghitung parallactic angle — sudut rotasi bulan sebagaimana terlihat
+     * dari lokasi pengamat. Efek:
+     * - Belahan Bumi Utara: ~0° (sabit vertikal, standar buku teks)
+     * - Equator (Indonesia): ~±90° (sabit miring/horizontal, "perahu")
+     * - Belahan Bumi Selatan: ~180° (sabit terbalik)
+     *
+     * Formula: q = atan2(sin(H), tan(φ)·cos(δ) − sin(δ)·cos(H))
+     * di mana H = hour angle, φ = latitude, δ = declination bulan
+     */
+    private fun calculateParallacticAngle(latitude: Double, longitude: Double): Double {
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        val t = Time(
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH) + 1,
+            cal.get(Calendar.DAY_OF_MONTH),
+            cal.get(Calendar.HOUR_OF_DAY),
+            cal.get(Calendar.MINUTE),
+            cal.get(Calendar.SECOND).toDouble()
+        )
+
+        val observer = Observer(latitude, longitude, 0.0)
+        val moonEq = equator(Body.Moon, t, observer, EquatorEpoch.OfDate, Aberration.Corrected)
+        val moonHor = horizon(t, observer, moonEq.ra, moonEq.dec, Refraction.Normal)
+
+        // Jika bulan di bawah horizon, gunakan posisi transit terakhir sebagai approximasi
+        if (moonHor.altitude < -5.0) {
+            // Fallback: gunakan latitude-based approximation
+            // Di equator ~90°, di kutub ~0°, di selatan ~180°
+            return (90.0 - latitude) * 0.7
+        }
+
+        // Hour angle H = LST - RA (dalam derajat)
+        val lst = siderealTime(t) + longitude / 15.0 // Local sidereal time in hours
+        val hourAngle = (lst - moonEq.ra) * 15.0 // Convert to degrees
+        val hRad = hourAngle * PI / 180.0
+        val latRad = latitude * PI / 180.0
+        val decRad = moonEq.dec * PI / 180.0
+
+        val q = atan2(
+            sin(hRad),
+            tan(latRad) * cos(decRad) - sin(decRad) * cos(hRad)
+        )
+
+        return q * 180.0 / PI // Return in degrees
     }
 
     /**
