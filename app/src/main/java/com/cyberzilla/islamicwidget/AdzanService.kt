@@ -11,7 +11,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
-import android.database.ContentObserver
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -44,12 +43,14 @@ class AdzanService : Service() {
     private var fadeRunnable: Runnable? = null
     private var safetyHandler: Handler? = null
     private var safetyRunnable: Runnable? = null
+    private var watchdogHandler: Handler? = null
+    private var watchdogRunnable: Runnable? = null
 
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
     private var audioFocusRequest: AudioFocusRequest? = null
 
     private var volumeReceiver: BroadcastReceiver? = null
-    private var volumeObserver: ContentObserver? = null
+
 
     private var prayerTimeInMillis = 0L
     private var prayerId = 0
@@ -126,10 +127,13 @@ class AdzanService : Service() {
             MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
                     MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
         )
+        // PENTING: Jangan daftarkan ACTION_PAUSE agar Android tidak mengirim
+        // perintah pause ke MediaSession saat screen off.
+        // Hanya dukung ACTION_STOP (untuk hardware media button explicit stop).
         mediaSession?.setPlaybackState(
             PlaybackStateCompat.Builder()
                 .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1f)
-                .setActions(PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_PAUSE)
+                .setActions(0) // Tidak ada action — Android tidak bisa mengontrol playback kita
                 .build()
         )
 
@@ -150,12 +154,14 @@ class AdzanService : Service() {
                 return super.onMediaButtonEvent(mediaButtonEvent)
             }
             override fun onStop() {
-                AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "MediaSession stop (sistem/earphone)")
-                fadeOutAndStop()
+                // Abaikan — screen off bisa trigger stop via MediaSession.
+                // Adzan harus terus bermain. User bisa stop via notifikasi/volume.
+                Log.d(TAG, "MediaSession onStop diabaikan (proteksi screen off)")
             }
             override fun onPause() {
-                AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "MediaSession pause (sistem/earphone)")
-                fadeOutAndStop()
+                // Abaikan — screen off bisa trigger pause via MediaSession.
+                // Adzan harus terus bermain. User bisa stop via notifikasi/volume.
+                Log.d(TAG, "MediaSession onPause diabaikan (proteksi screen off)")
             }
         })
 
@@ -190,6 +196,26 @@ class AdzanService : Service() {
 
         AdzanLogger.logAdzanPlayStart(this, prayerId, isSubuh)
         playAdzan(isSubuh, settings)
+
+        // === WATCHDOG: Deteksi dan recovery dari system-level audio pause ===
+        // Android bisa mem-pause MediaPlayer secara internal saat screen off
+        // (audio focus diambil sistem). Watchdog ini memastikan adzan tetap bermain.
+        watchdogHandler = Handler(Looper.getMainLooper())
+        watchdogRunnable = object : Runnable {
+            override fun run() {
+                if (isFadingOut) return
+                try {
+                    if (mediaPlayer != null && mediaPlayer?.isPlaying == false && isAdzanStillRelevant()) {
+                        mediaPlayer?.start()
+                        Log.w(TAG, "Watchdog: MediaPlayer terpause oleh sistem — di-resume otomatis")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Watchdog error", e)
+                }
+                watchdogHandler?.postDelayed(this, 1000)
+            }
+        }
+        watchdogHandler?.postDelayed(watchdogRunnable!!, 1000)
 
         safetyHandler = Handler(Looper.getMainLooper())
         safetyRunnable = Runnable {
@@ -268,28 +294,10 @@ class AdzanService : Service() {
                     Log.d(TAG, "Audio focus duck diabaikan")
                 }
                 AudioManager.AUDIOFOCUS_LOSS -> {
-                    // Jangan langsung stop — coba re-request focus karena adzan
-                    // menggunakan USAGE_ALARM yang seharusnya tidak bisa di-preempt.
-                    // Screen off + setAlarmClock snooze bisa menyebabkan false AUDIOFOCUS_LOSS.
-                    Log.w(TAG, "AUDIOFOCUS_LOSS diterima — mencoba re-request focus")
-                    if (!isFadingOut && isAdzanStillRelevant()) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            if (!isFadingOut && isAdzanStillRelevant()) {
-                                requestAudioFocusCompat()
-                                try {
-                                    if (mediaPlayer?.isPlaying == false) {
-                                        mediaPlayer?.start()
-                                        Log.d(TAG, "Adzan di-resume setelah re-request focus")
-                                    }
-                                } catch (e: Exception) {
-                                    Log.e(TAG, "Gagal resume adzan setelah AUDIOFOCUS_LOSS", e)
-                                }
-                            }
-                        }, 300)
-                    } else {
-                        AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Audio focus loss (adzan sudah tidak relevan)")
-                        fadeOutAndStop()
-                    }
+                    // Abaikan — adzan menggunakan USAGE_ALARM yang seharusnya
+                    // tidak pernah kehilangan fokus. Jika terjadi, ini false positive
+                    // dari DND/screen off. Watchdog akan handle jika MediaPlayer terpause.
+                    Log.w(TAG, "AUDIOFOCUS_LOSS diabaikan (USAGE_ALARM protected)")
                 }
             }
         }
@@ -448,23 +456,6 @@ class AdzanService : Service() {
                 registerReceiver(volumeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
             }
         } catch (e: Exception) {}
-
-        volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean) {
-                super.onChange(selfChange)
-                if (isFadingOut) return
-
-                val currentAlarmVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
-                if (currentAlarmVol != initialAlarmVolume && currentAlarmVol != -1) {
-                    Log.d(TAG, "Observer mendeteksi nilai absolut Volume bergeser. Stop Adzan.")
-                    AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Volume observer mendeteksi perubahan")
-                    fadeOutAndStop()
-                }
-            }
-        }
-        try {
-            contentResolver.registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, volumeObserver!!)
-        } catch (e: Exception) {}
     }
 
     private fun createNotificationChannel(localizedContext: Context) {
@@ -491,10 +482,7 @@ class AdzanService : Service() {
             try { unregisterReceiver(it) } catch (e: Exception) {}
             volumeReceiver = null
         }
-        volumeObserver?.let {
-            try { contentResolver.unregisterContentObserver(it) } catch (e: Exception) {}
-            volumeObserver = null
-        }
+
 
         safetyRunnable?.let { safetyHandler?.removeCallbacks(it) }
         safetyHandler = null
@@ -503,6 +491,10 @@ class AdzanService : Service() {
         fadeRunnable?.let { fadeHandler?.removeCallbacks(it) }
         fadeHandler = null
         fadeRunnable = null
+
+        watchdogRunnable?.let { watchdogHandler?.removeCallbacks(it) }
+        watchdogHandler = null
+        watchdogRunnable = null
 
         try { mediaPlayer?.stop() } catch (e: Exception) {}
         mediaPlayer?.release()

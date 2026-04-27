@@ -772,35 +772,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         try { alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, calendar.timeInMillis, pendingIntent) } catch (e: SecurityException) {}
     }
 
-    /**
-     * Schedule alarm menggunakan AlarmClock yang dijamin menembus Doze mode.
-     * setAlarmClock() adalah satu-satunya mekanisme alarm yang benar-benar
-     * Doze-proof di Android 12+, karena sistem memperlakukannya sebagai
-     * alarm clock yang visible ke user.
-     */
-    private fun scheduleDozeProofAlarm(
-        alarmManager: AlarmManager,
-        context: Context,
-        triggerTimeMillis: Long,
-        pendingIntent: PendingIntent
-    ) {
-        try {
-            val showIntent = PendingIntent.getActivity(
-                context, 0,
-                Intent(context, MainActivity::class.java),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerTimeMillis, showIntent)
-            alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
-        } catch (e: SecurityException) {
-            // Fallback ke setExactAndAllowWhileIdle jika gagal
-            try {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTimeMillis, pendingIntent)
-            } catch (e2: SecurityException) {
-                Log.e(TAG, "Gagal menjadwalkan alarm (fallback juga gagal)", e2)
-            }
-        }
-    }
+
+
 
     @SuppressLint("ScheduleExactAlarm")
     private fun scheduleSilentMode(context: Context, prayerTime: Date, requestCodeId: Int, settings: SettingsManager) {
@@ -832,7 +805,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val adzanPendingIntent = PendingIntent.getBroadcast(context, RC_ADZAN, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             try {
-                scheduleDozeProofAlarm(alarmManager, context, prayerTime.time, adzanPendingIntent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, prayerTime.time, adzanPendingIntent)
+                } else {
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, prayerTime.time, adzanPendingIntent)
+                }
                 AdzanLogger.logScheduled(context, requestCodeId, prayerTime.time, "ADZAN")
             } catch (e: SecurityException) {
                 Log.e(TAG, "Gagal menjadwalkan alarm adzan", e)
@@ -870,12 +847,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         try {
             if (now <= muteTimeMillis) {
-                scheduleDozeProofAlarm(alarmManager, context, muteTimeMillis, mutePendingIntent)
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteTimeMillis, mutePendingIntent)
                 AdzanLogger.logScheduled(context, requestCodeId, muteTimeMillis, "MUTE")
             } else if (now in (muteTimeMillis + 1)..unmuteTimeMillis) {
                 alarmManager.cancel(mutePendingIntent)
             }
-            scheduleDozeProofAlarm(alarmManager, context, unmuteTimeMillis, unmutePendingIntent)
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
             AdzanLogger.logScheduled(context, requestCodeId, unmuteTimeMillis, "UNMUTE")
         } catch (e: SecurityException) {
             Log.e(TAG, "SecurityException menjadwalkan silent mode", e)
