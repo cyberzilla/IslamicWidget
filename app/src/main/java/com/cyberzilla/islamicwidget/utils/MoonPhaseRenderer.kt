@@ -84,6 +84,8 @@ object MoonPhaseRenderer {
         val phaseData = getCurrentMoonPhase()
 
         // Rotate canvas by parallactic angle so the moon appears as seen from user's location
+        // Terminator sudah benar (waxing=bright RIGHT), parallactic angle positif
+        // merotasi bright dari RIGHT ke UPPER-LEFT untuk pengamat di Indonesia
         if (latitude != null && longitude != null) {
             val parallacticAngle = calculateParallacticAngle(latitude, longitude)
             canvas.save()
@@ -120,14 +122,6 @@ object MoonPhaseRenderer {
 
         val observer = Observer(latitude, longitude, 0.0)
         val moonEq = equator(Body.Moon, t, observer, EquatorEpoch.OfDate, Aberration.Corrected)
-        val moonHor = horizon(t, observer, moonEq.ra, moonEq.dec, Refraction.Normal)
-
-        // Jika bulan di bawah horizon, gunakan posisi transit terakhir sebagai approximasi
-        if (moonHor.altitude < -5.0) {
-            // Fallback: gunakan latitude-based approximation
-            // Di equator ~90°, di kutub ~0°, di selatan ~180°
-            return (90.0 - latitude) * 0.7
-        }
 
         // Hour angle H = LST - RA (dalam derajat)
         val lst = siderealTime(t) + longitude / 15.0 // Local sidereal time in hours
@@ -136,6 +130,9 @@ object MoonPhaseRenderer {
         val latRad = latitude * PI / 180.0
         val decRad = moonEq.dec * PI / 180.0
 
+        // Parallactic angle: q = atan2(sin(H), tan(φ)·cos(δ) − sin(δ)·cos(H))
+        // Formula ini valid untuk semua altitude bulan, termasuk di bawah horizon.
+        // Tidak perlu fallback — hasilnya tetap benar secara matematis.
         val q = atan2(
             sin(hRad),
             tan(latRad) * cos(decRad) - sin(decRad) * cos(hRad)
@@ -433,31 +430,31 @@ object MoonPhaseRenderer {
         val shadowPath = Path()
 
         if (isWaxing) {
+            // Waxing: bright on RIGHT, shadow on LEFT
             val terminatorXRadius = radius * abs(cosPhase)
-            // Bright area boundary: left semicircle + terminator curve
-            shadowPath.addArc(moonRect, 90f, 180f)
+            shadowPath.addArc(moonRect, 270f, 180f) // RIGHT semicircle (top→right→bottom)
             val terminatorRect = RectF(cx - terminatorXRadius, cy - radius, cx + terminatorXRadius, cy + radius)
             if (phaseAngle < 90.0) {
-                // Waxing crescent
-                shadowPath.arcTo(terminatorRect, 270f, -180f, false)
+                // Waxing crescent: terminator bows toward bright (right)
+                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
             } else {
-                // Waxing gibbous
-                shadowPath.arcTo(terminatorRect, 270f, 180f, false)
+                // Waxing gibbous: terminator bows toward dark (left)
+                shadowPath.arcTo(terminatorRect, 90f, 180f, false)
             }
             shadowPath.close()
         } else {
+            // Waning: bright on LEFT, shadow on RIGHT
             val waneAngle = 360.0 - phaseAngle
             val cosWane = cos(waneAngle * PI / 180.0).toFloat()
             val terminatorXRadius = radius * abs(cosWane)
-            // Bright area boundary: right semicircle + terminator curve
-            shadowPath.addArc(moonRect, 270f, 180f)
+            shadowPath.addArc(moonRect, 90f, 180f) // LEFT semicircle (bottom→left→top)
             val terminatorRect = RectF(cx - terminatorXRadius, cy - radius, cx + terminatorXRadius, cy + radius)
             if (phaseAngle > 270.0) {
-                // Waning crescent
-                shadowPath.arcTo(terminatorRect, 90f, 180f, false)
+                // Waning crescent: terminator bows toward bright (left)
+                shadowPath.arcTo(terminatorRect, 270f, 180f, false)
             } else {
-                // Waning gibbous
-                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
+                // Waning gibbous: terminator bows toward dark (right)
+                shadowPath.arcTo(terminatorRect, 270f, -180f, false)
             }
             shadowPath.close()
         }

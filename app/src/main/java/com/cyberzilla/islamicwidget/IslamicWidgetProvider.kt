@@ -224,14 +224,28 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             // === OPTIMASI: Cek apakah jadwal sudah di-schedule dengan data identik ===
             // Fingerprint berisi tanggal + epoch semua waktu sholat, sehingga jika
             // ada perubahan lokasi/metode/hari, fingerprint akan berbeda.
-            val fingerprint = "$today|${todayPT.fajr.time}|${todayPT.dhuhr.time}|" +
+            // GPS dibulatkan ke 3 desimal (~100m) agar GPS jitter tidak memicu reschedule.
+            val roundedLat = String.format(Locale.US, "%.3f", lat)
+            val roundedLon = String.format(Locale.US, "%.3f", lon)
+            val fingerprint = "$today|$roundedLat|$roundedLon|${todayPT.fajr.time}|${todayPT.dhuhr.time}|" +
                     "${todayPT.asr.time}|${todayPT.maghrib.time}|${todayPT.isha.time}"
 
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
             val lastFingerprint = prefs.getString("LAST_SCHEDULE_FINGERPRINT", null)
 
+            // Rate-limit: jangan reschedule jika terakhir < 60 detik yang lalu
+            // Ini mencegah widget update storm menghabiskan alarm quota Android
+            val lastScheduleTime = prefs.getLong("LAST_SCHEDULE_TIME", 0L)
+            val timeSinceLastSchedule = System.currentTimeMillis() - lastScheduleTime
+
             if (!forceReschedule && fingerprint == lastFingerprint) {
                 // Jadwal sudah identik, cukup cek silent window tanpa re-schedule alarm
+                checkAndEnforceSilentWindow(context, todayPT, settings, now)
+                return
+            }
+
+            if (!forceReschedule && timeSinceLastSchedule < 60_000L && lastFingerprint != null) {
+                // Terlalu cepat — skip reschedule untuk hemat alarm quota
                 checkAndEnforceSilentWindow(context, todayPT, settings, now)
                 return
             }
@@ -287,8 +301,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 }
             }
 
-            // Simpan fingerprint setelah semua alarm berhasil di-schedule
-            prefs.edit().putString("LAST_SCHEDULE_FINGERPRINT", fingerprint).apply()
+            // Simpan fingerprint dan timestamp setelah semua alarm berhasil di-schedule
+            prefs.edit()
+                .putString("LAST_SCHEDULE_FINGERPRINT", fingerprint)
+                .putLong("LAST_SCHEDULE_TIME", System.currentTimeMillis())
+                .apply()
 
             val currentlyMutedDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
             val currentlyMutedRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)

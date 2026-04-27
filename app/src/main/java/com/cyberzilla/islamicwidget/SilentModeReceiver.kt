@@ -47,10 +47,11 @@ class SilentModeReceiver : BroadcastReceiver() {
                 prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
                 AdzanLogger.logAdzanFired(context, prayerIdForLog)
 
-                // === FIX: Hanya mute jika Auto Silent aktif ===
-                if (settings.isAutoSilentEnabled) {
-                    executeMute(context)
-                }
+                // PENTING: TIDAK boleh executeMute() di sini!
+                // Mute SEBELUM adzan mulai menyebabkan DND memblokir audio USAGE_ALARM
+                // di beberapa OEM. Biarkan scheduled MUTE alarm menangani auto-silent,
+                // dan AdzanService akan memastikan audio tetap terdengar via bypass DND.
+                // Mute akan ditrigger oleh AdzanService SETELAH audio mulai bermain.
 
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
                 val bridgeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:BridgeLock")

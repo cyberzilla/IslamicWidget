@@ -3,7 +3,6 @@ package com.cyberzilla.islamicwidget
 import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
@@ -57,12 +56,10 @@ object IconHelper {
 
         val actions = mutableListOf<Pair<ComponentName, Int>>()
 
-        val isDebuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-
-        if (!isDebuggable) {
-            val mainActivity = ComponentName(context, "$packageName.MainActivity")
-            actions.add(Pair(mainActivity, PackageManager.COMPONENT_ENABLED_STATE_DISABLED))
-        }
+        // Disable .MainActivity agar tidak muncul 2 icon di launcher
+        // (satu dari MainActivity, satu dari alias yang aktif)
+        val mainActivity = ComponentName(context, "$packageName.MainActivity")
+        actions.add(Pair(mainActivity, PackageManager.COMPONENT_ENABLED_STATE_DISABLED))
 
         for (i in 1..30) {
             val aliasName = "$packageName.MainActivityAlias$i"

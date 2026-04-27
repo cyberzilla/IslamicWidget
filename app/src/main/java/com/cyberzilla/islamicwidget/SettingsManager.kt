@@ -144,7 +144,7 @@ class SettingsManager(private val context: Context) {
             val playing = prefs.getBoolean("isAdzanPlaying", false)
             if (playing) {
                 val startTime = prefs.getLong("adzanPlayStartTime", 0L)
-                if (startTime > 0 && System.currentTimeMillis() - startTime > 15 * 60 * 1000L) {
+                if (startTime > 0 && System.currentTimeMillis() - startTime > 6 * 60 * 1000L) {
                     prefs.edit().putBoolean("isAdzanPlaying", false).putLong("adzanPlayStartTime", 0L).commit()
                     return false
                 }

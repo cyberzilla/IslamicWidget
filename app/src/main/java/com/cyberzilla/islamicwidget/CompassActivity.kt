@@ -236,7 +236,7 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
 
                 } else if (!useRotationVector) {
                     // Fallback: accelerometer + magnetometer manual fusion
-                    val alpha = 0.85f
+                    val alpha = 0.95f
 
                     if (event.sensor.type == Sensor.TYPE_ACCELEROMETER && event.values.size >= 3) {
                         if (!isGravityInit) {
@@ -272,18 +272,18 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                 }
 
                 if (azimuth != null) {
-                    // Koreksi magnetic declination HANYA untuk fallback accel+mag.
-                    // TYPE_ROTATION_VECTOR sudah menghasilkan true north secara internal,
-                    // jadi TIDAK boleh ditambah declination lagi (akan double-correction).
-                    if (!useRotationVector) {
-                        azimuth += magneticDeclination
-                    }
+                    // SELALU koreksi magnetic declination untuk semua tipe sensor.
+                    // TYPE_ROTATION_VECTOR TIDAK dijamin mengembalikan true north
+                    // di semua perangkat/OEM — banyak implementasi tetap berbasis
+                    // magnetic north. Menambah declination di atas true north hanya
+                    // menggeser ~0.8° (declination Indonesia kecil), aman dilakukan.
+                    azimuth += magneticDeclination
                     if (azimuth < 0f) azimuth += 360f
                     if (azimuth >= 360f) azimuth -= 360f
 
                     val rawDelta = getShortestDelta(currentAzimuth, azimuth)
                     if (Math.abs(rawDelta) > 0.3f) {
-                        currentAzimuth += rawDelta * 0.12f
+                        currentAzimuth += rawDelta * 0.08f
                     }
 
                     val displayDegree = (currentAzimuth % 360 + 360) % 360
@@ -292,16 +292,14 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                     val targetDial = -currentAzimuth
                     val targetNeedle = qiblaDegree - currentAzimuth
 
-                    // Spring-damper: spring 0.04 (was 0.008), damping 0.82 (was 0.88)
-                    // Lebih responsif tanpa mengorbankan kehalusan
                     val dialDelta = getShortestDelta(dialRotation, targetDial)
-                    dialVelocity += dialDelta * 0.04f
-                    dialVelocity *= 0.82f
+                    dialVelocity += dialDelta * 0.015f
+                    dialVelocity *= 0.85f
                     dialRotation += dialVelocity
 
                     val needleDelta = getShortestDelta(needleRotation, targetNeedle)
-                    needleVelocity += needleDelta * 0.04f
-                    needleVelocity *= 0.82f
+                    needleVelocity += needleDelta * 0.01f
+                    needleVelocity *= 0.90f
                     needleRotation += needleVelocity
 
                     flDial?.rotation = dialRotation

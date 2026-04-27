@@ -313,14 +313,14 @@ class MainActivity : AppCompatActivity() {
             val contentView = (bottomSheet as? android.view.ViewGroup)?.getChildAt(0)
             contentView?.apply {
                 elevation = 24f
-                clipToOutline = false
+                clipToOutline = true
                 outlineProvider = object : android.view.ViewOutlineProvider() {
                     override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
                         val radius = 28f * view.resources.displayMetrics.density
                         outline.setRoundRect(
                             0, 0,
                             view.width,
-                            view.height + radius.toInt(),
+                            view.height,
                             radius
                         )
                     }
@@ -337,6 +337,14 @@ class MainActivity : AppCompatActivity() {
         dialog.setOnShowListener {
             styleGlassBottomSheet(dialog)
         }
+
+        // Disable predictive back animation (efek mengecil saat swipe back)
+        // agar bottom sheet langsung dismiss tanpa animasi shrink
+        dialog.onBackPressedDispatcher.addCallback(object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                dialog.dismiss()
+            }
+        })
     }
 
     private fun showBottomSheetSelector(title: String, items: Array<String>, currentItem: String, onSelected: (Int) -> Unit) {
@@ -1035,6 +1043,7 @@ class MainActivity : AppCompatActivity() {
         val listener = object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
+                    seekBar?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                     currentColor = Color.argb(sbAlpha.progress, sbRed.progress, sbGreen.progress, sbBlue.progress)
                     updateUI()
                 }
@@ -1151,7 +1160,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_pin_main_widget)?.setOnClickListener { requestPinWidget(IslamicWidgetProvider::class.java) }
         findViewById<Button>(R.id.btn_pin_quote_widget)?.setOnClickListener { requestPinWidget(QuoteWidgetProvider::class.java) }
 
-        findViewById<Button>(R.id.btn_pick_text_color)?.setOnClickListener { 
+        findViewById<Button>(R.id.btn_pick_text_color)?.setOnClickListener { view ->
+            view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             showColorPickerDialog(getString(R.string.btn_text_color), currentTextColor) { selectedHex -> 
                 currentTextColor = selectedHex
                 updateColorButtons()
@@ -1160,7 +1170,8 @@ class MainActivity : AppCompatActivity() {
             } 
         }
         
-        findViewById<Button>(R.id.btn_pick_bg_color)?.setOnClickListener { 
+        findViewById<Button>(R.id.btn_pick_bg_color)?.setOnClickListener { view ->
+            view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             showColorPickerDialog(getString(R.string.btn_bg_color), currentBgColor) { selectedHex -> 
                 currentBgColor = selectedHex
                 updateColorButtons()
