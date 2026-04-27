@@ -262,19 +262,40 @@ class AdzanService : Service() {
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
                     Log.d(TAG, "Audio focus transient loss diabaikan (Proteksi Screen Off)")
+                    // Jangan pause — adzan USAGE_ALARM harus terus bermain
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
                     Log.d(TAG, "Audio focus duck diabaikan")
                 }
                 AudioManager.AUDIOFOCUS_LOSS -> {
-                    AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Audio focus loss permanen")
-                    fadeOutAndStop()
+                    // Jangan langsung stop — coba re-request focus karena adzan
+                    // menggunakan USAGE_ALARM yang seharusnya tidak bisa di-preempt.
+                    // Screen off + setAlarmClock snooze bisa menyebabkan false AUDIOFOCUS_LOSS.
+                    Log.w(TAG, "AUDIOFOCUS_LOSS diterima — mencoba re-request focus")
+                    if (!isFadingOut && isAdzanStillRelevant()) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            if (!isFadingOut && isAdzanStillRelevant()) {
+                                requestAudioFocusCompat()
+                                try {
+                                    if (mediaPlayer?.isPlaying == false) {
+                                        mediaPlayer?.start()
+                                        Log.d(TAG, "Adzan di-resume setelah re-request focus")
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Gagal resume adzan setelah AUDIOFOCUS_LOSS", e)
+                                }
+                            }
+                        }, 300)
+                    } else {
+                        AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Audio focus loss (adzan sudah tidak relevan)")
+                        fadeOutAndStop()
+                    }
                 }
             }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -291,7 +312,7 @@ class AdzanService : Service() {
             am.requestAudioFocus(
                 audioFocusListener,
                 AudioManager.STREAM_ALARM,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+                AudioManager.AUDIOFOCUS_GAIN
             )
         }
     }

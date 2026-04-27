@@ -7,7 +7,7 @@
     android:minResizeWidth="40dp"
     android:targetCellWidth="1"
     android:targetCellHeight="1"
-    android:previewImage="@drawable/ic_icon_0"
+    android:previewImage="@drawable/ic_moon"
     android:updatePeriodMillis="1800000"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />

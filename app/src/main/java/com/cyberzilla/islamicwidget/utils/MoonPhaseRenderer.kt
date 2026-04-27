@@ -21,8 +21,11 @@ object MoonPhaseRenderer {
     private val COLOR_MOON_BRIGHT = Color.parseColor("#F5F0E8")
     private val COLOR_MOON_EDGE = Color.parseColor("#D9D0C0")
     private val COLOR_SHADOW_DARK = Color.parseColor("#1A1A2E")
-    private val COLOR_CRATER_DARK = Color.parseColor("#1AC8BFA8")
-    private val COLOR_CRATER_LIGHT = Color.parseColor("#0DFFFFFF")
+    private val COLOR_CRATER_DARK = Color.parseColor("#60A89E88")   // ~38% opacity, visible dark maria
+    private val COLOR_CRATER_LIGHT = Color.parseColor("#30FFFFFF") // ~19% opacity, visible highlights
+
+    // Crater info for detailed texture rendering (must be top-level to avoid Android crash)
+    private data class CraterInfo(val dx: Float, val dy: Float, val r: Float)
 
     /**
      * Data class holding all moon phase information needed for rendering.
@@ -201,6 +204,7 @@ object MoonPhaseRenderer {
 
     /**
      * Draws realistic crater/maria textures on the moon surface.
+     * Includes major maria, detailed craters with depth shadows/highlights, and Tycho rays.
      */
     private fun drawMoonTexture(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
         val craterPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -224,52 +228,183 @@ object MoonPhaseRenderer {
             val mariaY = cy + dy * radius
             val mariaR = r * radius
 
+            // Core dark fill — strong center, gradual fade
             craterPaint.shader = RadialGradient(
                 mariaX, mariaY, mariaR,
-                intArrayOf(COLOR_CRATER_DARK, Color.TRANSPARENT),
-                floatArrayOf(0.3f, 1f),
+                intArrayOf(
+                    COLOR_CRATER_DARK,
+                    Color.argb(70, 150, 140, 120),
+                    Color.TRANSPARENT
+                ),
+                floatArrayOf(0f, 0.55f, 1f),
                 Shader.TileMode.CLAMP
             )
             canvas.drawCircle(mariaX, mariaY, mariaR, craterPaint)
+
+            // Subtle inner shadow for depth
+            val innerShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                shader = RadialGradient(
+                    mariaX - mariaR * 0.15f, mariaY - mariaR * 0.15f, mariaR * 0.7f,
+                    intArrayOf(
+                        Color.argb(40, 80, 70, 50),
+                        Color.TRANSPARENT
+                    ),
+                    floatArrayOf(0f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+                style = Paint.Style.FILL
+            }
+            canvas.drawCircle(mariaX, mariaY, mariaR * 0.7f, innerShadowPaint)
         }
 
-        // Small craters (bright rings)
-        val craters = listOf(
-            Triple(0.0f, 0.35f, 0.06f),    // Tycho
-            Triple(-0.12f, -0.10f, 0.04f),  // Copernicus
-            Triple(0.10f, 0.15f, 0.03f),
-            Triple(-0.05f, 0.10f, 0.025f),
-            Triple(0.25f, -0.35f, 0.03f),
+        // Detailed craters with shadow/highlight for depth effect
+        // Each crater: dx, dy, radius, has shadow on upper-left and highlight on lower-right
+
+        val detailedCraters = listOf(
+            CraterInfo(0.0f, 0.35f, 0.06f),     // Tycho
+            CraterInfo(-0.12f, -0.10f, 0.045f),  // Copernicus
+            CraterInfo(0.10f, 0.15f, 0.032f),    // Kepler
+            CraterInfo(-0.05f, 0.10f, 0.025f),   // Small crater
+            CraterInfo(0.25f, -0.35f, 0.035f),   // Proclus
+            CraterInfo(-0.35f, -0.15f, 0.03f),   // Aristarchus
+            CraterInfo(0.05f, -0.40f, 0.028f),   // Plato region
+            CraterInfo(-0.22f, 0.12f, 0.022f),   // Near Oceanus
+            CraterInfo(0.30f, -0.05f, 0.025f),   // Near Tranquillitatis
+            CraterInfo(-0.15f, 0.38f, 0.02f),    // Southern crater
+            CraterInfo(0.20f, 0.28f, 0.018f),    // SE crater
+            CraterInfo(-0.38f, -0.30f, 0.022f),  // NW crater
+            CraterInfo(0.15f, -0.15f, 0.02f),    // Central-N crater
+            CraterInfo(-0.08f, -0.38f, 0.025f),  // Plato
+            CraterInfo(0.38f, 0.05f, 0.018f),    // Eastern limb crater
         )
 
-        val craterRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val shadowOffset = radius * 0.012f // Light source offset for depth
+
+        for (crater in detailedCraters) {
+            val craterX = cx + crater.dx * radius
+            val craterY = cy + crater.dy * radius
+            val craterR = crater.r * radius
+
+            // Crater floor (dark center) — much more visible
+            val floorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                shader = RadialGradient(
+                    craterX, craterY, craterR,
+                    intArrayOf(
+                        Color.argb(90, 110, 100, 80),
+                        Color.argb(60, 140, 130, 110),
+                        Color.argb(20, 160, 150, 130),
+                        Color.TRANSPARENT
+                    ),
+                    floatArrayOf(0f, 0.35f, 0.7f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+                style = Paint.Style.FILL
+            }
+            canvas.drawCircle(craterX, craterY, craterR, floorPaint)
+
+            // Crater rim shadow (upper-left, darker) — strongly visible
+            val rimShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = radius * 0.012f
+                color = Color.argb(80, 60, 50, 35)
+            }
+            val shadowArc = RectF(
+                craterX - craterR - shadowOffset,
+                craterY - craterR - shadowOffset,
+                craterX + craterR - shadowOffset,
+                craterY + craterR - shadowOffset
+            )
+            canvas.drawArc(shadowArc, 200f, 160f, false, rimShadowPaint)
+
+            // Crater rim highlight (lower-right, brighter) — clearly visible
+            val rimHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                strokeWidth = radius * 0.010f
+                color = Color.argb(75, 255, 255, 240)
+            }
+            val highlightArc = RectF(
+                craterX - craterR + shadowOffset,
+                craterY - craterR + shadowOffset,
+                craterX + craterR + shadowOffset,
+                craterY + craterR + shadowOffset
+            )
+            canvas.drawArc(highlightArc, 20f, 160f, false, rimHighlightPaint)
+        }
+
+        // Bright crater ring outlines for the most prominent craters
+        val prominentRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeWidth = radius * 0.008f
-            color = COLOR_CRATER_LIGHT
+            color = Color.argb(65, 255, 255, 255)
+        }
+        for (crater in detailedCraters.take(6)) {
+            canvas.drawCircle(
+                cx + crater.dx * radius,
+                cy + crater.dy * radius,
+                crater.r * radius,
+                prominentRingPaint
+            )
         }
 
-        for ((dx, dy, r) in craters) {
-            canvas.drawCircle(cx + dx * radius, cy + dy * radius, r * radius, craterRingPaint)
-        }
-
-        // Tycho rays
+        // Tycho rays (bright ejecta lines) — clearly visible
         val rayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(8, 255, 255, 255)
-            strokeWidth = radius * 0.015f
+            color = Color.argb(45, 255, 255, 245)
+            strokeWidth = radius * 0.018f
             style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
         }
         val tychoX = cx
         val tychoY = cy + 0.35f * radius
-        for (angle in listOf(-30f, -60f, -100f, 15f, 50f, 80f, 120f)) {
+        for (angle in listOf(-30f, -60f, -100f, 15f, 50f, 80f, 120f, -140f, 160f)) {
             val radAngle = angle * PI.toFloat() / 180f
-            val endX = tychoX + cos(radAngle) * radius * 0.5f
-            val endY = tychoY - kotlin.math.sin(radAngle) * radius * 0.5f
+            val endX = tychoX + cos(radAngle) * radius * 0.55f
+            val endY = tychoY - sin(radAngle) * radius * 0.55f
             canvas.drawLine(tychoX, tychoY, endX, endY, rayPaint)
+        }
+        // Outer glow around rays
+        val rayGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(18, 255, 255, 235)
+            strokeWidth = radius * 0.035f
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+            maskFilter = BlurMaskFilter(radius * 0.02f, BlurMaskFilter.Blur.NORMAL)
+        }
+        for (angle in listOf(-30f, -60f, -100f, 15f, 50f, 80f, 120f, -140f, 160f)) {
+            val radAngle = angle * PI.toFloat() / 180f
+            val endX = tychoX + cos(radAngle) * radius * 0.50f
+            val endY = tychoY - sin(radAngle) * radius * 0.50f
+            canvas.drawLine(tychoX, tychoY, endX, endY, rayGlowPaint)
+        }
+
+        // Copernicus rays (shorter) — visible
+        val copRayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(30, 255, 255, 240)
+            strokeWidth = radius * 0.012f
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+        }
+        val copX = cx - 0.12f * radius
+        val copY = cy - 0.10f * radius
+        for (angle in listOf(0f, 60f, 120f, 180f, 240f, 300f)) {
+            val radAngle = angle * PI.toFloat() / 180f
+            val endX = copX + cos(radAngle) * radius * 0.22f
+            val endY = copY - sin(radAngle) * radius * 0.22f
+            canvas.drawLine(copX, copY, endX, endY, copRayPaint)
         }
     }
 
     /**
      * Draws the terminator (shadow boundary) to visualize the current phase.
+     *
+     * Phase angle convention (from moonPhase()):
+     *   0° = New Moon, 90° = First Quarter, 180° = Full Moon, 270° = Last Quarter
+     *
+     * Waxing (0°-180°): shadow on LEFT side, illuminated on RIGHT
+     * Waning (180°-360°): shadow on RIGHT side, illuminated on LEFT
+     *
+     * The terminator is an ellipse whose x-radius = |cos(phaseAngle)| * moonRadius.
+     * For crescent phases the terminator bows toward the bright limb;
+     * for gibbous phases it bows toward the dark limb.
      */
     private fun drawTerminator(canvas: Canvas, cx: Float, cy: Float, radius: Float, data: MoonPhaseData) {
         val phaseAngle = data.phaseAngle
@@ -299,11 +434,14 @@ object MoonPhaseRenderer {
 
         if (isWaxing) {
             val terminatorXRadius = radius * abs(cosPhase)
+            // Bright area boundary: left semicircle + terminator curve
             shadowPath.addArc(moonRect, 90f, 180f)
             val terminatorRect = RectF(cx - terminatorXRadius, cy - radius, cx + terminatorXRadius, cy + radius)
             if (phaseAngle < 90.0) {
+                // Waxing crescent
                 shadowPath.arcTo(terminatorRect, 270f, -180f, false)
             } else {
+                // Waxing gibbous
                 shadowPath.arcTo(terminatorRect, 270f, 180f, false)
             }
             shadowPath.close()
@@ -311,36 +449,45 @@ object MoonPhaseRenderer {
             val waneAngle = 360.0 - phaseAngle
             val cosWane = cos(waneAngle * PI / 180.0).toFloat()
             val terminatorXRadius = radius * abs(cosWane)
+            // Bright area boundary: right semicircle + terminator curve
             shadowPath.addArc(moonRect, 270f, 180f)
             val terminatorRect = RectF(cx - terminatorXRadius, cy - radius, cx + terminatorXRadius, cy + radius)
             if (phaseAngle > 270.0) {
+                // Waning crescent
                 shadowPath.arcTo(terminatorRect, 90f, 180f, false)
             } else {
+                // Waning gibbous
                 shadowPath.arcTo(terminatorRect, 90f, -180f, false)
             }
             shadowPath.close()
         }
 
+        // The path above defines the BRIGHT area.
+        // Compute shadow = moon circle MINUS bright area.
+        val moonCirclePath = Path()
+        moonCirclePath.addCircle(cx, cy, radius, Path.Direction.CW)
+
+        val actualShadowPath = Path()
+        actualShadowPath.op(moonCirclePath, shadowPath, Path.Op.DIFFERENCE)
+
         // Clip to moon circle
         canvas.save()
-        val clipPath = Path()
-        clipPath.addCircle(cx, cy, radius, Path.Direction.CW)
-        canvas.clipPath(clipPath)
+        canvas.clipPath(moonCirclePath)
 
         val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = COLOR_SHADOW_DARK
             style = Paint.Style.FILL
         }
-        canvas.drawPath(shadowPath, shadowPaint)
+        canvas.drawPath(actualShadowPath, shadowPaint)
 
-        // Soft terminator edge
+        // Soft terminator edge along the boundary
         val blurPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(60, 26, 26, 46)
             style = Paint.Style.STROKE
             strokeWidth = radius * 0.06f
             maskFilter = BlurMaskFilter(radius * 0.04f, BlurMaskFilter.Blur.NORMAL)
         }
-        canvas.drawPath(shadowPath, blurPaint)
+        canvas.drawPath(actualShadowPath, blurPaint)
 
         canvas.restore()
     }
