@@ -5,6 +5,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -92,20 +93,36 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) ?: return
             val appWidgetManager = AppWidgetManager.getInstance(context)
 
+            // Cooldown: abaikan tap berulang dalam 3 detik untuk hemat alarm quota
+            val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+            val lastRefresh = prefs.getLong("LAST_FORCE_REFRESH", 0L)
+            val now = System.currentTimeMillis()
+            if (now - lastRefresh < 3_000L) return
+            prefs.edit().putLong("LAST_FORCE_REFRESH", now).apply()
+
             // Hapus cache jadwal agar force refresh benar-benar menjadwalkan ulang
             clearScheduleCache(context)
 
             // Force check update dengan cooldown pendek (2 menit) agar tidak spam
             UpdateHelper.checkForUpdates(context, force = true)
 
+            // Tampilkan skeleton loading
             for (appWidgetId in appWidgetIds) {
                 val views = RemoteViews(context.packageName, R.layout.widget_islamic)
                 views.setDisplayedChild(R.id.master_flipper, STATE_LOADING)
                 appWidgetManager.partiallyUpdateAppWidget(appWidgetId, views)
             }
 
+            // FIX: goAsync() memberi tahu Android agar TIDAK mematikan proses
+            // selama delay 600ms. Tanpa ini, Handler.postDelayed bisa tidak jalan
+            // karena BroadcastReceiver lifecycle berakhir setelah onReceive() return.
+            val pendingResult = goAsync()
             Handler(Looper.getMainLooper()).postDelayed({
-                onUpdate(context, appWidgetManager, appWidgetIds)
+                try {
+                    onUpdate(context, appWidgetManager, appWidgetIds)
+                } finally {
+                    pendingResult.finish()
+                }
             }, 600)
         }
     }
@@ -161,6 +178,26 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
+        }
+
+        // Ikut refresh Lunar Widget agar fase bulan selalu up-to-date
+        // tanpa overhead alarm tambahan
+        refreshLunarWidget(context, appWidgetManager)
+    }
+
+    private fun refreshLunarWidget(context: Context, appWidgetManager: AppWidgetManager) {
+        try {
+            val lunarComponent = ComponentName(context, LunarWidgetProvider::class.java)
+            val lunarIds = appWidgetManager.getAppWidgetIds(lunarComponent)
+            if (lunarIds.isNotEmpty()) {
+                val intent = Intent(context, LunarWidgetProvider::class.java).apply {
+                    action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, lunarIds)
+                }
+                context.sendBroadcast(intent)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error refreshing lunar widget", e)
         }
     }
 
@@ -239,15 +276,21 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val timeSinceLastSchedule = System.currentTimeMillis() - lastScheduleTime
 
             if (!forceReschedule && fingerprint == lastFingerprint) {
-                // Jadwal sudah identik, cukup cek silent window tanpa re-schedule alarm
-                checkAndEnforceSilentWindow(context, todayPT, settings, now)
-                return
+                // Jadwal sudah identik, cukup cek silent window tanpa re-schedule alarm.
+                // Jika return true → alarm missed (Doze), perlu reschedule penuh.
+                if (!checkAndEnforceSilentWindow(context, todayPT, settings, now)) {
+                    return
+                }
+                Log.d(TAG, "Missed alarm terdeteksi via enforce, force reschedule")
             }
 
             if (!forceReschedule && timeSinceLastSchedule < 60_000L && lastFingerprint != null) {
-                // Terlalu cepat — skip reschedule untuk hemat alarm quota
-                checkAndEnforceSilentWindow(context, todayPT, settings, now)
-                return
+                // Terlalu cepat — skip reschedule untuk hemat alarm quota,
+                // KECUALI jika ada alarm yang missed oleh Doze.
+                if (!checkAndEnforceSilentWindow(context, todayPT, settings, now)) {
+                    return
+                }
+                Log.d(TAG, "Missed alarm terdeteksi (rate-limited), force reschedule")
             }
 
             fun getAfterMillis(id: Int, prayerTime: Date): Long {
@@ -330,13 +373,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     /**
      * Lightweight check: hanya cek apakah saat ini berada di dalam silent window
      * dan enforce mute/unmute state, TANPA re-schedule alarm (karena sudah di-set).
+     *
+     * @return true jika alarm missed terdeteksi (di dalam window tapi belum di-mute),
+     *         artinya perlu reschedule penuh agar UNMUTE alarm juga diperbaiki.
      */
     private fun checkAndEnforceSilentWindow(
         context: Context,
         prayerTimes: IAstroPrayerTimes,
         settings: SettingsManager,
         now: Long
-    ) {
+    ): Boolean {
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         val isTestMode = prefs.getBoolean("IS_TEST_MODE_ACTIVE", false)
         val currentlyMutedDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
@@ -377,6 +423,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             if (!(currentlyMutedDnd || currentlyMutedRinger) && settings.isAutoSilentEnabled && !isTestMode) {
                 val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
                 context.sendBroadcast(muteIntent)
+                // Alarm MUTE seharusnya sudah fire tapi belum — Doze kemungkinan membunuh alarm.
+                // Return true agar caller tahu perlu reschedule (supaya UNMUTE juga diperbaiki).
+                return true
             }
         } else {
             if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode) {
@@ -384,6 +433,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 context.sendBroadcast(unmuteIntent)
             }
         }
+
+        return false
     }
 
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {

@@ -39,7 +39,20 @@ class LunarWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        // goAsync() bisa return null jika dipanggil lebih dari sekali per onReceive
         val pendingResult = goAsync()
+        if (pendingResult == null) {
+            // Fallback: langsung update tanpa delay
+            for (appWidgetId in appWidgetIds) {
+                try {
+                    val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+                    updateWidget(context, appWidgetManager, appWidgetId, options)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error updating lunar widget (sync)", e)
+                }
+            }
+            return
+        }
         Handler(Looper.getMainLooper()).postDelayed({
             try {
                 for (appWidgetId in appWidgetIds) {
@@ -59,18 +72,9 @@ class LunarWidgetProvider : AppWidgetProvider() {
         updateWidget(context, appWidgetManager, appWidgetId, newOptions)
     }
 
-    override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-
-        if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
-            val appWidgetManager = AppWidgetManager.getInstance(context)
-            val componentName = ComponentName(context, LunarWidgetProvider::class.java)
-            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
-            if (appWidgetIds.isNotEmpty()) {
-                onUpdate(context, appWidgetManager, appWidgetIds)
-            }
-        }
-    }
+    // onReceive tidak perlu di-override untuk ACTION_APPWIDGET_UPDATE
+    // karena super.onReceive() (AppWidgetProvider) sudah otomatis memanggil onUpdate().
+    // Override sebelumnya menyebabkan onUpdate() dipanggil 2x → goAsync() NPE crash.
 
     private fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, options: Bundle) {
         val settings = SettingsManager(context)

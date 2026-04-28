@@ -102,7 +102,7 @@ class HilalInfoActivity : AppCompatActivity() {
             val day = adjusted.get(ChronoField.DAY_OF_MONTH)
             val month = adjusted.get(ChronoField.MONTH_OF_YEAR)
             val year = adjusted.get(ChronoField.YEAR)
-            val monthName = com.cyberzilla.islamicwidget.utils.HIJRI_MONTH_NAMES[month - 1]
+            val monthName = IslamicAppUtils.getLocalizedHijriMonthName(month, settings.languageCode)
             "$day $monthName $year H"
         } catch (e: Exception) {
             hijri.toString()
