@@ -98,7 +98,7 @@ class LunarWidgetProvider : AppWidgetProvider() {
         val lat = settings.latitude?.toDoubleOrNull()
         val lon = settings.longitude?.toDoubleOrNull()
         val moonData = MoonPhaseRenderer.getCurrentMoonPhase()
-        val moonBitmap = MoonPhaseRenderer.renderMoonPhase(moonSizePx, latitude = lat, longitude = lon)
+        val moonBitmap = MoonPhaseRenderer.renderMoonPhase(context, moonSizePx, latitude = lat, longitude = lon)
         val phaseName = MoonPhaseRenderer.getPhaseName(moonData.phaseAngle)
         val illuminationPct = (moonData.illuminationFraction * 100).toInt()
 
@@ -138,6 +138,18 @@ class LunarWidgetProvider : AppWidgetProvider() {
                 }
             } else {
                 totalHijriOffset = settings.hijriOffset.toLong()
+            }
+
+            // isDayStartAtMaghrib: match IslamicWidgetProvider behavior
+            if (settings.isDayStartAtMaghrib) {
+                try {
+                    val prayerTimes = IslamicAppUtils.calculatePrayerTimes(
+                        lat, lon, settings.calculationMethod, today
+                    )
+                    if (java.util.Date().after(prayerTimes.maghrib)) {
+                        totalHijriOffset += 1L
+                    }
+                } catch (_: Exception) {}
             }
 
             if (totalHijriOffset != 0L) {

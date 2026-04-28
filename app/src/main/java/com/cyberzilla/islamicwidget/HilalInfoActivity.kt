@@ -90,22 +90,49 @@ class HilalInfoActivity : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", selectedLocale)
         val gregorianStr = dateFormat.format(now)
 
-        // Hijri date
+        // Hijri date — same calculation as IslamicWidgetProvider for consistency
         val hijriDateStr = try {
-            val hd = HijrahDate.now()
-            val totalOffset = if (settings.isAutoHijriOffset) {
-                IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria).toLong()
+            val today = java.time.LocalDate.now()
+            var hijriDate = HijrahDate.from(today)
+
+            var totalOffset: Long = if (settings.isAutoHijriOffset) {
+                try {
+                    IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria).toLong()
+                } catch (e: Exception) {
+                    settings.hijriOffset.toLong()
+                }
             } else {
                 settings.hijriOffset.toLong()
             }
-            val adjusted = hd.plus(totalOffset, java.time.temporal.ChronoUnit.DAYS)
-            val day = adjusted.get(ChronoField.DAY_OF_MONTH)
-            val month = adjusted.get(ChronoField.MONTH_OF_YEAR)
-            val year = adjusted.get(ChronoField.YEAR)
+
+            // isDayStartAtMaghrib: jika aktif dan sudah lewat Maghrib, hari Hijri sudah berganti
+            if (settings.isDayStartAtMaghrib) {
+                try {
+                    val prayerTimes = IslamicAppUtils.calculatePrayerTimes(
+                        lat, lon, settings.calculationMethod, today
+                    )
+                    if (java.util.Date().after(prayerTimes.maghrib)) {
+                        totalOffset += 1L
+                    }
+                } catch (_: Exception) {}
+            }
+
+            if (totalOffset != 0L) {
+                hijriDate = hijriDate.plus(totalOffset, java.time.temporal.ChronoUnit.DAYS)
+            }
+
+            val day = hijriDate.get(ChronoField.DAY_OF_MONTH)
+            val month = hijriDate.get(ChronoField.MONTH_OF_YEAR)
+            val year = hijriDate.get(ChronoField.YEAR)
             val monthName = IslamicAppUtils.getLocalizedHijriMonthName(month, settings.languageCode)
             "$day $monthName $year H"
         } catch (e: Exception) {
-            hijri.toString()
+            // Last resort fallback
+            val hd = HijrahDate.now()
+            val day = hd.get(ChronoField.DAY_OF_MONTH)
+            val month = hd.get(ChronoField.MONTH_OF_YEAR)
+            val year = hd.get(ChronoField.YEAR)
+            "$day / $month / $year H"
         }
 
         // Time formatters
@@ -119,7 +146,7 @@ class HilalInfoActivity : AppCompatActivity() {
 
         // Moon phase image
         val moonSizePx = dpToPx(120f).toInt()
-        val moonBitmap = MoonPhaseRenderer.renderMoonPhase(moonSizePx, latitude = lat, longitude = lon)
+        val moonBitmap = MoonPhaseRenderer.renderMoonPhase(this, moonSizePx, latitude = lat, longitude = lon)
         findViewById<ImageView>(R.id.iv_hilal_moon).setImageBitmap(moonBitmap)
 
         // Dates

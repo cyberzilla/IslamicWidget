@@ -1,31 +1,36 @@
 package com.cyberzilla.islamicwidget.utils
 
+import android.content.Context
 import android.graphics.*
+import com.cyberzilla.islamicwidget.R
 import io.github.cosinekitty.astronomy.*
+import java.lang.ref.WeakReference
 import java.util.Calendar
 import java.util.TimeZone
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.round
 import kotlin.math.sin
 import kotlin.math.tan
 
 /**
- * Renders a beautiful, detailed moon phase bitmap using Canvas.
- * Uses real astronomical data from astronomy.kt for accurate phase visualization.
+ * Renders a beautiful, realistic moon phase bitmap using a real moon texture PNG
+ * with programmatic shadow masking for phase visualization.
+ * Uses real astronomical data from astronomy.kt for accurate phase calculation.
+ *
+ * Technique: The full moon PNG (drawable-nodpi/moon_full_texture.png) is drawn
+ * clipped to a circle, then the terminator shadow is composited on top using
+ * Path-based masking to visualize the current lunar phase.
  */
 object MoonPhaseRenderer {
 
-    // Moon surface colors
-    private val COLOR_MOON_BRIGHT = Color.parseColor("#F5F0E8")
-    private val COLOR_MOON_EDGE = Color.parseColor("#D9D0C0")
+    // Shadow color for the dark side of the moon
     private val COLOR_SHADOW_DARK = Color.parseColor("#1A1A2E")
-    private val COLOR_CRATER_DARK = Color.parseColor("#60A89E88")   // ~38% opacity, visible dark maria
-    private val COLOR_CRATER_LIGHT = Color.parseColor("#30FFFFFF") // ~19% opacity, visible highlights
 
-    // Crater info for detailed texture rendering (must be top-level to avoid Android crash)
-    private data class CraterInfo(val dx: Float, val dy: Float, val r: Float)
+    // Cached source texture to avoid repeated resource decoding
+    private var cachedTexture: WeakReference<Bitmap>? = null
 
     /**
      * Data class holding all moon phase information needed for rendering.
@@ -65,13 +70,34 @@ object MoonPhaseRenderer {
     }
 
     /**
-     * Renders a detailed moon phase bitmap.
+     * Loads the moon texture bitmap from resources, with WeakReference caching.
+     * Returns null if the resource is not found.
+     */
+    private fun loadMoonTexture(context: Context): Bitmap? {
+        cachedTexture?.get()?.let { if (!it.isRecycled) return it }
+
+        return try {
+            val options = BitmapFactory.Options().apply {
+                inPreferredConfig = Bitmap.Config.ARGB_8888
+            }
+            val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.moon_full_texture, options)
+            cachedTexture = WeakReference(bitmap)
+            bitmap
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Renders a detailed moon phase bitmap using real texture + shadow masking.
+     * @param context  Android context for loading texture resource
      * @param sizePx   Size of the output bitmap in pixels (square)
      * @param bgColor  Background color (transparent by default)
      * @param latitude Observer latitude (null = no rotation, Northern Hemisphere default)
      * @param longitude Observer longitude (null = no rotation)
      */
     fun renderMoonPhase(
+        context: Context,
         sizePx: Int,
         bgColor: Int = Color.TRANSPARENT,
         latitude: Double? = null,
@@ -90,10 +116,10 @@ object MoonPhaseRenderer {
             val parallacticAngle = calculateParallacticAngle(latitude, longitude)
             canvas.save()
             canvas.rotate(parallacticAngle.toFloat(), sizePx / 2f, sizePx / 2f)
-            drawMoon(canvas, sizePx, phaseData)
+            drawMoon(context, canvas, sizePx, phaseData)
             canvas.restore()
         } else {
-            drawMoon(canvas, sizePx, phaseData)
+            drawMoon(context, canvas, sizePx, phaseData)
         }
 
         return bitmap
@@ -144,7 +170,7 @@ object MoonPhaseRenderer {
     /**
      * Main drawing function that composes all moon layers.
      */
-    private fun drawMoon(canvas: Canvas, size: Int, data: MoonPhaseData) {
+    private fun drawMoon(context: Context, canvas: Canvas, size: Int, data: MoonPhaseData) {
         val cx = size / 2f
         val cy = size / 2f
         val radius = size * 0.46f
@@ -153,17 +179,66 @@ object MoonPhaseRenderer {
         // 1. Draw outer glow
         drawGlow(canvas, cx, cy, radius, glowRadius, data.illuminationFraction)
 
-        // 2. Draw moon base (full bright circle)
-        drawMoonBase(canvas, cx, cy, radius)
+        // 2. Draw moon surface from real PNG texture
+        drawMoonFromTexture(context, canvas, cx, cy, radius)
 
-        // 3. Draw surface craters/maria texture
-        drawMoonTexture(canvas, cx, cy, radius)
-
-        // 4. Draw terminator shadow (the key phase visualization)
+        // 3. Draw terminator shadow (the key phase visualization)
         drawTerminator(canvas, cx, cy, radius, data)
+
+        // 4. Draw lunar eclipse shadow (if active)
+        drawLunarEclipse(canvas, cx, cy, radius)
 
         // 5. Draw edge highlight (limb darkening)
         drawLimbDarkening(canvas, cx, cy, radius)
+    }
+
+    /**
+     * Draws the moon surface using the real moon texture PNG.
+     * The texture is clipped to a circle and scaled to fit the moon radius.
+     * Falls back to a simple gradient circle if texture is unavailable.
+     */
+    private fun drawMoonFromTexture(context: Context, canvas: Canvas, cx: Float, cy: Float, radius: Float) {
+        val texture = loadMoonTexture(context)
+
+        if (texture == null) {
+            // Fallback: draw a simple moon base without texture
+            drawFallbackMoonBase(canvas, cx, cy, radius)
+            return
+        }
+
+        // Clip to circle for clean anti-aliased edges
+        canvas.save()
+        val circlePath = Path()
+        circlePath.addCircle(cx, cy, radius, Path.Direction.CW)
+        canvas.clipPath(circlePath)
+
+        // Draw texture scaled to fill the moon circle
+        val destRect = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+        canvas.drawBitmap(texture, null, destRect, paint)
+
+        canvas.restore()
+    }
+
+    /**
+     * Fallback moon base when texture PNG is not available.
+     * Draws a simple gradient circle resembling the moon.
+     */
+    private fun drawFallbackMoonBase(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
+        val basePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(
+                cx - radius * 0.15f, cy - radius * 0.15f, radius * 1.1f,
+                intArrayOf(
+                    Color.parseColor("#F5F0E8"),
+                    Color.parseColor("#D9D0C0"),
+                    Color.parseColor("#C4BAA8")
+                ),
+                floatArrayOf(0f, 0.75f, 1f),
+                Shader.TileMode.CLAMP
+            )
+            style = Paint.Style.FILL
+        }
+        canvas.drawCircle(cx, cy, radius, basePaint)
     }
 
     /**
@@ -181,213 +256,6 @@ object MoonPhaseRenderer {
             style = Paint.Style.FILL
         }
         canvas.drawCircle(cx, cy, glowR, glowPaint)
-    }
-
-    /**
-     * Draws the base moon circle with a subtle radial gradient for realism.
-     */
-    private fun drawMoonBase(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
-        val basePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            shader = RadialGradient(
-                cx - radius * 0.15f, cy - radius * 0.15f, radius * 1.1f,
-                intArrayOf(COLOR_MOON_BRIGHT, COLOR_MOON_EDGE, Color.parseColor("#C4BAA8")),
-                floatArrayOf(0f, 0.75f, 1f),
-                Shader.TileMode.CLAMP
-            )
-            style = Paint.Style.FILL
-        }
-        canvas.drawCircle(cx, cy, radius, basePaint)
-    }
-
-    /**
-     * Draws realistic crater/maria textures on the moon surface.
-     * Includes major maria, detailed craters with depth shadows/highlights, and Tycho rays.
-     */
-    private fun drawMoonTexture(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
-        val craterPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.FILL
-        }
-
-        // Major maria (dark patches) - positioned to roughly match real moon
-        val maria = listOf(
-            Triple(-0.20f, -0.30f, 0.18f),  // Mare Imbrium
-            Triple(0.10f, -0.25f, 0.12f),    // Mare Serenitatis
-            Triple(0.18f, -0.05f, 0.14f),    // Mare Tranquillitatis
-            Triple(0.35f, -0.20f, 0.08f),    // Mare Crisium
-            Triple(-0.10f, 0.25f, 0.12f),    // Mare Nubium
-            Triple(-0.32f, 0.0f, 0.20f),     // Oceanus Procellarum
-            Triple(0.28f, 0.12f, 0.10f),     // Mare Fecunditatis
-            Triple(-0.28f, 0.22f, 0.07f)     // Mare Humorum
-        )
-
-        for ((dx, dy, r) in maria) {
-            val mariaX = cx + dx * radius
-            val mariaY = cy + dy * radius
-            val mariaR = r * radius
-
-            // Core dark fill — strong center, gradual fade
-            craterPaint.shader = RadialGradient(
-                mariaX, mariaY, mariaR,
-                intArrayOf(
-                    COLOR_CRATER_DARK,
-                    Color.argb(70, 150, 140, 120),
-                    Color.TRANSPARENT
-                ),
-                floatArrayOf(0f, 0.55f, 1f),
-                Shader.TileMode.CLAMP
-            )
-            canvas.drawCircle(mariaX, mariaY, mariaR, craterPaint)
-
-            // Subtle inner shadow for depth
-            val innerShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = RadialGradient(
-                    mariaX - mariaR * 0.15f, mariaY - mariaR * 0.15f, mariaR * 0.7f,
-                    intArrayOf(
-                        Color.argb(40, 80, 70, 50),
-                        Color.TRANSPARENT
-                    ),
-                    floatArrayOf(0f, 1f),
-                    Shader.TileMode.CLAMP
-                )
-                style = Paint.Style.FILL
-            }
-            canvas.drawCircle(mariaX, mariaY, mariaR * 0.7f, innerShadowPaint)
-        }
-
-        // Detailed craters with shadow/highlight for depth effect
-        // Each crater: dx, dy, radius, has shadow on upper-left and highlight on lower-right
-
-        val detailedCraters = listOf(
-            CraterInfo(0.0f, 0.35f, 0.06f),     // Tycho
-            CraterInfo(-0.12f, -0.10f, 0.045f),  // Copernicus
-            CraterInfo(0.10f, 0.15f, 0.032f),    // Kepler
-            CraterInfo(-0.05f, 0.10f, 0.025f),   // Small crater
-            CraterInfo(0.25f, -0.35f, 0.035f),   // Proclus
-            CraterInfo(-0.35f, -0.15f, 0.03f),   // Aristarchus
-            CraterInfo(0.05f, -0.40f, 0.028f),   // Plato region
-            CraterInfo(-0.22f, 0.12f, 0.022f),   // Near Oceanus
-            CraterInfo(0.30f, -0.05f, 0.025f),   // Near Tranquillitatis
-            CraterInfo(-0.15f, 0.38f, 0.02f),    // Southern crater
-            CraterInfo(0.20f, 0.28f, 0.018f),    // SE crater
-            CraterInfo(-0.38f, -0.30f, 0.022f),  // NW crater
-            CraterInfo(0.15f, -0.15f, 0.02f),    // Central-N crater
-            CraterInfo(-0.08f, -0.38f, 0.025f),  // Plato
-            CraterInfo(0.38f, 0.05f, 0.018f),    // Eastern limb crater
-        )
-
-        val shadowOffset = radius * 0.012f // Light source offset for depth
-
-        for (crater in detailedCraters) {
-            val craterX = cx + crater.dx * radius
-            val craterY = cy + crater.dy * radius
-            val craterR = crater.r * radius
-
-            // Crater floor (dark center) — much more visible
-            val floorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = RadialGradient(
-                    craterX, craterY, craterR,
-                    intArrayOf(
-                        Color.argb(90, 110, 100, 80),
-                        Color.argb(60, 140, 130, 110),
-                        Color.argb(20, 160, 150, 130),
-                        Color.TRANSPARENT
-                    ),
-                    floatArrayOf(0f, 0.35f, 0.7f, 1f),
-                    Shader.TileMode.CLAMP
-                )
-                style = Paint.Style.FILL
-            }
-            canvas.drawCircle(craterX, craterY, craterR, floorPaint)
-
-            // Crater rim shadow (upper-left, darker) — strongly visible
-            val rimShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = radius * 0.012f
-                color = Color.argb(80, 60, 50, 35)
-            }
-            val shadowArc = RectF(
-                craterX - craterR - shadowOffset,
-                craterY - craterR - shadowOffset,
-                craterX + craterR - shadowOffset,
-                craterY + craterR - shadowOffset
-            )
-            canvas.drawArc(shadowArc, 200f, 160f, false, rimShadowPaint)
-
-            // Crater rim highlight (lower-right, brighter) — clearly visible
-            val rimHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = radius * 0.010f
-                color = Color.argb(75, 255, 255, 240)
-            }
-            val highlightArc = RectF(
-                craterX - craterR + shadowOffset,
-                craterY - craterR + shadowOffset,
-                craterX + craterR + shadowOffset,
-                craterY + craterR + shadowOffset
-            )
-            canvas.drawArc(highlightArc, 20f, 160f, false, rimHighlightPaint)
-        }
-
-        // Bright crater ring outlines for the most prominent craters
-        val prominentRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = radius * 0.008f
-            color = Color.argb(65, 255, 255, 255)
-        }
-        for (crater in detailedCraters.take(6)) {
-            canvas.drawCircle(
-                cx + crater.dx * radius,
-                cy + crater.dy * radius,
-                crater.r * radius,
-                prominentRingPaint
-            )
-        }
-
-        // Tycho rays (bright ejecta lines) — clearly visible
-        val rayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(45, 255, 255, 245)
-            strokeWidth = radius * 0.018f
-            style = Paint.Style.STROKE
-            strokeCap = Paint.Cap.ROUND
-        }
-        val tychoX = cx
-        val tychoY = cy + 0.35f * radius
-        for (angle in listOf(-30f, -60f, -100f, 15f, 50f, 80f, 120f, -140f, 160f)) {
-            val radAngle = angle * PI.toFloat() / 180f
-            val endX = tychoX + cos(radAngle) * radius * 0.55f
-            val endY = tychoY - sin(radAngle) * radius * 0.55f
-            canvas.drawLine(tychoX, tychoY, endX, endY, rayPaint)
-        }
-        // Outer glow around rays
-        val rayGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(18, 255, 255, 235)
-            strokeWidth = radius * 0.035f
-            style = Paint.Style.STROKE
-            strokeCap = Paint.Cap.ROUND
-            maskFilter = BlurMaskFilter(radius * 0.02f, BlurMaskFilter.Blur.NORMAL)
-        }
-        for (angle in listOf(-30f, -60f, -100f, 15f, 50f, 80f, 120f, -140f, 160f)) {
-            val radAngle = angle * PI.toFloat() / 180f
-            val endX = tychoX + cos(radAngle) * radius * 0.50f
-            val endY = tychoY - sin(radAngle) * radius * 0.50f
-            canvas.drawLine(tychoX, tychoY, endX, endY, rayGlowPaint)
-        }
-
-        // Copernicus rays (shorter) — visible
-        val copRayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(30, 255, 255, 240)
-            strokeWidth = radius * 0.012f
-            style = Paint.Style.STROKE
-            strokeCap = Paint.Cap.ROUND
-        }
-        val copX = cx - 0.12f * radius
-        val copY = cy - 0.10f * radius
-        for (angle in listOf(0f, 60f, 120f, 180f, 240f, 300f)) {
-            val radAngle = angle * PI.toFloat() / 180f
-            val endX = copX + cos(radAngle) * radius * 0.22f
-            val endY = copY - sin(radAngle) * radius * 0.22f
-            canvas.drawLine(copX, copY, endX, endY, copRayPaint)
-        }
     }
 
     /**
@@ -467,27 +335,211 @@ object MoonPhaseRenderer {
         val actualShadowPath = Path()
         actualShadowPath.op(moonCirclePath, shadowPath, Path.Op.DIFFERENCE)
 
-        // Clip to moon circle
+        // Clip to moon circle — all blur is contained within the moon boundary
         canvas.save()
         canvas.clipPath(moonCirclePath)
 
-        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = COLOR_SHADOW_DARK
-            style = Paint.Style.FILL
-        }
-        canvas.drawPath(actualShadowPath, shadowPaint)
-
-        // Soft terminator edge along the boundary
-        val blurPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        // Layer 1: Wide soft penumbra (extends furthest into the lit area)
+        val penumbraPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(60, 26, 26, 46)
-            style = Paint.Style.STROKE
-            strokeWidth = radius * 0.06f
-            maskFilter = BlurMaskFilter(radius * 0.04f, BlurMaskFilter.Blur.NORMAL)
+            style = Paint.Style.FILL
+            maskFilter = BlurMaskFilter(radius * 0.15f, BlurMaskFilter.Blur.NORMAL)
         }
-        canvas.drawPath(actualShadowPath, blurPaint)
+        canvas.drawPath(actualShadowPath, penumbraPaint)
+
+        // Layer 2: Medium transition shadow
+        val midShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(120, 26, 26, 46)
+            style = Paint.Style.FILL
+            maskFilter = BlurMaskFilter(radius * 0.08f, BlurMaskFilter.Blur.NORMAL)
+        }
+        canvas.drawPath(actualShadowPath, midShadowPaint)
+
+        // Layer 3: Core shadow (semi-transparent, slightly blurred for smoothness)
+        val coreShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(200, 26, 26, 46)
+            style = Paint.Style.FILL
+            maskFilter = BlurMaskFilter(radius * 0.03f, BlurMaskFilter.Blur.NORMAL)
+        }
+        canvas.drawPath(actualShadowPath, coreShadowPaint)
 
         canvas.restore()
     }
+
+    // ==========================================================================
+    // LUNAR ECLIPSE VISUALIZATION
+    // ==========================================================================
+
+    /**
+     * State data for a lunar eclipse currently in progress.
+     */
+    private data class LunarEclipseState(
+        val kind: EclipseKind,
+        val progress: Float,           // 0.0 = partial start, 0.5 = peak, 1.0 = partial end
+        val inTotalPhase: Boolean,
+        val inPartialPhase: Boolean,
+        val inPenumbralOnly: Boolean,
+        val penumbralProgress: Float,  // progress within penumbral-only phase
+        val obscuration: Double        // peak obscuration fraction
+    )
+
+    /**
+     * Detects if a lunar eclipse is currently in progress by searching recent
+     * eclipse data and checking if the current time falls within any phase.
+     */
+    private fun detectLunarEclipse(): LunarEclipseState? {
+        return try {
+            val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            val now = Time(
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH) + 1,
+                cal.get(Calendar.DAY_OF_MONTH),
+                cal.get(Calendar.HOUR_OF_DAY),
+                cal.get(Calendar.MINUTE),
+                cal.get(Calendar.SECOND).toDouble()
+            )
+
+            // Search from 12 hours ago to catch any ongoing eclipse
+            val eclipse = searchLunarEclipse(now.addDays(-0.5))
+
+            val peakUt = eclipse.peak.ut
+            val nowUt = now.ut
+
+            // Semi-durations in minutes → convert to days
+            val sdPenumDays = eclipse.sdPenum / 1440.0
+            val sdPartialDays = eclipse.sdPartial / 1440.0
+            val sdTotalDays = eclipse.sdTotal / 1440.0
+
+            // Phase time boundaries
+            val penStart = peakUt - sdPenumDays
+            val penEnd = peakUt + sdPenumDays
+            val partStart = peakUt - sdPartialDays
+            val partEnd = peakUt + sdPartialDays
+            val totStart = peakUt - sdTotalDays
+            val totEnd = peakUt + sdTotalDays
+
+            // Are we inside the eclipse window?
+            if (nowUt < penStart || nowUt > penEnd) return null
+
+            val inTotal = sdTotalDays > 0 && nowUt >= totStart && nowUt <= totEnd
+            val inPartial = sdPartialDays > 0 && nowUt >= partStart && nowUt <= partEnd
+            val inPenOnly = !inPartial
+
+            // Progress within partial phase (0→1): most visually significant
+            val partProgress = if (inPartial && sdPartialDays > 0) {
+                ((nowUt - partStart) / (partEnd - partStart)).toFloat().coerceIn(0f, 1f)
+            } else 0f
+
+            val penProgress = if (inPenOnly && sdPenumDays > 0) {
+                ((nowUt - penStart) / (penEnd - penStart)).toFloat().coerceIn(0f, 1f)
+            } else 0f
+
+            LunarEclipseState(
+                kind = eclipse.kind,
+                progress = partProgress,
+                inTotalPhase = inTotal,
+                inPartialPhase = inPartial,
+                inPenumbralOnly = inPenOnly,
+                penumbralProgress = penProgress,
+                obscuration = eclipse.obscuration
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Renders the lunar eclipse shadow on the moon if an eclipse is currently active.
+     *
+     * - Penumbral: subtle uniform darkening
+     * - Partial: Earth's umbral shadow (dark reddish circle) moves across the moon
+     * - Total: full blood-moon tint (deep copper/red)
+     */
+    private fun drawLunarEclipse(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
+        val eclipse = detectLunarEclipse() ?: return
+
+        canvas.save()
+        val moonClip = Path()
+        moonClip.addCircle(cx, cy, radius, Path.Direction.CW)
+        canvas.clipPath(moonClip)
+
+        // --- Penumbral-only phase: subtle darkening ---
+        if (eclipse.inPenumbralOnly) {
+            // Intensity peaks at center of penumbral phase
+            val intensity = sin(eclipse.penumbralProgress * PI).toFloat()
+            val alpha = (35 * intensity).toInt().coerceIn(0, 35)
+            val penPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(alpha, 30, 15, 10)
+                style = Paint.Style.FILL
+            }
+            canvas.drawCircle(cx, cy, radius, penPaint)
+            canvas.restore()
+            return
+        }
+
+        // --- Partial / Total phase: Earth's umbral shadow ---
+        val shadowRadius = radius * 1.35f  // Earth umbra ≈ 1.35× moon radius
+
+        // Shadow moves from right→left across the moon
+        // progress: 0.0 = entering from right, 0.5 = peak, 1.0 = leaving to left
+        val maxOffset = shadowRadius + radius
+        val peakOffset = if (eclipse.kind == EclipseKind.Total) {
+            0f  // Shadow fully covers moon at peak
+        } else {
+            // Partial: shadow center doesn't reach moon center
+            (shadowRadius - radius * eclipse.obscuration.toFloat() * 1.2f).coerceAtLeast(0f)
+        }
+
+        val t = eclipse.progress
+        val offsetX = if (t <= 0.5f) {
+            lerp(maxOffset, peakOffset, t / 0.5f)
+        } else {
+            lerp(peakOffset, -maxOffset, (t - 0.5f) / 0.5f)
+        }
+
+        val shadowCx = cx + offsetX
+        val shadowCy = cy
+
+        // Draw umbral shadow with gradient for soft realistic edges
+        val umbraPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(
+                shadowCx, shadowCy, shadowRadius,
+                intArrayOf(
+                    Color.argb(235, 20, 8, 5),     // Near-black center
+                    Color.argb(200, 35, 12, 8),    // Very dark red
+                    Color.argb(140, 65, 22, 12),   // Reddish-brown
+                    Color.argb(60, 85, 30, 18),    // Soft edge
+                    Color.argb(0, 100, 40, 25)     // Transparent
+                ),
+                floatArrayOf(0f, 0.55f, 0.78f, 0.92f, 1f),
+                Shader.TileMode.CLAMP
+            )
+            style = Paint.Style.FILL
+        }
+        canvas.drawCircle(shadowCx, shadowCy, shadowRadius, umbraPaint)
+
+        // Blood moon tint during total phase
+        if (eclipse.inTotalPhase) {
+            val bloodPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                shader = RadialGradient(
+                    cx, cy, radius,
+                    intArrayOf(
+                        Color.argb(90, 180, 50, 15),   // Deep copper center
+                        Color.argb(70, 200, 65, 25),   // Copper-orange
+                        Color.argb(50, 150, 35, 10)    // Dark red edge
+                    ),
+                    floatArrayOf(0f, 0.5f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+                style = Paint.Style.FILL
+            }
+            canvas.drawCircle(cx, cy, radius, bloodPaint)
+        }
+
+        canvas.restore()
+    }
+
+    private fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
 
     /**
      * Draws limb darkening effect.

@@ -35,30 +35,34 @@ object IslamicAppUtils {
     )
 
     /**
-     * Mengganti nama bulan Hijriah bawaan Java dengan nama kustom yang bersih.
-     * Mengambil nomor bulan dari HijrahDate lalu replace string bulan Java di output.
+     * Pre-processes a date format pattern for HijrahDate objects.
+     * Replaces MMMM/MMM tokens with literal custom month names BEFORE formatting,
+     * completely bypassing Java's inconsistent HijrahDate month names
+     * (e.g. "Dhuʻl-Qaʻdah", "Dhū al-Ḥijjah" with Unicode diacritics).
+     *
+     * Returns the original pattern unchanged for non-HijrahDate objects.
      */
-    private fun replaceHijriMonthNames(text: String, dateObj: TemporalAccessor, langCode: String): String {
-        if (dateObj !is java.time.chrono.HijrahDate) return text
+    private fun preProcessHijriPattern(pattern: String, dateObj: TemporalAccessor, langCode: String): String {
+        if (dateObj !is java.time.chrono.HijrahDate) return pattern
         val monthIndex = dateObj.get(java.time.temporal.ChronoField.MONTH_OF_YEAR) - 1
-        if (monthIndex !in 0..11) return text
+        if (monthIndex !in 0..11) return pattern
 
-        val customName = when {
+        val fullName = when {
             langCode.startsWith("ar") -> HIJRI_MONTHS_AR[monthIndex]
             langCode.startsWith("id") || langCode.startsWith("in") -> HIJRI_MONTHS_ID[monthIndex]
             else -> HIJRI_MONTHS_EN[monthIndex]
         }
 
-        // Dapatkan nama bulan bawaan Java untuk locale ini
-        val javaMonthName = try {
-            val locale = Locale.forLanguageTag(langCode)
-            java.time.format.DateTimeFormatter.ofPattern("MMMM", locale).format(dateObj)
-        } catch (e: Exception) { return text }
-
-        // Replace jika ditemukan di output
-        return if (javaMonthName.isNotEmpty() && text.contains(javaMonthName)) {
-            text.replace(javaMonthName, customName)
-        } else text
+        // Replace MMMM first (4 chars), then MMM (3 chars) to avoid partial match.
+        // Wrap custom name in single quotes so DateTimeFormatter treats it as literal text.
+        // Escape any existing single quotes in month names (e.g. Rabi'ul → Rabi''ul)
+        val escapedFull = fullName.replace("'", "''")
+        var result = pattern.replace("MMMM", "'$escapedFull'")
+        if (result == pattern) {
+            // MMMM wasn't found, try MMM (abbreviated)
+            result = pattern.replace("MMM", "'$escapedFull'")
+        }
+        return result
     }
 
     /**
@@ -83,10 +87,10 @@ object IslamicAppUtils {
                     val localeTag = matchResult.groupValues[1]
                     val pattern = matchResult.groupValues[2]
                     val locale = try { Locale.forLanguageTag(localeTag) } catch (e: Exception) { defaultLocale }
-                    var formattedText = DateTimeFormatter.ofPattern(pattern, locale).format(dateObj)
 
-                    // Replace nama bulan Hijriah Java dengan nama kustom
-                    formattedText = replaceHijriMonthNames(formattedText, dateObj, localeTag)
+                    // Pre-process: replace MMMM/MMM with custom Hijri month name before formatting
+                    val processedPattern = preProcessHijriPattern(pattern, dateObj, localeTag)
+                    var formattedText = DateTimeFormatter.ofPattern(processedPattern, locale).format(dateObj)
 
                     if (localeTag.lowercase().startsWith("id")) {
                         formattedText = formattedText.replace("Minggu", "Ahad", ignoreCase = true)
@@ -103,10 +107,8 @@ object IslamicAppUtils {
                     formattedText
                 }
             } else {
-                var formattedText = DateTimeFormatter.ofPattern(inputStr, defaultLocale).format(dateObj)
-
-                // Replace nama bulan Hijriah Java dengan nama kustom
-                formattedText = replaceHijriMonthNames(formattedText, dateObj, defaultLocale.language)
+                val processedPattern = preProcessHijriPattern(inputStr, dateObj, defaultLocale.language)
+                var formattedText = DateTimeFormatter.ofPattern(processedPattern, defaultLocale).format(dateObj)
 
                 if (defaultLocale.language.lowercase() == "id") {
                     formattedText = formattedText.replace("Minggu", "Ahad", ignoreCase = true)
@@ -114,10 +116,8 @@ object IslamicAppUtils {
                 formattedText
             }
         } catch (e: Exception) {
-            var fallbackText = DateTimeFormatter.ofPattern("dd MMMM yyyy", defaultLocale).format(dateObj)
-
-            // Replace nama bulan Hijriah Java dengan nama kustom
-            fallbackText = replaceHijriMonthNames(fallbackText, dateObj, defaultLocale.language)
+            val processedPattern = preProcessHijriPattern("dd MMMM yyyy", dateObj, defaultLocale.language)
+            var fallbackText = DateTimeFormatter.ofPattern(processedPattern, defaultLocale).format(dateObj)
 
             if (defaultLocale.language.lowercase() == "id") {
                 fallbackText = fallbackText.replace("Minggu", "Ahad", ignoreCase = true)
