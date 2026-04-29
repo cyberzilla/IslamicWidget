@@ -334,7 +334,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
                 cancelExistingAlarms(context, id)
 
-                if (now >= muteTimeToday && now < unmuteTimeToday) {
+                // FIX: Grace period 60s — AlarmManager bisa fire alarm hingga 1 menit
+                // lebih awal. Tanpa ini, jika MUTE fire early lalu widget update re-runs,
+                // kode salah menganggap kita "belum di window" dan kirim UNMUTE prematur.
+                val muteGraceMs = 60_000L
+                if (now >= (muteTimeToday - muteGraceMs) && now < unmuteTimeToday) {
                     isInsideAnySilentWindow = true
                     scheduleSilentMode(context, todayTime, id, settings)
                 } else if (now >= unmuteTimeToday) {
@@ -360,7 +364,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     context.sendBroadcast(muteIntent)
                 }
             } else {
-                if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode) {
+                // FIX: Jangan kirim corrective UNMUTE jika adzan sedang bermain.
+                // AdzanService.onDestroy() akan handle PENDING_UNMUTE sendiri.
+                if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying) {
                     val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
                     context.sendBroadcast(unmuteIntent)
                 }
@@ -413,7 +419,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             val muteTime = prayerTime.time - beforeMillis
             val unmuteTime = prayerTime.time + afterMillis
-            if (now >= muteTime && now < unmuteTime) {
+            // FIX: Grace period sama seperti di scheduleAllPrayers
+            val muteGraceMs = 60_000L
+            if (now >= (muteTime - muteGraceMs) && now < unmuteTime) {
                 isInsideAnySilentWindow = true
                 break
             }
@@ -428,7 +436,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 return true
             }
         } else {
-            if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode) {
+            // FIX: Jangan corrective-unmute jika adzan sedang bermain
+            if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying) {
                 val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
                 context.sendBroadcast(unmuteIntent)
             }

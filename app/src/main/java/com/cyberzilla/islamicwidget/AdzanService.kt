@@ -505,10 +505,84 @@ class AdzanService : Service() {
 
         val prefs = getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         if (prefs.getBoolean("PENDING_UNMUTE", false)) {
-            Log.d(TAG, "Mengeksekusi PENDING UNMUTE karena Adzan sudah selesai/dihentikan.")
-            sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
-                action = "ACTION_UNMUTE"
-            })
+            // FIX: Cek apakah masih dalam silent window sebelum unmute.
+            // Jika user interrupt adzan lebih awal (misal 5 detik setelah mulai),
+            // DND harus tetap aktif sampai scheduled UNMUTE alarm fire di waktu yang benar.
+            if (isStillInsideSilentWindow()) {
+                Log.d(TAG, "PENDING_UNMUTE diabaikan: masih dalam silent window. Scheduled UNMUTE alarm akan handle.")
+                AdzanLogger.log(this, AdzanLogger.Event.UNMUTE_EXECUTED,
+                    "PENDING_UNMUTE diabaikan: masih dalam silent window, UNMUTE terjadwal akan handle")
+                prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
+            } else {
+                Log.d(TAG, "Mengeksekusi PENDING UNMUTE karena Adzan sudah selesai/dihentikan.")
+                sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
+                    action = "ACTION_UNMUTE"
+                })
+            }
+        }
+    }
+
+    /**
+     * Cek apakah waktu sekarang masih berada di dalam silent window salah satu sholat.
+     * Digunakan untuk mencegah PENDING_UNMUTE mem-bypass DND terlalu dini saat
+     * user interrupt adzan lebih awal.
+     */
+    private fun isStillInsideSilentWindow(): Boolean {
+        val settings = SettingsManager(this)
+        val latString = settings.latitude ?: return false
+        val lonString = settings.longitude ?: return false
+
+        return try {
+            val lat = latString.toDouble()
+            val lon = lonString.toDouble()
+            val today = java.time.LocalDate.now()
+            val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
+            val now = System.currentTimeMillis()
+
+            val prayerDates = listOf(
+                Pair(prayerTimes.fajr, 1),
+                Pair(prayerTimes.dhuhr, 2),
+                Pair(prayerTimes.asr, 3),
+                Pair(prayerTimes.maghrib, 4),
+                Pair(prayerTimes.isha, 5),
+            )
+
+            for ((prayerTime, id) in prayerDates) {
+                val cal = java.util.Calendar.getInstance(java.util.TimeZone.getDefault())
+                cal.time = prayerTime
+                val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
+
+                val beforeMillis = when (id) {
+                    1 -> settings.fajrBefore
+                    2 -> if (isFriday) settings.fridayBefore else settings.dhuhrBefore
+                    3 -> settings.asrBefore
+                    4 -> settings.maghribBefore
+                    5 -> settings.ishaBefore
+                    else -> 0
+                } * 60 * 1000L
+
+                val afterMillis = when (id) {
+                    1 -> settings.fajrAfter
+                    2 -> if (isFriday) settings.fridayAfter else settings.dhuhrAfter
+                    3 -> settings.asrAfter
+                    4 -> settings.maghribAfter
+                    5 -> settings.ishaAfter
+                    else -> 0
+                } * 60 * 1000L
+
+                val muteTime = prayerTime.time - beforeMillis
+                val unmuteTime = prayerTime.time + afterMillis
+                // Grace period sama dengan di IslamicWidgetProvider
+                val muteGraceMs = 60_000L
+                if (now >= (muteTime - muteGraceMs) && now < unmuteTime) {
+                    return true
+                }
+            }
+            false
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking silent window", e)
+            // Jika gagal hitung, amankan: anggap masih di window agar tidak premature unmute
+            true
         }
     }
 }
