@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# graphify - ignore machine-specific files, keep graph outputs
+graphify-out/.graphify_*
+graphify-out/cache/
+graphify-out/cost.json
+graphify-out/manifest.json
