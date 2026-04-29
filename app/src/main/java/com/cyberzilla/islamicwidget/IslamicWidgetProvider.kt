@@ -863,7 +863,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             prefs.edit().putBoolean("IS_MUTED_BY_APP_RINGER", false).apply()
         }
 
-        if (settings.isAdzanAudioEnabled && now <= prayerTime.time && !isJumat) {
+        // Grace period 2 menit: jika reschedule terjadi tepat saat/sesaat setelah waktu sholat,
+        // ADZAN tetap dijadwalkan (AlarmManager akan fire segera untuk waktu yang sudah lewat).
+        // Tanpa ini, race condition bisa menyebabkan ADZAN tidak fire saat widget update
+        // men-trigger cancelExistingAlarms + reschedule tepat di waktu sholat.
+        val adzanGracePeriod = 120_000L // 2 menit
+        if (settings.isAdzanAudioEnabled && now <= prayerTime.time + adzanGracePeriod && !isJumat && !settings.isAdzanPlaying) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)

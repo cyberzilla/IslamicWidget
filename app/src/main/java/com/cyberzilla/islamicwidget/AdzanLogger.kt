@@ -1,6 +1,7 @@
 package com.cyberzilla.islamicwidget
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import java.io.File
 import java.text.SimpleDateFormat
@@ -10,7 +11,11 @@ import java.util.Locale
 /**
  * Sistem logging untuk mendiagnosa event adzan, auto-silent, dan scheduling.
  * Log disimpan ke file yang bisa dibaca via file manager:
- *   Documents/IslamicWidget/adzan_log.txt
+ *   Android/media/<package>/adzan_log_<sessionId>.txt
+ *
+ * Setiap kali app di-install atau di-update, file log BARU otomatis dibuat
+ * dengan sessionId berdasarkan timestamp install/update (bukan versi app),
+ * sehingga log dari build lama tidak tercampur dengan build baru.
  *
  * Setiap entry berisi timestamp, event type, dan detail.
  */
@@ -18,13 +23,20 @@ object AdzanLogger {
 
     private const val TAG = "AdzanLogger"
     private const val LOG_DIR_NAME = "IslamicWidget"
-    private const val LOG_FILE_NAME = "adzan_log.txt"
+    private const val LOG_FILE_PREFIX = "adzan_log_"
     private const val MAX_LOG_LINES = 1500
     private const val MAX_MEMORY_ENTRIES = 200
+    private const val PREF_NAME = "AdzanLoggerPrefs"
+    private const val KEY_SESSION_ID = "LOG_SESSION_ID"
+    private const val KEY_LAST_UPDATE_TIME = "LOG_LAST_UPDATE_TIME"
 
     // In-memory circular log untuk ditampilkan di developer area
     private val memoryLog = mutableListOf<String>()
     private val lock = Any()
+
+    // Cached session ID agar tidak perlu baca SharedPrefs setiap kali log
+    @Volatile
+    private var cachedSessionId: String? = null
 
     enum class Event {
         // Scheduling
@@ -57,6 +69,66 @@ object AdzanLogger {
     // Background executor untuk file I/O agar tidak blocking main thread
     private val fileExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
     private var writeCount = 0
+
+    /**
+     * Mendapatkan atau membuat session ID berdasarkan waktu install/update app.
+     * Setiap kali app di-update (lastUpdateTime berubah), session ID baru dibuat.
+     * Format: yyyyMMdd_HHmmss (contoh: 20260429_093815)
+     */
+    private fun getOrCreateSessionId(context: Context): String {
+        // Fast path: return cached value
+        cachedSessionId?.let { return it }
+
+        val prefs = context.applicationContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val savedSessionId = prefs.getString(KEY_SESSION_ID, null)
+        val savedUpdateTime = prefs.getLong(KEY_LAST_UPDATE_TIME, 0L)
+
+        // Dapatkan lastUpdateTime dari PackageInfo
+        val currentUpdateTime = try {
+            context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
+        } catch (e: PackageManager.NameNotFoundException) {
+            0L
+        }
+
+        // Jika lastUpdateTime berubah (app di-update) atau belum ada session, buat baru
+        if (savedSessionId == null || currentUpdateTime != savedUpdateTime) {
+            val sessionTimestamp = if (currentUpdateTime > 0) currentUpdateTime else System.currentTimeMillis()
+            val newSessionId = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date(sessionTimestamp))
+
+            prefs.edit()
+                .putString(KEY_SESSION_ID, newSessionId)
+                .putLong(KEY_LAST_UPDATE_TIME, currentUpdateTime)
+                .apply()
+
+            cachedSessionId = newSessionId
+
+            // Tulis header di file log baru
+            fileExecutor.execute {
+                try {
+                    val logFile = resolveLogFile(context, newSessionId)
+                    if (logFile != null && !logFile.exists()) {
+                        logFile.parentFile?.mkdirs()
+                        val headerTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
+                        val versionName = try {
+                            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "?"
+                        } catch (e: Exception) { "?" }
+                        logFile.writeText(
+                            "=== IslamicWidget Log Session: $newSessionId ===\n" +
+                            "=== Started: $headerTime | App Version: $versionName ===\n" +
+                            "=== Update Timestamp: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date(sessionTimestamp))} ===\n\n"
+                        )
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Gagal menulis header log session baru", e)
+                }
+            }
+
+            return newSessionId
+        }
+
+        cachedSessionId = savedSessionId
+        return savedSessionId
+    }
 
     /**
      * Log sebuah event. Otomatis menyimpan ke file dan memory.
@@ -125,7 +197,7 @@ object AdzanLogger {
     }
 
     /**
-     * Hapus semua log.
+     * Hapus semua log (current session).
      */
     fun clearLog(context: Context) {
         synchronized(lock) {
@@ -140,13 +212,17 @@ object AdzanLogger {
     }
 
     /**
-     * Dapatkan path file log.
+     * Dapatkan path file log saat ini.
      */
     fun getLogFilePath(context: Context): String {
         return getLogFile(context)?.absolutePath ?: "(tidak tersedia)"
     }
 
-    private fun getLogFile(context: Context): File? {
+    /**
+     * Resolve file log berdasarkan session ID tertentu.
+     */
+    private fun resolveLogFile(context: Context, sessionId: String): File? {
+        val fileName = "${LOG_FILE_PREFIX}${sessionId}.txt"
         return try {
             // Prioritas 1: Android/media/<package>/ (bisa diakses via file manager tanpa root)
             val mediaDir = File(
@@ -154,15 +230,20 @@ object AdzanLogger {
                 "Android/media/${context.packageName}"
             )
             mediaDir.mkdirs()
-            File(mediaDir, LOG_FILE_NAME)
+            File(mediaDir, fileName)
         } catch (e: Exception) {
             try {
                 // Fallback: internal app files
-                File(context.filesDir, "$LOG_DIR_NAME/$LOG_FILE_NAME")
+                File(context.filesDir, "$LOG_DIR_NAME/$fileName")
             } catch (e2: Exception) {
                 null
             }
         }
+    }
+
+    private fun getLogFile(context: Context): File? {
+        val sessionId = getOrCreateSessionId(context)
+        return resolveLogFile(context, sessionId)
     }
 
     private fun trimLogFile(file: File) {
@@ -227,3 +308,4 @@ object AdzanLogger {
         }
     }
 }
+

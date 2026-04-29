@@ -117,14 +117,16 @@ class SilentModeReceiver : BroadcastReceiver() {
                 Log.d(TAG, "ACTION_UNMUTE: Jadwal Unmute tiba")
                 val settings = SettingsManager(context)
 
-                // === FIX: Jika auto silent dimatikan tapi ada stale unmute, tetap jalankan ===
-                // Ini penting agar perangkat yang terlanjur di-mute oleh stale alarm bisa di-unmute.
+                // === FIX: Idempotency guard — cegah double unmute ===
+                // Jika perangkat sudah tidak dalam state muted oleh app, skip.
+                // Ini mencegah alarm UNMUTE duplikat (dari reschedule) melakukan
+                // restore DND yang tidak perlu.
                 val wasMutedByApp = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
                                     prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
-                if (!settings.isAutoSilentEnabled && !wasMutedByApp) {
-                    Log.d(TAG, "ACTION_UNMUTE diabaikan: Auto Silent off dan tidak ada mute aktif dari app")
+                if (!wasMutedByApp) {
+                    Log.d(TAG, "ACTION_UNMUTE diabaikan: perangkat tidak dalam state muted oleh app")
                     AdzanLogger.log(context, AdzanLogger.Event.UNMUTE_EXECUTED,
-                        "ACTION_UNMUTE diabaikan (stale alarm, tidak ada mute aktif)")
+                        "ACTION_UNMUTE diabaikan: perangkat sudah normal (tidak di-mute oleh app)")
                     return
                 }
 
@@ -190,6 +192,17 @@ class SilentModeReceiver : BroadcastReceiver() {
         val wasMutedByAppDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
         val wasMutedByAppRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
 
+        // === FIX: Clear flags ATOMICALLY di awal sebelum restore state ===
+        // Ini mencegah double unmute: jika UNMUTE kedua masuk sementara
+        // UNMUTE pertama sedang memproses, UNMUTE kedua akan melihat
+        // flags sudah false dan di-skip oleh guard di ACTION_UNMUTE handler.
+        prefs.edit()
+            .putBoolean("IS_MUTED_BY_APP_DND", false)
+            .putBoolean("IS_MUTED_BY_APP_RINGER", false)
+            .putBoolean("PENDING_UNMUTE", false)
+            .putBoolean("IS_TEST_MODE_ACTIVE", false)
+            .apply()
+
         try {
             if (wasMutedByAppDnd && notificationManager.isNotificationPolicyAccessGranted) {
                 val prevFilter = prefs.getInt("PREF_PREV_FILTER", NotificationManager.INTERRUPTION_FILTER_ALL)
@@ -205,13 +218,6 @@ class SilentModeReceiver : BroadcastReceiver() {
             }
         } catch (e: Exception) {
             Log.e(TAG, context.getString(R.string.log_error_unmute, e.message))
-        } finally {
-            prefs.edit()
-                .putBoolean("IS_MUTED_BY_APP_DND", false)
-                .putBoolean("IS_MUTED_BY_APP_RINGER", false)
-                .putBoolean("PENDING_UNMUTE", false)
-                .putBoolean("IS_TEST_MODE_ACTIVE", false)
-                .apply()
         }
     }
 
