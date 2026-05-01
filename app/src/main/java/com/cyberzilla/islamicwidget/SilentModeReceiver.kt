@@ -108,6 +108,17 @@ class SilentModeReceiver : BroadcastReceiver() {
                         "ACTION_MUTE diabaikan karena Auto Silent dimatikan (stale alarm?)")
                     return
                 }
+                // === FIX: Idempotency guard — cegah double/triple MUTE dari stale alarm overlap ===
+                // Jika device sudah di-mute oleh app, skip untuk menghindari log noise
+                // dan panggilan DND system yang redundan.
+                val alreadyMuted = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
+                                   prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
+                if (alreadyMuted) {
+                    Log.d(TAG, "ACTION_MUTE diabaikan: perangkat sudah di-mute oleh app (duplikat alarm?)")
+                    AdzanLogger.log(context, AdzanLogger.Event.MUTE_SKIPPED,
+                        "ACTION_MUTE diabaikan: sudah dalam state muted (stale/duplikat alarm)")
+                    return
+                }
                 Log.d(TAG, "ACTION_MUTE: Mengeksekusi Silent Mode")
                 AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED, "ACTION_MUTE diterima")
                 executeMute(context)

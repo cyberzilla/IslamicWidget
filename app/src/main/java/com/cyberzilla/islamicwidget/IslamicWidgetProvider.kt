@@ -342,6 +342,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     isInsideAnySilentWindow = true
                     scheduleSilentMode(context, todayTime, id, settings)
                 } else if (now >= unmuteTimeToday) {
+                    // FIX: Jika UNMUTE window sudah lewat sepenuhnya, jadwalkan untuk besok.
+                    // Tidak perlu jadwalkan MUTE/UNMUTE hari ini karena sudah selesai.
                     scheduleSilentMode(context, tomorrowTime, id, settings)
                 } else {
                     scheduleSilentMode(context, todayTime, id, settings)
@@ -359,6 +361,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val isTestMode = prefs.getBoolean("IS_TEST_MODE_ACTIVE", false)
 
             if (isInsideAnySilentWindow) {
+                // FIX: Hanya kirim corrective MUTE jika device BELUM di-mute.
+                // Sebelumnya, broadcast MUTE selalu dikirim meskipun sudah muted,
+                // menyebabkan log "ACTION_MUTE diterima" duplikat.
                 if (!(currentlyMutedDnd || currentlyMutedRinger) && settings.isAutoSilentEnabled && !isTestMode) {
                     val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
                     context.sendBroadcast(muteIntent)
@@ -919,6 +924,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val muteTimeMillis = prayerTime.time - silentBeforeMillis
         val unmuteTimeMillis = prayerTime.time + silentAfterMillis
 
+        // FIX: Skip scheduling jika seluruh silent window sudah lewat.
+        // Sebelumnya, jika now sedikit sebelum unmuteTimeMillis tapi UNMUTE sudah fire
+        // (karena cancelExistingAlarms + reschedule), alarm UNMUTE baru dijadwalkan
+        // dan fire lagi → menyebabkan extra/stale UNMUTE.
         if (now > unmuteTimeMillis) return
 
         val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
@@ -929,13 +938,30 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         try {
             if (now <= muteTimeMillis) {
+                // MUTE time belum tiba — jadwalkan alarm MUTE di masa depan
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteTimeMillis, mutePendingIntent)
                 AdzanLogger.logScheduled(context, requestCodeId, muteTimeMillis, "MUTE")
-            } else if (now in (muteTimeMillis + 1)..unmuteTimeMillis) {
+            } else {
+                // FIX: MUTE time sudah lewat — JANGAN jadwalkan alarm MUTE lagi.
+                // Sebelumnya hanya cancel PendingIntent tapi tidak cancel alarm secara eksplisit
+                // via alarmManager.cancel(). Sekarang cancel keduanya untuk memastikan
+                // tidak ada stale MUTE alarm yang bisa fire.
                 alarmManager.cancel(mutePendingIntent)
+                mutePendingIntent.cancel()
             }
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
-            AdzanLogger.logScheduled(context, requestCodeId, unmuteTimeMillis, "UNMUTE")
+
+            // FIX: Hanya jadwalkan UNMUTE jika waktunya masih di masa depan.
+            // Sebelumnya, UNMUTE selalu dijadwalkan meskipun unmuteTimeMillis sudah lewat
+            // beberapa detik (masih lolos guard `now > unmuteTimeMillis` karena timing race),
+            // menyebabkan AlarmManager langsung fire alarm → extra UNMUTE.
+            if (now < unmuteTimeMillis) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
+                AdzanLogger.logScheduled(context, requestCodeId, unmuteTimeMillis, "UNMUTE")
+            } else {
+                // UNMUTE time sudah lewat — cancel untuk bersih-bersih
+                alarmManager.cancel(unmutePendingIntent)
+                unmutePendingIntent.cancel()
+            }
         } catch (e: SecurityException) {
             Log.e(TAG, "SecurityException menjadwalkan silent mode", e)
         }
