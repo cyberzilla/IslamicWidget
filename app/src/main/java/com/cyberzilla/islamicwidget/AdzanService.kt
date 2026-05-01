@@ -11,7 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
-import android.database.ContentObserver
+
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -49,7 +49,6 @@ class AdzanService : Service() {
     private var audioFocusRequest: AudioFocusRequest? = null
 
     private var volumeReceiver: BroadcastReceiver? = null
-    private var volumeObserver: ContentObserver? = null
 
     private var prayerTimeInMillis = 0L
     private var prayerId = 0
@@ -428,22 +427,11 @@ class AdzanService : Service() {
             }
         } catch (e: Exception) {}
 
-        volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean) {
-                super.onChange(selfChange)
-                if (isFadingOut) return
-
-                val currentAlarmVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
-                if (currentAlarmVol != initialAlarmVolume && currentAlarmVol != -1) {
-                    Log.d(TAG, "Observer mendeteksi nilai absolut Volume bergeser. Stop Adzan.")
-                    AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Volume observer mendeteksi perubahan")
-                    fadeOutAndStop()
-                }
-            }
-        }
-        try {
-            contentResolver.registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, volumeObserver!!)
-        } catch (e: Exception) {}
+        // REMOVED: ContentObserver pada Settings.System.CONTENT_URI
+        // Observer ini mendengarkan SEMUA perubahan Settings.System (brightness, DND, dll),
+        // bukan hanya volume. Saat screen off, system menulis settings → onChange fire →
+        // volume alarm bisa terlihat berubah (transient DND routing) → fadeOutAndStop().
+        // VolumeProviderCompat + BroadcastReceiver sudah cukup untuk deteksi volume button.
     }
 
     private fun createNotificationChannel(localizedContext: Context) {
@@ -470,10 +458,7 @@ class AdzanService : Service() {
             try { unregisterReceiver(it) } catch (e: Exception) {}
             volumeReceiver = null
         }
-        volumeObserver?.let {
-            try { contentResolver.unregisterContentObserver(it) } catch (e: Exception) {}
-            volumeObserver = null
-        }
+
 
         safetyRunnable?.let { safetyHandler?.removeCallbacks(it) }
         safetyHandler = null
