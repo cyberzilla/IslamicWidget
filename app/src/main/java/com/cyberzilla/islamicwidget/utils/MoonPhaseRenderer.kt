@@ -290,53 +290,69 @@ object MoonPhaseRenderer {
             return
         }
 
-        if (abs(phaseAngle - 180.0) < 1.0) return // Full moon
+        // Skip shadow for near-full moon. Use illumination fraction as the
+        // primary guard — this is more reliable than phase angle thresholds.
+        // At >98% illumination (phase ~165°-195°), the shadow sliver is
+        // sub-pixel and Path.Op.DIFFERENCE can produce artifacts due to
+        // floating-point instability when bright/dark arcs nearly overlap.
+        if (data.illuminationFraction > 0.98) return
 
         val cosPhase = cos(phaseAngle * PI / 180.0).toFloat()
         val isWaxing = phaseAngle < 180.0
         val moonRect = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
+
+        // === Build shadow path DIRECTLY (not via DIFFERENCE) ===
+        // This avoids Path.Op.DIFFERENCE numerical instability entirely.
+        //
+        // Shadow is on LEFT for waxing, RIGHT for waning.
+        // The shadow region = one semicircle of the moon + one semicircle of
+        // the terminator ellipse (bowing inward or outward depending on phase).
         val shadowPath = Path()
 
         if (isWaxing) {
-            // Waxing: bright on RIGHT, shadow on LEFT
+            // Waxing: shadow on LEFT
             val terminatorXRadius = radius * abs(cosPhase)
-            shadowPath.addArc(moonRect, 270f, 180f) // RIGHT semicircle (top→right→bottom)
             val terminatorRect = RectF(cx - terminatorXRadius, cy - radius, cx + terminatorXRadius, cy + radius)
+
+            // LEFT semicircle of moon (top→left→bottom)
+            shadowPath.addArc(moonRect, 270f, -180f)
+
             if (phaseAngle < 90.0) {
-                // Waxing crescent: terminator bows toward bright (right)
-                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
-            } else {
-                // Waxing gibbous: terminator bows toward dark (left)
+                // Waxing crescent: terminator bows RIGHT (toward bright)
+                // Shadow = left of moon + right of terminator
                 shadowPath.arcTo(terminatorRect, 90f, 180f, false)
+            } else {
+                // Waxing gibbous: terminator bows LEFT (toward dark)
+                // Shadow = left of moon + left of terminator (inverted)
+                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
             }
             shadowPath.close()
         } else {
-            // Waning: bright on LEFT, shadow on RIGHT
+            // Waning: shadow on RIGHT
             val waneAngle = 360.0 - phaseAngle
             val cosWane = cos(waneAngle * PI / 180.0).toFloat()
             val terminatorXRadius = radius * abs(cosWane)
-            shadowPath.addArc(moonRect, 90f, 180f) // LEFT semicircle (bottom→left→top)
             val terminatorRect = RectF(cx - terminatorXRadius, cy - radius, cx + terminatorXRadius, cy + radius)
+
+            // RIGHT semicircle of moon (top→right→bottom)
+            shadowPath.addArc(moonRect, 270f, 180f)
+
             if (phaseAngle > 270.0) {
-                // Waning crescent: terminator bows toward bright (left)
-                shadowPath.arcTo(terminatorRect, 270f, 180f, false)
+                // Waning crescent: terminator bows LEFT (toward bright)
+                // Shadow = right of moon + left of terminator
+                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
             } else {
-                // Waning gibbous: terminator bows toward dark (right)
-                shadowPath.arcTo(terminatorRect, 270f, -180f, false)
+                // Waning gibbous: terminator bows RIGHT (toward dark)
+                // Shadow = right of moon + right of terminator (inverted)
+                shadowPath.arcTo(terminatorRect, 90f, 180f, false)
             }
             shadowPath.close()
         }
 
-        // The path above defines the BRIGHT area.
-        // Compute shadow = moon circle MINUS bright area.
-        val moonCirclePath = Path()
-        moonCirclePath.addCircle(cx, cy, radius, Path.Direction.CW)
-
-        val actualShadowPath = Path()
-        actualShadowPath.op(moonCirclePath, shadowPath, Path.Op.DIFFERENCE)
-
         // Clip to moon circle — all blur is contained within the moon boundary
         canvas.save()
+        val moonCirclePath = Path()
+        moonCirclePath.addCircle(cx, cy, radius, Path.Direction.CW)
         canvas.clipPath(moonCirclePath)
 
         // Layer 1: Wide soft penumbra (extends furthest into the lit area)
@@ -345,7 +361,7 @@ object MoonPhaseRenderer {
             style = Paint.Style.FILL
             maskFilter = BlurMaskFilter(radius * 0.15f, BlurMaskFilter.Blur.NORMAL)
         }
-        canvas.drawPath(actualShadowPath, penumbraPaint)
+        canvas.drawPath(shadowPath, penumbraPaint)
 
         // Layer 2: Medium transition shadow
         val midShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -353,7 +369,7 @@ object MoonPhaseRenderer {
             style = Paint.Style.FILL
             maskFilter = BlurMaskFilter(radius * 0.08f, BlurMaskFilter.Blur.NORMAL)
         }
-        canvas.drawPath(actualShadowPath, midShadowPaint)
+        canvas.drawPath(shadowPath, midShadowPaint)
 
         // Layer 3: Core shadow (semi-transparent, slightly blurred for smoothness)
         val coreShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -361,8 +377,7 @@ object MoonPhaseRenderer {
             style = Paint.Style.FILL
             maskFilter = BlurMaskFilter(radius * 0.03f, BlurMaskFilter.Blur.NORMAL)
         }
-        canvas.drawPath(actualShadowPath, coreShadowPaint)
-
+        canvas.drawPath(shadowPath, coreShadowPaint)
         canvas.restore()
     }
 
@@ -457,6 +472,10 @@ object MoonPhaseRenderer {
      */
     private fun drawLunarEclipse(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
         val eclipse = detectLunarEclipse() ?: return
+
+        // Safety: skip eclipse rendering if obscuration is negligible
+        // This prevents false-positive darkening on regular full moons
+        if (eclipse.obscuration < 0.01) return
 
         canvas.save()
         val moonClip = Path()

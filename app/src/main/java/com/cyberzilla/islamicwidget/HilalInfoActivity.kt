@@ -139,15 +139,49 @@ class HilalInfoActivity : AppCompatActivity() {
         val timeFormat = SimpleDateFormat("HH:mm", selectedLocale)
         val timeFormatFull = SimpleDateFormat("dd MMM yyyy, HH:mm", selectedLocale)
 
+        // === Determine Mode: Hilal (Early Month) vs Regular Moon ===
+        // Hilal mode: moon age < 48 hours OR Hijri day is 29, 30, or 1
+        // Regular mode: everything else — hide visibility criteria section
+        val hijriDay = try {
+            val today = java.time.LocalDate.now()
+            var hijriDate2 = HijrahDate.from(today)
+            var offset: Long = if (settings.isAutoHijriOffset) {
+                try {
+                    IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria).toLong()
+                } catch (_: Exception) { settings.hijriOffset.toLong() }
+            } else { settings.hijriOffset.toLong() }
+            if (settings.isDayStartAtMaghrib) {
+                try {
+                    val pt = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
+                    if (java.util.Date().after(pt.maghrib)) offset += 1L
+                } catch (_: Exception) {}
+            }
+            if (offset != 0L) hijriDate2 = hijriDate2.plus(offset, java.time.temporal.ChronoUnit.DAYS)
+            hijriDate2.get(ChronoField.DAY_OF_MONTH)
+        } catch (_: Exception) { 1 }
+
+        val isHilalMode = report.moonAgeHours < 48.0 || hijriDay in listOf(29, 30, 1)
+
         // === Bind Views ===
 
-        // Title
-        findViewById<TextView>(R.id.tv_hilal_title).text = ctx.getString(R.string.hilal_dialog_title)
+        // Title — dynamic based on mode
+        val titleRes = if (isHilalMode) R.string.hilal_dialog_title else R.string.hilal_dialog_title_moon
+        findViewById<TextView>(R.id.tv_hilal_title).text = ctx.getString(titleRes)
 
-        // Moon phase image
-        val moonSizePx = dpToPx(120f).toInt()
+        // Moon phase image — larger in regular mode (more space without criteria section)
+        val moonSizeDp = if (isHilalMode) 120f else 160f
+        val moonSizePx = dpToPx(moonSizeDp).toInt()
         val moonBitmap = MoonPhaseRenderer.renderMoonPhase(this, moonSizePx, latitude = lat, longitude = lon)
-        findViewById<ImageView>(R.id.iv_hilal_moon).setImageBitmap(moonBitmap)
+        val moonView = findViewById<ImageView>(R.id.iv_hilal_moon)
+        moonView.setImageBitmap(moonBitmap)
+        // Dynamically resize the ImageView for regular mode
+        if (!isHilalMode) {
+            val layoutParams = moonView.layoutParams
+            val sizePxLayout = dpToPx(160f).toInt()
+            layoutParams.width = sizePxLayout
+            layoutParams.height = sizePxLayout
+            moonView.layoutParams = layoutParams
+        }
 
         // Dates
         findViewById<TextView>(R.id.tv_gregorian_date).text = "📅  $gregorianStr"
@@ -155,7 +189,7 @@ class HilalInfoActivity : AppCompatActivity() {
         tvHijri.text = "🌙  $hijriDateStr"
         tvHijri.setTextColor(Color.parseColor("#FFC107"))
 
-        // === Build Hilal Data Text ===
+        // === Build Data Text ===
         val sb = SpannableStringBuilder()
         val labelColor = if (isDark) Color.parseColor("#90A4AE") else Color.parseColor("#9E9E9E")
 
@@ -183,8 +217,12 @@ class HilalInfoActivity : AppCompatActivity() {
             appendRow(sb, ctx.getString(R.string.hilal_moonset), timeFormat.format(it), labelColor)
         }
 
-        // Moon altitude & elongation
-        appendRow(sb, ctx.getString(R.string.hilal_altitude),
+        // Moon altitude — use contextual label based on mode
+        val altitudeLabel = if (isHilalMode)
+            ctx.getString(R.string.hilal_altitude)
+        else
+            ctx.getString(R.string.hilal_altitude_moon)
+        appendRow(sb, altitudeLabel,
             String.format(selectedLocale, "%.2f°", report.moonApparentAltitude), labelColor)
         appendRow(sb, ctx.getString(R.string.hilal_elongation),
             String.format(selectedLocale, "%.2f°", report.elongationTopo), labelColor)
@@ -199,36 +237,39 @@ class HilalInfoActivity : AppCompatActivity() {
         appendRow(sb, ctx.getString(R.string.hilal_illumination),
             String.format(selectedLocale, "%.2f%%", report.illuminationFraction), labelColor)
 
-        sb.append("\n")
-        appendSectionTitle(sb, ctx.getString(R.string.hilal_section_criteria))
+        // === Criteria Section — only in Hilal mode ===
+        if (isHilalMode) {
+            sb.append("\n")
+            appendSectionTitle(sb, ctx.getString(R.string.hilal_section_criteria))
 
-        // Criteria used
-        appendRow(sb, ctx.getString(R.string.hilal_criteria_used), criteria.displayName, labelColor)
-        appendRow(sb, "Yallop Q", String.format(selectedLocale, "%.4f", report.yallopQ), labelColor)
-        appendRow(sb, "Odeh V", String.format(selectedLocale, "%.4f", report.odehV), labelColor)
+            // Criteria used
+            appendRow(sb, ctx.getString(R.string.hilal_criteria_used), criteria.displayName, labelColor)
+            appendRow(sb, "Yallop Q", String.format(selectedLocale, "%.4f", report.yallopQ), labelColor)
+            appendRow(sb, "Odeh V", String.format(selectedLocale, "%.4f", report.odehV), labelColor)
 
-        // Boolean checks
-        appendRow(sb, ctx.getString(R.string.hilal_conj_before_sunset),
-            if (report.isConjunctionBeforeSunset) "✅" else "❌", labelColor)
-        appendRow(sb, ctx.getString(R.string.hilal_moonset_after_sunset),
-            if (report.isMoonsetAfterSunset) "✅" else "❌", labelColor)
+            // Boolean checks
+            appendRow(sb, ctx.getString(R.string.hilal_conj_before_sunset),
+                if (report.isConjunctionBeforeSunset) "✅" else "❌", labelColor)
+            appendRow(sb, ctx.getString(R.string.hilal_moonset_after_sunset),
+                if (report.isMoonsetAfterSunset) "✅" else "❌", labelColor)
 
-        sb.append("\n")
+            sb.append("\n")
 
-        // Visibility verdict
-        val verdictText = if (report.isVisible)
-            ctx.getString(R.string.hilal_visible)
-        else
-            ctx.getString(R.string.hilal_not_visible)
-        val verdictColor = if (report.isVisible) Color.parseColor("#4CAF50") else Color.parseColor("#F44336")
+            // Visibility verdict
+            val verdictText = if (report.isVisible)
+                ctx.getString(R.string.hilal_visible)
+            else
+                ctx.getString(R.string.hilal_not_visible)
+            val verdictColor = if (report.isVisible) Color.parseColor("#4CAF50") else Color.parseColor("#F44336")
 
-        val verdictStart = sb.length
-        sb.append(verdictText)
-        sb.setSpan(ForegroundColorSpan(verdictColor), verdictStart, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        sb.setSpan(StyleSpan(android.graphics.Typeface.BOLD), verdictStart, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        sb.setSpan(RelativeSizeSpan(1.1f), verdictStart, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            val verdictStart = sb.length
+            sb.append(verdictText)
+            sb.setSpan(ForegroundColorSpan(verdictColor), verdictStart, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.setSpan(StyleSpan(android.graphics.Typeface.BOLD), verdictStart, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.setSpan(RelativeSizeSpan(1.1f), verdictStart, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
 
-        // Bind hilal data text
+        // Bind data text
         findViewById<TextView>(R.id.tv_hilal_data).text = sb
     }
 

@@ -194,6 +194,7 @@
     <string name="advanced_dnd_settings">Pengaturan Lanjutan</string>
 
     <string name="hilal_dialog_title">🌙 Informasi Hilal</string>
+    <string name="hilal_dialog_title_moon">🌙 Data Astronomi Bulan</string>
     <string name="hilal_phase">Fase Bulan:</string>
     <string name="hilal_conjunction">Ijtimak:</string>
     <string name="hilal_moon_age">Umur Bulan:</string>
@@ -202,6 +203,7 @@
     <string name="hilal_sunset">Maghrib:</string>
     <string name="hilal_moonset">Bulan Terbenam:</string>
     <string name="hilal_altitude">Tinggi Hilal:</string>
+    <string name="hilal_altitude_moon">Tinggi Bulan:</string>
     <string name="hilal_elongation">Elongasi:</string>
     <string name="hilal_sun_azimuth">Azimut Matahari:</string>
     <string name="hilal_moon_azimuth">Azimut Bulan:</string>

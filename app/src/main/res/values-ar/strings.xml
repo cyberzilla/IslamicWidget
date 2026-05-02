@@ -194,6 +194,7 @@
     <string name="advanced_dnd_settings">الإعدادات المتقدمة</string>
 
     <string name="hilal_dialog_title">🌙 معلومات الهلال</string>
+    <string name="hilal_dialog_title_moon">🌙 بيانات فلكية للقمر</string>
     <string name="hilal_phase">طور القمر:</string>
     <string name="hilal_conjunction">الاقتران:</string>
     <string name="hilal_moon_age">عمر القمر:</string>
@@ -202,6 +203,7 @@
     <string name="hilal_sunset">الغروب:</string>
     <string name="hilal_moonset">غروب القمر:</string>
     <string name="hilal_altitude">ارتفاع الهلال:</string>
+    <string name="hilal_altitude_moon">ارتفاع القمر:</string>
     <string name="hilal_elongation">الاستطالة:</string>
     <string name="hilal_sun_azimuth">سمت الشمس:</string>
     <string name="hilal_moon_azimuth">سمت القمر:</string>

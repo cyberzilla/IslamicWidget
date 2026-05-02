@@ -194,6 +194,7 @@
     <string name="advanced_dnd_settings">Advanced Settings</string>
 
     <string name="hilal_dialog_title">🌙 Hilal Information</string>
+    <string name="hilal_dialog_title_moon">🌙 Moon Astronomical Data</string>
     <string name="hilal_phase">Moon Phase:</string>
     <string name="hilal_conjunction">Conjunction:</string>
     <string name="hilal_moon_age">Moon Age:</string>
@@ -202,6 +203,7 @@
     <string name="hilal_sunset">Sunset:</string>
     <string name="hilal_moonset">Moonset:</string>
     <string name="hilal_altitude">Hilal Altitude:</string>
+    <string name="hilal_altitude_moon">Moon Altitude:</string>
     <string name="hilal_elongation">Elongation:</string>
     <string name="hilal_sun_azimuth">Sun Azimuth:</string>
     <string name="hilal_moon_azimuth">Moon Azimuth:</string>
