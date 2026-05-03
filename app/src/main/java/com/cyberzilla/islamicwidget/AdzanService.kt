@@ -194,7 +194,7 @@ class AdzanService : Service() {
         safetyRunnable = Runnable {
             if (!isFadingOut) {
                 AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Safety timeout (${MAX_SERVICE_DURATION_MS/1000}s)")
-                stopSelf()
+                fadeOutAndStop()
             }
         }
         safetyHandler?.postDelayed(safetyRunnable!!, MAX_SERVICE_DURATION_MS)

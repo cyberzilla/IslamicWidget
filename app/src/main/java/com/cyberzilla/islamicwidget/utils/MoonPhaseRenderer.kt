@@ -319,12 +319,12 @@ object MoonPhaseRenderer {
 
             if (phaseAngle < 90.0) {
                 // Waxing crescent: terminator bows RIGHT (toward bright)
-                // Shadow = left of moon + right of terminator
-                shadowPath.arcTo(terminatorRect, 90f, 180f, false)
+                // Shadow = left semicircle of moon + left arc of terminator
+                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
             } else {
                 // Waxing gibbous: terminator bows LEFT (toward dark)
-                // Shadow = left of moon + left of terminator (inverted)
-                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
+                // Shadow = left semicircle of moon → return via right arc of terminator
+                shadowPath.arcTo(terminatorRect, 90f, 180f, false)
             }
             shadowPath.close()
         } else {
@@ -339,12 +339,12 @@ object MoonPhaseRenderer {
 
             if (phaseAngle > 270.0) {
                 // Waning crescent: terminator bows LEFT (toward bright)
-                // Shadow = right of moon + left of terminator
-                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
+                // Shadow = right semicircle of moon + right arc of terminator
+                shadowPath.arcTo(terminatorRect, 90f, 180f, false)
             } else {
                 // Waning gibbous: terminator bows RIGHT (toward dark)
-                // Shadow = right of moon + right of terminator (inverted)
-                shadowPath.arcTo(terminatorRect, 90f, 180f, false)
+                // Shadow = right semicircle of moon → return via left arc of terminator
+                shadowPath.arcTo(terminatorRect, 90f, -180f, false)
             }
             shadowPath.close()
         }

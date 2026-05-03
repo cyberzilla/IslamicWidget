@@ -14,8 +14,8 @@ android {
         applicationId = "com.cyberzilla.islamicwidget"
         minSdk = 26
         targetSdk = 36
-        versionCode = 39
-        versionName = "1.6.3"
+        versionCode = 40
+        versionName = "1.6.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
