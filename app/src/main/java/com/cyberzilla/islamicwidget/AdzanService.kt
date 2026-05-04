@@ -190,7 +190,6 @@ class AdzanService : Service() {
         playAdzan(isSubuh, settings)
 
         // Periodic PlaybackState update agar Android tahu sesi media masih aktif.
-        // Tanpa ini, system bisa menganggap sesi "stale" dan throttle audio saat screen off.
         playbackUpdateHandler = Handler(Looper.getMainLooper())
         playbackUpdateRunnable = object : Runnable {
             override fun run() {
@@ -259,8 +258,11 @@ class AdzanService : Service() {
         audioFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
             when (focusChange) {
                 AudioManager.AUDIOFOCUS_GAIN -> {
+                    // Focus kembali (setelah notifikasi, telepon, dll).
+                    // Selalu resume — adzan TIDAK BOLEH diam sampai selesai.
                     if (!isAdzanStillRelevant()) {
-                        stopSelf()
+                        Log.d(TAG, "AUDIOFOCUS_GAIN: waktu sudah lewat, stop.")
+                        fadeOutAndStop()
                         return@OnAudioFocusChangeListener
                     }
                     try {
@@ -268,16 +270,22 @@ class AdzanService : Service() {
                         mediaPlayer?.setVolume(internalVol, internalVol)
                         if (mediaPlayer?.isPlaying == false && !isFadingOut) {
                             mediaPlayer?.start()
+                            Log.d(TAG, "AUDIOFOCUS_GAIN: audio resumed.")
                         }
                     } catch (e: Exception) {}
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                    Log.d(TAG, "Audio focus transient loss diabaikan (Proteksi Screen Off)")
+                    // SENGAJA DIABAIKAN. Adzan menggunakan jalur ALARM dan
+                    // tidak boleh tunduk pada transient loss (screen off, notifikasi, dll).
+                    // Watchdog akan handle jika OS diam-diam mem-pause audio.
+                    Log.d(TAG, "AUDIOFOCUS_LOSS_TRANSIENT diabaikan (proteksi adzan)")
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                    Log.d(TAG, "Audio focus duck diabaikan")
+                    // Juga diabaikan — adzan tidak boleh di-duck.
+                    Log.d(TAG, "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK diabaikan (proteksi adzan)")
                 }
                 AudioManager.AUDIOFOCUS_LOSS -> {
+                    // Hanya permanent loss yang dihormati (misal: user buka app musik lain)
                     AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Audio focus loss permanen")
                     fadeOutAndStop()
                 }
@@ -373,18 +381,25 @@ class AdzanService : Service() {
 
                 setOnInfoListener { _, what, _ ->
                     if (what == MediaPlayer.MEDIA_INFO_AUDIO_NOT_PLAYING && !isFadingOut) {
+                        // OS memberi tahu audio berhenti — langsung restart.
+                        // Watchdog juga akan menangkap ini, tapi ini lebih cepat.
+                        Log.w(TAG, "MEDIA_INFO_AUDIO_NOT_PLAYING terdeteksi — force restart.")
                         Handler(Looper.getMainLooper()).postDelayed({
+                            if (isFadingOut) return@postDelayed
                             if (!isAdzanStillRelevant()) {
-                                stopSelf()
+                                fadeOutAndStop()
                                 return@postDelayed
                             }
                             if (mediaPlayer?.isPlaying == false) {
                                 try {
                                     mediaPlayer?.start()
                                     updatePlaybackState()
-                                } catch (e: Exception) {}
+                                    Log.d(TAG, "Audio force-restarted via OnInfoListener.")
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Force restart failed: ${e.message}")
+                                }
                             }
-                        }, 500)
+                        }, 300)
                         true
                     } else false
                 }

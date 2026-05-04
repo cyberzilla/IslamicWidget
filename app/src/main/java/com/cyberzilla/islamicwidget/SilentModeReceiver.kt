@@ -179,16 +179,44 @@ class SilentModeReceiver : BroadcastReceiver() {
         val currentFilter = notificationManager.currentInterruptionFilter
 
         if (!isMutedByApp) {
-            prefs.edit()
+            // Simpan filter dan policy lama untuk restore saat unmute
+            val editor = prefs.edit()
                 .putInt("PREF_PREV_FILTER", currentFilter)
                 .putBoolean("IS_MUTED_BY_APP_DND", true)
-                .apply()
+            try {
+                val currentPolicy = notificationManager.notificationPolicy
+                editor.putInt("PREF_PREV_POLICY_CATEGORIES", currentPolicy.priorityCategories)
+            } catch (_: Exception) {}
+            editor.apply()
         }
 
         try {
+            // === KRUSIAL: Set policy DND yang EKSPLISIT mengizinkan ALARM & MEDIA ===
+            // Tanpa ini, HyperOS/MIUI bisa memblokir USAGE_ALARM audio saat DND aktif,
+            // menyebabkan adzan terpause ~60 detik setelah screen off.
+            // Policy ini memastikan:
+            //   - Alarm (adzan) tetap terdengar
+            //   - Media tetap lewat
+            //   - Panggilan, SMS, notifikasi lain tetap di-block (tujuan auto-silent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val alarmSafePolicy = NotificationManager.Policy(
+                    NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS or
+                            NotificationManager.Policy.PRIORITY_CATEGORY_MEDIA,
+                    0, 0
+                )
+                notificationManager.notificationPolicy = alarmSafePolicy
+            } else {
+                @Suppress("DEPRECATION")
+                val alarmSafePolicy = NotificationManager.Policy(
+                    NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS,
+                    0, 0
+                )
+                notificationManager.notificationPolicy = alarmSafePolicy
+            }
+
             if (notificationManager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
                 notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
-                AdzanLogger.logMuteExecuted(context, "DND Priority")
+                AdzanLogger.logMuteExecuted(context, "DND Priority (alarm-safe policy)")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Gagal mengaktifkan DND: ${e.message}")
@@ -218,6 +246,16 @@ class SilentModeReceiver : BroadcastReceiver() {
             if (wasMutedByAppDnd && notificationManager.isNotificationPolicyAccessGranted) {
                 val prevFilter = prefs.getInt("PREF_PREV_FILTER", NotificationManager.INTERRUPTION_FILTER_ALL)
                 notificationManager.setInterruptionFilter(prevFilter)
+
+                // Restore policy lama jika tersimpan
+                val prevPolicyCategories = prefs.getInt("PREF_PREV_POLICY_CATEGORIES", -1)
+                if (prevPolicyCategories >= 0) {
+                    try {
+                        val restoredPolicy = NotificationManager.Policy(prevPolicyCategories, 0, 0)
+                        notificationManager.notificationPolicy = restoredPolicy
+                    } catch (_: Exception) {}
+                }
+
                 Log.d(TAG, "Perangkat sukses dikembalikan dari DND ke state Normal.")
                 AdzanLogger.logUnmuteExecuted(context, "DND -> Normal")
             }
