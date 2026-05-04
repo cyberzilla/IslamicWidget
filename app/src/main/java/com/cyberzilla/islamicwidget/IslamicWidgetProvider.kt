@@ -902,8 +902,13 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val adzanPendingIntent = PendingIntent.getBroadcast(context, RC_ADZAN, adzanIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, prayerTime.time, adzanPendingIntent)
+                // setAlarmClock = prioritas TERTINGGI di Android.
+                // TIDAK pernah di-delay oleh Doze mode (berbeda dengan setExactAndAllowWhileIdle
+                // yang terbukti delay 4+ menit saat device deep sleep).
+                // Adzan = alarm panggilan sholat → wajib pakai setAlarmClock.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    val alarmInfo = AlarmManager.AlarmClockInfo(prayerTime.time, adzanPendingIntent)
+                    alarmManager.setAlarmClock(alarmInfo, adzanPendingIntent)
                 } else {
                     alarmManager.setExact(AlarmManager.RTC_WAKEUP, prayerTime.time, adzanPendingIntent)
                 }
@@ -949,7 +954,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         try {
             if (now <= muteTimeMillis) {
                 // MUTE time belum tiba — jadwalkan alarm MUTE di masa depan
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteTimeMillis, mutePendingIntent)
+                val muteAlarmInfo = AlarmManager.AlarmClockInfo(muteTimeMillis, mutePendingIntent)
+                alarmManager.setAlarmClock(muteAlarmInfo, mutePendingIntent)
                 AdzanLogger.logScheduled(context, requestCodeId, muteTimeMillis, "MUTE")
             } else {
                 // FIX: MUTE time sudah lewat — JANGAN jadwalkan alarm MUTE lagi.
@@ -965,7 +971,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             // beberapa detik (masih lolos guard `now > unmuteTimeMillis` karena timing race),
             // menyebabkan AlarmManager langsung fire alarm → extra UNMUTE.
             if (now < unmuteTimeMillis) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, unmuteTimeMillis, unmutePendingIntent)
+                val unmuteAlarmInfo = AlarmManager.AlarmClockInfo(unmuteTimeMillis, unmutePendingIntent)
+                alarmManager.setAlarmClock(unmuteAlarmInfo, unmutePendingIntent)
                 AdzanLogger.logScheduled(context, requestCodeId, unmuteTimeMillis, "UNMUTE")
             } else {
                 // UNMUTE time sudah lewat — cancel untuk bersih-bersih
