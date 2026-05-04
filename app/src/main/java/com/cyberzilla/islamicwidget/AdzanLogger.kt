@@ -224,17 +224,24 @@ object AdzanLogger {
     private fun resolveLogFile(context: Context, sessionId: String): File? {
         val fileName = "${LOG_FILE_PREFIX}${sessionId}.txt"
         return try {
-            // Prioritas 1: Android/media/<package>/ (bisa diakses via file manager tanpa root)
-            val mediaDir = File(
-                android.os.Environment.getExternalStorageDirectory(),
-                "Android/media/${context.packageName}"
+            // Prioritas 1: Documents/IslamicWidget/ (TAHAN UNINSTALL, bisa diakses via file manager)
+            val docsDir = File(
+                android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_DOCUMENTS
+                ),
+                "IslamicWidget"
             )
-            mediaDir.mkdirs()
-            File(mediaDir, fileName)
+            docsDir.mkdirs()
+            File(docsDir, fileName)
         } catch (e: Exception) {
             try {
-                // Fallback: internal app files
-                File(context.filesDir, "$LOG_DIR_NAME/$fileName")
+                // Fallback: Android/media/<package>/ (terhapus saat uninstall)
+                val mediaDir = File(
+                    android.os.Environment.getExternalStorageDirectory(),
+                    "Android/media/${context.packageName}"
+                )
+                mediaDir.mkdirs()
+                File(mediaDir, fileName)
             } catch (e2: Exception) {
                 null
             }

@@ -264,8 +264,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             // GPS dibulatkan ke 3 desimal (~100m) agar GPS jitter tidak memicu reschedule.
             val roundedLat = String.format(Locale.US, "%.3f", lat)
             val roundedLon = String.format(Locale.US, "%.3f", lon)
-            val fingerprint = "$today|$roundedLat|$roundedLon|${todayPT.fajr.time}|${todayPT.dhuhr.time}|" +
-                    "${todayPT.asr.time}|${todayPT.maghrib.time}|${todayPT.isha.time}"
+            // FIX: Bulatkan epoch ke detik (÷1000). Sebelumnya pakai milidetik,
+            // sehingga GPS jitter ~15m menghasilkan epoch beda 10-15ms yang
+            // mem-bypass cache → trigger cancelExistingAlarms + full reschedule.
+            // Terlalu banyak reschedule menghabiskan alarm quota Android → alarm delay.
+            val fingerprint = "$today|$roundedLat|$roundedLon|${todayPT.fajr.time / 1000}|${todayPT.dhuhr.time / 1000}|" +
+                    "${todayPT.asr.time / 1000}|${todayPT.maghrib.time / 1000}|${todayPT.isha.time / 1000}"
 
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
             val lastFingerprint = prefs.getString("LAST_SCHEDULE_FINGERPRINT", null)
@@ -813,14 +817,20 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         if (isDayStartAtMaghrib) {
             val pendingIntentMaghrib = PendingIntent.getBroadcast(context, appWidgetId + 5000, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val triggerTime = maghribTime.time + 1000L
+            // FIX: Sebelumnya +1 detik → bertabrakan dengan alarm ADZAN Maghrib.
+            // Widget update men-trigger scheduleAllPrayers → cancelExistingAlarms
+            // yang membatalkan alarm ADZAN yang pending (delayed oleh Doze).
+            // +5 menit = setelah adzan selesai (~4 menit), aman dari race condition.
+            val triggerTime = maghribTime.time + 5 * 60 * 1000L
             if (Date().time < triggerTime) {
                 try { alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, triggerTime, pendingIntentMaghrib) } catch (e: SecurityException) {}
             }
         }
 
         val pendingIntentFajr = PendingIntent.getBroadcast(context, appWidgetId + 7000, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val fajrTriggerTime = fajrTime.time + 1000L
+        // FIX: Sama seperti Maghrib — Fajr+1s bertabrakan dengan alarm ADZAN Subuh.
+        // Log 20260502: Subuh delay 107 detik karena cancelExistingAlarms dari widget update.
+        val fajrTriggerTime = fajrTime.time + 5 * 60 * 1000L
         if (Date().time < fajrTriggerTime) {
             try { alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, fajrTriggerTime, pendingIntentFajr) } catch (e: SecurityException) {}
         }
