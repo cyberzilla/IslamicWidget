@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
+import android.database.ContentObserver
 
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
@@ -44,11 +45,14 @@ class AdzanService : Service() {
     private var fadeRunnable: Runnable? = null
     private var safetyHandler: Handler? = null
     private var safetyRunnable: Runnable? = null
+    private var playbackUpdateHandler: Handler? = null
+    private var playbackUpdateRunnable: Runnable? = null
 
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
     private var audioFocusRequest: AudioFocusRequest? = null
 
     private var volumeReceiver: BroadcastReceiver? = null
+    private var volumeObserver: ContentObserver? = null
 
     private var prayerTimeInMillis = 0L
     private var prayerId = 0
@@ -125,12 +129,7 @@ class AdzanService : Service() {
             MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
                     MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
         )
-        mediaSession?.setPlaybackState(
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1f)
-                .setActions(PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_PAUSE)
-                .build()
-        )
+        updatePlaybackState()
 
         mediaSession?.setCallback(object : MediaSessionCompat.Callback() {
             override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
@@ -189,6 +188,19 @@ class AdzanService : Service() {
 
         AdzanLogger.logAdzanPlayStart(this, prayerId, isSubuh)
         playAdzan(isSubuh, settings)
+
+        // Periodic PlaybackState update agar Android tahu sesi media masih aktif.
+        // Tanpa ini, system bisa menganggap sesi "stale" dan throttle audio saat screen off.
+        playbackUpdateHandler = Handler(Looper.getMainLooper())
+        playbackUpdateRunnable = object : Runnable {
+            override fun run() {
+                if (!isFadingOut) {
+                    updatePlaybackState()
+                    playbackUpdateHandler?.postDelayed(this, 10_000)
+                }
+            }
+        }
+        playbackUpdateHandler?.postDelayed(playbackUpdateRunnable!!, 10_000)
 
         safetyHandler = Handler(Looper.getMainLooper())
         safetyRunnable = Runnable {
@@ -273,7 +285,7 @@ class AdzanService : Service() {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -290,7 +302,7 @@ class AdzanService : Service() {
             am.requestAudioFocus(
                 audioFocusListener,
                 AudioManager.STREAM_ALARM,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+                AudioManager.AUDIOFOCUS_GAIN
             )
         }
     }
@@ -367,7 +379,10 @@ class AdzanService : Service() {
                                 return@postDelayed
                             }
                             if (mediaPlayer?.isPlaying == false) {
-                                try { mediaPlayer?.start() } catch (e: Exception) {}
+                                try {
+                                    mediaPlayer?.start()
+                                    updatePlaybackState()
+                                } catch (e: Exception) {}
                             }
                         }, 500)
                         true
@@ -427,11 +442,22 @@ class AdzanService : Service() {
             }
         } catch (e: Exception) {}
 
-        // REMOVED: ContentObserver pada Settings.System.CONTENT_URI
-        // Observer ini mendengarkan SEMUA perubahan Settings.System (brightness, DND, dll),
-        // bukan hanya volume. Saat screen off, system menulis settings → onChange fire →
-        // volume alarm bisa terlihat berubah (transient DND routing) → fadeOutAndStop().
-        // VolumeProviderCompat + BroadcastReceiver sudah cukup untuk deteksi volume button.
+        volumeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                super.onChange(selfChange)
+                if (isFadingOut) return
+
+                val currentAlarmVol = audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: -1
+                if (currentAlarmVol != initialAlarmVolume && currentAlarmVol != -1) {
+                    Log.d(TAG, "Observer mendeteksi nilai absolut Volume bergeser. Stop Adzan.")
+                    AdzanLogger.logAdzanInterrupted(this@AdzanService, prayerId, "Volume observer mendeteksi perubahan")
+                    fadeOutAndStop()
+                }
+            }
+        }
+        try {
+            contentResolver.registerContentObserver(android.provider.Settings.System.CONTENT_URI, true, volumeObserver!!)
+        } catch (e: Exception) {}
     }
 
     private fun createNotificationChannel(localizedContext: Context) {
@@ -458,11 +484,19 @@ class AdzanService : Service() {
             try { unregisterReceiver(it) } catch (e: Exception) {}
             volumeReceiver = null
         }
+        volumeObserver?.let {
+            try { contentResolver.unregisterContentObserver(it) } catch (e: Exception) {}
+            volumeObserver = null
+        }
 
 
         safetyRunnable?.let { safetyHandler?.removeCallbacks(it) }
         safetyHandler = null
         safetyRunnable = null
+
+        playbackUpdateRunnable?.let { playbackUpdateHandler?.removeCallbacks(it) }
+        playbackUpdateHandler = null
+        playbackUpdateRunnable = null
 
         fadeRunnable?.let { fadeHandler?.removeCallbacks(it) }
         fadeHandler = null
@@ -479,12 +513,10 @@ class AdzanService : Service() {
         mediaSession = null
 
         val settings = SettingsManager(this)
-        if (settings.isAdzanPlaying) {
-            settings.isAdzanPlaying = false
-            sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
-                action = "ACTION_UPDATE_WIDGETS_BROADCAST"
-            })
-        }
+        settings.isAdzanPlaying = false
+        sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
+            action = "ACTION_UPDATE_WIDGETS_BROADCAST"
+        })
 
         serviceWakeLock?.let { if (it.isHeld) it.release() }
 
@@ -569,5 +601,18 @@ class AdzanService : Service() {
             // Jika gagal hitung, amankan: anggap masih di window agar tidak premature unmute
             true
         }
+    }
+
+    private fun updatePlaybackState() {
+        val position = try {
+            mediaPlayer?.currentPosition?.toLong() ?: 0L
+        } catch (e: Exception) { 0L }
+
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_PLAYING, position, 1f)
+                .setActions(PlaybackStateCompat.ACTION_STOP or PlaybackStateCompat.ACTION_PAUSE)
+                .build()
+        )
     }
 }
