@@ -30,6 +30,36 @@ import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import java.util.Locale
 
+/**
+ * Service untuk memutar audio adzan sebagai foreground service.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  ⚠️ PERINGATAN KRITIS: BUG ADZAN TERPAUSE SAAT SCREEN OFF          ║
+ * ╠══════════════════════════════════════════════════════════════════════╣
+ * ║  Bug ini sudah terjadi BERULANG KALI dan sangat sulit di-debug.    ║
+ * ║                                                                    ║
+ * ║  GEJALA: Audio adzan berhenti ~60 detik setelah screen off,       ║
+ * ║  lalu resume saat screen on (meski waktu sholat sudah lewat).     ║
+ * ║                                                                    ║
+ * ║  ROOT CAUSE: Auto-silent (DND) memblokir USAGE_ALARM audio        ║
+ * ║  di HyperOS/MIUI jika NotificationPolicy TIDAK eksplisit          ║
+ * ║  mengizinkan PRIORITY_CATEGORY_ALARMS.                            ║
+ * ║                                                                    ║
+ * ║  FIX YANG BENAR (di SilentModeReceiver.executeMute):              ║
+ * ║  → Set NotificationPolicy dengan PRIORITY_CATEGORY_ALARMS         ║
+ * ║    SEBELUM mengaktifkan INTERRUPTION_FILTER_PRIORITY.             ║
+ * ║                                                                    ║
+ * ║  JANGAN PERNAH:                                                    ║
+ * ║  1. Menghapus alarm-safe policy di SilentModeReceiver             ║
+ * ║  2. Menambah mediaPlayer?.pause() di AUDIOFOCUS_LOSS_TRANSIENT    ║
+ * ║  3. Menambah watchdog/polling sebagai "fix" — itu over-engineering║
+ * ║  4. Mengubah USAGE_ALARM ke USAGE_MEDIA                           ║
+ * ║                                                                    ║
+ * ║  Jika bug muncul lagi, PERIKSA SilentModeReceiver.executeMute()   ║
+ * ║  terlebih dahulu — apakah NotificationPolicy masih mengizinkan     ║
+ * ║  PRIORITY_CATEGORY_ALARMS?                                        ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ */
 class AdzanService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var audioManager: AudioManager? = null
@@ -275,9 +305,12 @@ class AdzanService : Service() {
                     } catch (e: Exception) {}
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                    // ⚠️ JANGAN UBAH KE mediaPlayer?.pause()!
                     // SENGAJA DIABAIKAN. Adzan menggunakan jalur ALARM dan
                     // tidak boleh tunduk pada transient loss (screen off, notifikasi, dll).
-                    // Watchdog akan handle jika OS diam-diam mem-pause audio.
+                    // Jika audio tetap terpause meski kode ini benar, masalahnya
+                    // ada di DND policy — lihat SilentModeReceiver.executeMute().
+                    // Lihat class-level KDoc untuk penjelasan lengkap.
                     Log.d(TAG, "AUDIOFOCUS_LOSS_TRANSIENT diabaikan (proteksi adzan)")
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {

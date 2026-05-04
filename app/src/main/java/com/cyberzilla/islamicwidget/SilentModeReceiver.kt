@@ -154,6 +154,28 @@ class SilentModeReceiver : BroadcastReceiver() {
         }
     }
 
+    /**
+     * Mengaktifkan DND (Do Not Disturb) untuk auto-silent saat adzan.
+     *
+     * ⚠️ PERINGATAN KRITIS — BACA SEBELUM MENGUBAH!
+     *
+     * Method ini HARUS set NotificationPolicy dengan PRIORITY_CATEGORY_ALARMS
+     * SEBELUM mengaktifkan INTERRUPTION_FILTER_PRIORITY. Tanpa ini:
+     *
+     *   → HyperOS/MIUI akan memblokir USAGE_ALARM audio saat DND aktif
+     *   → Adzan terpause ~60 detik setelah screen off
+     *   → Resume zombie saat screen on (meski waktu sholat sudah lewat)
+     *
+     * Bug ini sudah terjadi BERULANG KALI dan sangat sulit di-debug karena:
+     *   1. Hanya terjadi saat screen off (tidak bisa di-debug via USB)
+     *   2. Gejalanya mirip Doze mode (menyesatkan analisis)
+     *   3. Hanya terjadi di OEM tertentu (Xiaomi/HyperOS/MIUI)
+     *
+     * JANGAN PERNAH menghapus blok notificationPolicy = alarmSafePolicy
+     * di bawah ini! Itu adalah FIX UTAMA untuk bug ini.
+     *
+     * @see AdzanService (lihat class-level KDoc untuk konteks lengkap)
+     */
     private fun executeMute(context: Context) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
