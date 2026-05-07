@@ -171,6 +171,23 @@ class DeveloperModeHelper(private val activity: Activity) {
             alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetMillis, adzanPi)
         }
 
+        // Pre-adzan wake-up: bangunkan device 5 detik sebelum adzan (sama seperti production)
+        val wakeUpMillis = targetMillis - 5_000L
+        if (wakeUpMillis > System.currentTimeMillis()) {
+            val wakeUpIntent = Intent(activity, SilentModeReceiver::class.java).apply {
+                action = "ACTION_WAKE_UP"
+                putExtra("PRAYER_ID", 99)
+            }
+            val wakeUpPi = PendingIntent.getBroadcast(activity, 9904, wakeUpIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                val wakeAlarmInfo = AlarmManager.AlarmClockInfo(wakeUpMillis, wakeUpPi)
+                alarmManager.setAlarmClock(wakeAlarmInfo, wakeUpPi)
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, wakeUpMillis, wakeUpPi)
+            }
+            AdzanLogger.logScheduled(activity, 99, wakeUpMillis, "TEST_WAKE_UP")
+        }
+
         if (beforeMins > 0) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, muteMillis, mutePi)
@@ -220,9 +237,13 @@ class DeveloperModeHelper(private val activity: Activity) {
         val mutePi = PendingIntent.getBroadcast(activity, 9902, muteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val unmutePi = PendingIntent.getBroadcast(activity, 9903, unmuteIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
+        val wakeUpIntent = Intent(activity, SilentModeReceiver::class.java).apply { action = "ACTION_WAKE_UP" }
+        val wakeUpPi = PendingIntent.getBroadcast(activity, 9904, wakeUpIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
         alarmManager.cancel(adzanPi)
         alarmManager.cancel(mutePi)
         alarmManager.cancel(unmutePi)
+        alarmManager.cancel(wakeUpPi)
 
         AdzanLogger.log(activity, AdzanLogger.Event.ALARM_CANCELLED, "DEV TEST dibatalkan")
         refreshLogContent()

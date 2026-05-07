@@ -207,10 +207,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val rcMute = 10000 + requestCodeId
         val rcUnmute = 20000 + requestCodeId
         val rcAdzan = 30000 + requestCodeId
+        val rcWakeUp = 40000 + requestCodeId
 
         val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
         val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
         val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_PLAY_ADZAN" }
+        val wakeUpIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_WAKE_UP" }
 
         try {
             PendingIntent.getBroadcast(context, rcMute, muteIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
@@ -220,6 +222,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 alarmManager.cancel(it); it.cancel()
             }
             PendingIntent.getBroadcast(context, rcAdzan, adzanIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
+                alarmManager.cancel(it); it.cancel()
+            }
+            PendingIntent.getBroadcast(context, rcWakeUp, wakeUpIntent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
                 alarmManager.cancel(it); it.cancel()
             }
         } catch (e: Exception) {
@@ -879,6 +884,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         val RC_MUTE = 10000 + requestCodeId
         val RC_UNMUTE = 20000 + requestCodeId
         val RC_ADZAN = 30000 + requestCodeId
+        val RC_WAKEUP = 40000 + requestCodeId
 
         val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         val audioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -916,6 +922,30 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             } catch (e: SecurityException) {
                 Log.e(TAG, "Gagal menjadwalkan alarm adzan", e)
                 AdzanLogger.log(context, AdzanLogger.Event.ADZAN_ERROR, "SecurityException saat menjadwalkan adzan ID=$requestCodeId: ${e.message}")
+            }
+
+            // === PRE-ADZAN WAKE-UP: Bangunkan device 5 detik sebelum adzan ===
+            // Saat device dalam Doze/screen-off, proses bisa mati setelah MUTE diproses
+            // sehingga ADZAN yang fire bersamaan tidak sempat diproses.
+            // Wake-up alarm ini memastikan device sudah aktif saat ADZAN fire.
+            val wakeUpTimeMillis = prayerTime.time - 5_000L // 5 detik sebelum adzan
+            if (now < wakeUpTimeMillis) {
+                try {
+                    val wakeUpIntent = Intent(context, SilentModeReceiver::class.java).apply {
+                        action = "ACTION_WAKE_UP"
+                        putExtra("PRAYER_ID", requestCodeId)
+                    }
+                    val wakeUpPendingIntent = PendingIntent.getBroadcast(context, RC_WAKEUP, wakeUpIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        val wakeAlarmInfo = AlarmManager.AlarmClockInfo(wakeUpTimeMillis, wakeUpPendingIntent)
+                        alarmManager.setAlarmClock(wakeAlarmInfo, wakeUpPendingIntent)
+                    } else {
+                        alarmManager.setExact(AlarmManager.RTC_WAKEUP, wakeUpTimeMillis, wakeUpPendingIntent)
+                    }
+                    AdzanLogger.logScheduled(context, requestCodeId, wakeUpTimeMillis, "WAKE_UP")
+                } catch (e: SecurityException) {
+                    Log.e(TAG, "Gagal menjadwalkan wake-up alarm", e)
+                }
             }
         }
 

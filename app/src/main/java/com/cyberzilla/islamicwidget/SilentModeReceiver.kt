@@ -75,6 +75,40 @@ class SilentModeReceiver : BroadcastReceiver() {
                 }
             }
 
+            "ACTION_WAKE_UP" -> {
+                // === PRE-ADZAN WAKE-UP ===
+                // Membangunkan device dari Doze mode 5 detik sebelum adzan.
+                // Tanpa ini, proses bisa mati setelah alarm pertama (MUTE) diproses,
+                // sehingga alarm ADZAN yang fire bersamaan/sesaat setelahnya tidak diproses.
+                //
+                // Menggunakan SCREEN_BRIGHT_WAKE_LOCK + ACQUIRE_CAUSES_WAKEUP
+                // agar screen menyala sebentar — ini juga sinyal visual bagi user
+                // bahwa adzan akan segera berkumandang.
+                val prayerIdForLog = intent.getIntExtra("PRAYER_ID", 0)
+                val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+
+                AdzanLogger.log(context, AdzanLogger.Event.DEVICE_WAKEUP,
+                    "Pre-adzan wake-up untuk ${AdzanLogger.getPrayerName(prayerIdForLog)}, isInteractive=${pm.isInteractive}")
+
+                if (!pm.isInteractive) {
+                    // Device dalam keadaan screen off / Doze — bangunkan
+                    @Suppress("DEPRECATION")
+                    val screenLock = pm.newWakeLock(
+                        PowerManager.SCREEN_BRIGHT_WAKE_LOCK or
+                                PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                        "IslamicWidget:PreAdzanScreenWake"
+                    )
+                    screenLock.acquire(10_000L) // Tahan screen on 10 detik
+
+                    // CPU WakeLock terpisah agar CPU tetap hidup walau screen mati lagi
+                    val cpuLock = pm.newWakeLock(
+                        PowerManager.PARTIAL_WAKE_LOCK,
+                        "IslamicWidget:PreAdzanCpuWake"
+                    )
+                    cpuLock.acquire(30_000L) // Tahan CPU 30 detik sampai ADZAN alarm fire & service start
+                }
+            }
+
             "ACTION_STOP_ADZAN_BROADCAST" -> {
                 val settings = SettingsManager(context)
                 settings.isAdzanPlaying = false

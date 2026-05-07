@@ -64,6 +64,7 @@ object AdzanLogger {
         WIDGET_UPDATE,
         BOOT_RESCHEDULE,
         AUDIO_FOCUS_CHANGE,
+        DEVICE_WAKEUP,
     }
 
     // Background executor untuk file I/O agar tidak blocking main thread
@@ -303,7 +304,7 @@ object AdzanLogger {
         log(context, Event.UNMUTE_EXECUTED, "Perangkat di-unmute via $method")
     }
 
-    private fun getPrayerName(prayerId: Int): String {
+    internal fun getPrayerName(prayerId: Int): String {
         return when (prayerId) {
             1 -> "Subuh"
             2 -> "Dzuhur/Jumat"
