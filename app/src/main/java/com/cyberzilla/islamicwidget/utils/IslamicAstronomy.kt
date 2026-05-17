@@ -560,7 +560,12 @@ object IslamicAstronomy {
                 else lunarDay - staticDay - 30
             }
 
-            delta.coerceIn(-1, 1)
+            // FIX: Diperluas dari ±1 ke ±2 untuk menangani kasus dimana
+            // hilal terlihat pada tanggal 29 (bulan baru dimulai lebih awal).
+            // Skenario: Astronomi = 1 bulan baru, Java HijrahDate = 29 bulan lama
+            // → delta = 2, dengan ±1 di-clamp jadi 1 → tampil 30 (salah!)
+            // Dengan ±2 → tampil 1 bulan baru (benar).
+            delta.coerceIn(-2, 2)
         } catch (e: Exception) {
             0
         }

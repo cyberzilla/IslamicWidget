@@ -64,6 +64,7 @@ class AdzanService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var audioManager: AudioManager? = null
     private var serviceWakeLock: PowerManager.WakeLock? = null
+    private var screenWakeLock: PowerManager.WakeLock? = null
 
     @Volatile
     private var isFadingOut = false
@@ -117,6 +118,26 @@ class AdzanService : Service() {
         serviceWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicWidget:AdzanServiceLock")
         if (serviceWakeLock?.isHeld == false) {
             serviceWakeLock?.acquire(6 * 60 * 1000L)
+        }
+
+        // === SCREEN-ON SELAMA ADZAN ===
+        // Menjaga screen tetap menyala selama adzan berlangsung.
+        // Ini adalah solusi paling reliable untuk mencegah audio USAGE_ALARM
+        // di-pause oleh sistem saat screen off (terutama di HyperOS/MIUI).
+        // Sebelumnya menggunakan pre-wake 5 detik sebelum adzan, tapi terbukti
+        // tidak konsisten — kadang berhasil, kadang audio tetap ter-pause.
+        // Dengan screen tetap on, DND tidak akan memblokir audio stream.
+        try {
+            @Suppress("DEPRECATION")
+            screenWakeLock = pm.newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                "IslamicWidget:AdzanScreenOn"
+            )
+            screenWakeLock?.acquire(MAX_SERVICE_DURATION_MS)
+            AdzanLogger.log(this, AdzanLogger.Event.SCREEN_WAKE,
+                "Screen wake lock acquired untuk adzan (timeout=${MAX_SERVICE_DURATION_MS/1000}s)")
+        } catch (e: Exception) {
+            Log.e(TAG, "Gagal acquire screen wake lock", e)
         }
 
         val settings = SettingsManager(this)
@@ -567,6 +588,20 @@ class AdzanService : Service() {
         })
 
         serviceWakeLock?.let { if (it.isHeld) it.release() }
+
+        // Release screen wake lock — screen boleh mati setelah adzan selesai
+        try {
+            screenWakeLock?.let {
+                if (it.isHeld) {
+                    it.release()
+                    AdzanLogger.log(this, AdzanLogger.Event.SCREEN_WAKE,
+                        "Screen wake lock released (adzan selesai/dihentikan)")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error releasing screen wake lock", e)
+        }
+        screenWakeLock = null
 
         val prefs = getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         if (prefs.getBoolean("PENDING_UNMUTE", false)) {

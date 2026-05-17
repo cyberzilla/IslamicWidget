@@ -65,6 +65,7 @@ object AdzanLogger {
         BOOT_RESCHEDULE,
         AUDIO_FOCUS_CHANGE,
         DEVICE_WAKEUP,
+        SCREEN_WAKE,
     }
 
     // Background executor untuk file I/O agar tidak blocking main thread
