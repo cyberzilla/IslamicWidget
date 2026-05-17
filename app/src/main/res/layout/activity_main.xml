@@ -191,24 +191,6 @@
                     app:strokeColor="@color/glass_card_stroke"
                     app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_gps" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp" />
-                        <TextView android:id="@+id/tv_location_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/memuat" android:textColor="?android:attr/textColorPrimary" android:textSize="18sp" android:textStyle="bold" />
-                        <TextView android:id="@+id/tv_lat_lon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Lat: -, Lon: -" android:textColor="?android:attr/textColorSecondary" android:textSize="14sp" android:layout_marginBottom="16dp"/>
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_update_gps" android:layout_width="match_parent" android:layout_height="50dp" app:cornerRadius="16dp" android:text="@string/btn_update_gps" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary"/>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="@color/glass_card_bg"
-                    app:cardCornerRadius="28dp"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="1.5dp"
-                    app:strokeColor="@color/glass_card_stroke"
-                    app:contentPadding="20dp">
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_visual" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="16dp" />
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="4dp">
@@ -265,6 +247,24 @@
                             <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_text_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="@string/btn_text_color" android:textSize="13sp" android:layout_marginEnd="6dp" app:cornerRadius="16dp" app:strokeColor="?android:attr/textColorSecondary" app:strokeWidth="1dp" />
                             <com.google.android.material.button.MaterialButton android:id="@+id/btn_pick_bg_color" android:layout_width="0dp" android:layout_weight="1" android:layout_height="52dp" android:text="@string/btn_bg_color" android:textSize="13sp" android:layout_marginStart="6dp" app:cornerRadius="16dp" app:strokeColor="?android:attr/textColorSecondary" app:strokeWidth="1dp"/>
                         </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="28dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="1.5dp"
+                    app:strokeColor="@color/glass_card_stroke"
+                    app:contentPadding="20dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sec_gps" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:layout_marginBottom="12dp" />
+                        <TextView android:id="@+id/tv_location_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/memuat" android:textColor="?android:attr/textColorPrimary" android:textSize="18sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_lat_lon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Lat: -, Lon: -" android:textColor="?android:attr/textColorSecondary" android:textSize="14sp" android:layout_marginBottom="16dp"/>
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btn_update_gps" android:layout_width="match_parent" android:layout_height="50dp" app:cornerRadius="16dp" android:text="@string/btn_update_gps" style="@style/Widget.MaterialComponents.Button.OutlinedButton" app:strokeColor="?attr/colorPrimary" android:textColor="?attr/colorPrimary"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
