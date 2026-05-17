@@ -560,12 +560,24 @@ object IslamicAstronomy {
                 else lunarDay - staticDay - 30
             }
 
-            // FIX: Diperluas dari ±1 ke ±2 untuk menangani kasus dimana
-            // hilal terlihat pada tanggal 29 (bulan baru dimulai lebih awal).
-            // Skenario: Astronomi = 1 bulan baru, Java HijrahDate = 29 bulan lama
-            // → delta = 2, dengan ±1 di-clamp jadi 1 → tampil 30 (salah!)
-            // Dengan ±2 → tampil 1 bulan baru (benar).
-            delta.coerceIn(-2, 2)
+            var finalOffset = delta.coerceIn(-2, 2)
+
+            // === FIX KRITIS: Koreksi hilal terlihat di akhir bulan ===
+            // Skenario: Baik kalkulasi astronomi maupun Java HijrahDate
+            // sama-sama menampilkan hari 29 atau 30 (delta=0), namun hilal
+            // sudah terlihat — artinya bulan baru seharusnya sudah dimulai.
+            // Ini terjadi karena calculateHijriDate mengevaluasi hilal
+            // hanya di sunset hari konjungsi, bukan di sunset hari ini.
+            // Solusi: Jika kita di hari 29/30 (berdasarkan kalkulasi saat ini)
+            // DAN hilal terlihat hari ini, paksa +1 agar tanggal loncat ke 1.
+            if (finalOffset == 0 && (staticDay == 29 || staticDay == 30)) {
+                val hilalReport = result.hilalReport
+                if (hilalReport.isVisible) {
+                    finalOffset = 1
+                }
+            }
+
+            finalOffset
         } catch (e: Exception) {
             0
         }
