@@ -214,4 +214,11 @@
     <string name="hilal_moonset_after_sunset">غروب القمر بعد الشمس:</string>
     <string name="hilal_visible">✅ الهلال مرئي وفق المعايير</string>
     <string name="hilal_not_visible">❌ الهلال غير مرئي وفق المعايير</string>
+
+    <!-- أعياد المملكة العربية السعودية -->
+    <string name="holiday_ar_founding">يوم التأسيس</string>
+    <string name="holiday_ar_national">اليوم الوطني السعودي</string>
+    <string name="holiday_ar_eid_fitri">عيد الفطر المبارك</string>
+    <string name="holiday_ar_eid_adha">عيد الأضحى المبارك</string>
+    <string name="commemoration_ar_ramadan_start">بداية شهر رمضان</string>
 </resources>

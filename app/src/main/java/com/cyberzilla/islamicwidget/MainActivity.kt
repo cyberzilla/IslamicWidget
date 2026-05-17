@@ -40,6 +40,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
 import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
 import com.cyberzilla.islamicwidget.utils.HilalCriteria
+import com.cyberzilla.islamicwidget.utils.HolidayCalendar
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -553,6 +554,11 @@ class MainActivity : AppCompatActivity() {
 
                     if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
+                    // === Holiday Detection ===
+                    val holidays = try {
+                        HolidayCalendar.getHolidaysForDate(localizedContext, today, hijriDate, activeLangCode)
+                    } catch (_: Exception) { emptyList() }
+
                     val sunnahInfo = IslamicAppUtils.getSunnahFastingInfo(localizedContext, hijriDate, today, isAfterMaghrib, isBeforeFajr)
                     val flipper = findViewById<ViewFlipper>(R.id.container_additional_flipper)
 
@@ -612,6 +618,15 @@ class MainActivity : AppCompatActivity() {
                             flipper?.addView(sunnahView)
                         }
 
+                        // === Holiday info slide ===
+                        val holidayText = HolidayCalendar.formatHolidayInfo(holidays)
+                        if (holidayText.isNotEmpty()) {
+                            val holidayView = layoutInflater.inflate(R.layout.item_flipper_text, flipper, false) as TextView
+                            holidayView.text = holidayText
+                            holidayView.setTextColor(Color.parseColor("#E57373"))
+                            flipper?.addView(holidayView)
+                        }
+
                         // Eclipse reminder (Sholat Gerhana)
                         val eclipseInfo = IslamicAppUtils.getEclipseReminderInfo(localizedContext, lat, lon)
                         if (eclipseInfo.isNotEmpty()) {
@@ -655,7 +670,13 @@ class MainActivity : AppCompatActivity() {
             previewBg.colorFilter = null
 
             findViewById<TextView>(R.id.clock_widget)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsClock); setTextColor(textColor) }
-            findViewById<TextView>(R.id.tv_gregorian_date)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsDate - 2f); setTextColor(textColor) }
+            // Warna merah pada Gregorian saat hari libur (tanggal merah)
+            val isHoliday = try {
+                val hols = HolidayCalendar.getHolidaysForDate(this, LocalDate.now(), HijrahDate.now(), activeLangCode)
+                HolidayCalendar.isPublicHoliday(hols)
+            } catch (_: Exception) { false }
+            val gregorianColor = if (isHoliday) Color.parseColor("#EF5350") else textColor
+            findViewById<TextView>(R.id.tv_gregorian_date)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsDate - 2f); setTextColor(gregorianColor) }
             findViewById<TextView>(R.id.tv_hijri_date)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsDate); setTextColor(textColor) }
 
             val prayerLabelIds = arrayOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)

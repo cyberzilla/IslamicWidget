@@ -26,6 +26,7 @@ import android.view.View
 import android.widget.RemoteViews
 import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
 import com.cyberzilla.islamicwidget.utils.HilalCriteria
+import com.cyberzilla.islamicwidget.utils.HolidayCalendar
 import com.cyberzilla.islamicwidget.utils.PrayerTimes as IAstroPrayerTimes
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -547,6 +548,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
         }
 
+        // === Holiday Detection ===
+        val holidays = try {
+            HolidayCalendar.getHolidaysForDate(localizedContext, today, hijriDate, settings.languageCode)
+        } catch (_: Exception) { emptyList() }
+        val isPublicHoliday = HolidayCalendar.isPublicHoliday(holidays)
+
         val is24Hour = DateFormat.is24HourFormat(context)
         val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
 
@@ -583,7 +590,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             val textColor = try { Color.parseColor(settings.widgetTextColor) } catch (e: Exception) { Color.WHITE }
             views.setTextColor(R.id.clock_widget, textColor)
-            views.setTextColor(R.id.tv_gregorian_date, textColor)
+            // Warna merah pada Gregorian saat hari libur (tanggal merah)
+            val gregorianColor = if (isPublicHoliday) Color.parseColor("#EF5350") else textColor
+            views.setTextColor(R.id.tv_gregorian_date, gregorianColor)
             views.setTextColor(R.id.tv_hijri_date, textColor)
 
             val additionalTextIds = listOf(R.id.tv_sunrise, R.id.tv_last_third, R.id.tv_qibla, R.id.tv_divider_1, R.id.tv_divider_2)
@@ -756,6 +765,18 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                             val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                             sunnahView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
                             views.addView(R.id.container_additional_flipper, sunnahView)
+                        }
+
+                        // === Holiday info slide ===
+                        val holidayText = HolidayCalendar.formatHolidayInfo(holidays)
+                        if (holidayText.isNotEmpty()) {
+                            val holidayView = RemoteViews(context.packageName, R.layout.item_flipper_text)
+                            holidayView.setTextViewText(R.id.tv_item_text, holidayText)
+                            holidayView.setTextViewTextSize(R.id.tv_item_text, TypedValue.COMPLEX_UNIT_PX, dpToPx(context, fsAdd))
+                            holidayView.setTextColor(R.id.tv_item_text, Color.parseColor("#E57373"))
+                            val nullIntent = PendingIntent.getActivity(context, 999, Intent(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                            holidayView.setOnClickPendingIntent(R.id.tv_item_text, nullIntent)
+                            views.addView(R.id.container_additional_flipper, holidayView)
                         }
 
                         // Eclipse reminder (Sholat Gerhana)

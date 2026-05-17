@@ -214,4 +214,50 @@
     <string name="hilal_moonset_after_sunset">Bulan terbenam setelah Matahari:</string>
     <string name="hilal_visible">✅ Hilal TERLIHAT menurut kriteria</string>
     <string name="hilal_not_visible">❌ Hilal TIDAK TERLIHAT menurut kriteria</string>
+
+    <!-- Hari Libur Nasional Indonesia (tanggal merah) -->
+    <string name="holiday_id_new_year">Tahun Baru Masehi</string>
+    <string name="holiday_id_labor">Hari Buruh Internasional</string>
+    <string name="holiday_id_pancasila">Hari Lahir Pancasila</string>
+    <string name="holiday_id_independence">Hari Kemerdekaan RI</string>
+    <string name="holiday_id_christmas">Hari Natal</string>
+    <string name="holiday_id_imlek">Tahun Baru Imlek</string>
+    <string name="holiday_id_nyepi">Hari Suci Nyepi (Tahun Baru Saka)</string>
+    <string name="holiday_id_good_friday">Wafat Isa Almasih</string>
+    <string name="holiday_id_ascension">Kenaikan Isa Almasih</string>
+    <string name="holiday_id_waisak">Hari Raya Waisak</string>
+    <string name="holiday_id_islamic_new_year">Tahun Baru Islam (1 Muharram)</string>
+    <string name="holiday_id_mawlid">Maulid Nabi Muhammad SAW</string>
+    <string name="holiday_id_isra_miraj">Isra Mi\'raj Nabi Muhammad SAW</string>
+    <string name="holiday_id_eid_fitri">Hari Raya Idul Fitri</string>
+    <string name="holiday_id_eid_fitri_2">Hari Raya Idul Fitri (Hari ke-2)</string>
+    <string name="holiday_id_eid_adha">Hari Raya Idul Adha</string>
+
+    <!-- Hari Peringatan Indonesia (bukan libur) -->
+    <string name="commemoration_id_kartini">Hari Kartini</string>
+    <string name="commemoration_id_education">Hari Pendidikan Nasional</string>
+    <string name="commemoration_id_awakening">Hari Kebangkitan Nasional</string>
+    <string name="commemoration_id_kesaktian">Hari Kesaktian Pancasila</string>
+    <string name="commemoration_id_sumpah_pemuda">Hari Sumpah Pemuda</string>
+    <string name="commemoration_id_heroes">Hari Pahlawan</string>
+    <string name="commemoration_id_mothers">Hari Ibu</string>
+    <string name="commemoration_id_ashura">Hari Asyura (10 Muharram)</string>
+    <string name="commemoration_id_ramadan_start">Awal Bulan Ramadhan</string>
+    <string name="commemoration_id_nuzulul_quran">Nuzulul Quran (17 Ramadhan)</string>
+
+    <!-- Fallback untuk string holiday EN (override di values-en/) -->
+    <string name="holiday_en_new_year">New Year\'s Day</string>
+    <string name="holiday_en_labor">International Workers\' Day</string>
+    <string name="holiday_en_christmas">Christmas Day</string>
+    <string name="holiday_en_islamic_new_year">Islamic New Year (1 Muharram)</string>
+    <string name="holiday_en_eid_fitri">Eid al-Fitr</string>
+    <string name="holiday_en_eid_adha">Eid al-Adha</string>
+    <string name="commemoration_en_ramadan_start">Beginning of Ramadan</string>
+
+    <!-- Fallback untuk string holiday AR (override di values-ar/) -->
+    <string name="holiday_ar_founding">يوم التأسيس</string>
+    <string name="holiday_ar_national">اليوم الوطني السعودي</string>
+    <string name="holiday_ar_eid_fitri">عيد الفطر المبارك</string>
+    <string name="holiday_ar_eid_adha">عيد الأضحى المبارك</string>
+    <string name="commemoration_ar_ramadan_start">بداية شهر رمضان</string>
 </resources>

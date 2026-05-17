@@ -214,4 +214,13 @@
     <string name="hilal_moonset_after_sunset">Moonset after sunset:</string>
     <string name="hilal_visible">✅ Hilal VISIBLE per criteria</string>
     <string name="hilal_not_visible">❌ Hilal NOT VISIBLE per criteria</string>
+
+    <!-- English holidays (Universal) -->
+    <string name="holiday_en_new_year">New Year\'s Day</string>
+    <string name="holiday_en_labor">International Workers\' Day</string>
+    <string name="holiday_en_christmas">Christmas Day</string>
+    <string name="holiday_en_islamic_new_year">Islamic New Year (1 Muharram)</string>
+    <string name="holiday_en_eid_fitri">Eid al-Fitr</string>
+    <string name="holiday_en_eid_adha">Eid al-Adha</string>
+    <string name="commemoration_en_ramadan_start">Beginning of Ramadan</string>
 </resources>
