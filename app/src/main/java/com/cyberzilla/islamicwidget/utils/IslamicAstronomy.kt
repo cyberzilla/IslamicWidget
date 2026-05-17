@@ -529,21 +529,13 @@ object IslamicAstronomy {
         criteria: HilalCriteria
     ): Int {
         return try {
-            // === FIX: Gunakan tengah hari lokal sebagai referensi ===
-            // Masalah: calculateAutoOffset menghitung hari dari sunset (~18:00),
-            // tapi Java HijrahDate berubah di tengah malam (00:00).
-            // Antara 18:00-00:00, kalkulasi kita sudah naik 1 hari tapi Java belum,
-            // menyebabkan delta bergeser (misal -1 → 0) di tengah bulan.
-            // Solusi: evaluasi di waktu tengah hari lokal dimana kedua sistem
-            // masih di hari yang sama, sehingga offset stabil sepanjang hari.
-            val cal = Calendar.getInstance()
-            cal.set(Calendar.HOUR_OF_DAY, 12)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            val noonToday = cal.time
+            // Gunakan waktu sekarang agar engine astronomi bisa mendeteksi
+            // pergantian bulan yang terjadi setelah Maghrib.
+            // Sebelumnya menggunakan jam 12 siang, tapi ini menyebabkan
+            // engine fallback ke bulan lama karena noon < sunset (month start).
+            val now = Date()
 
-            val result = calculateHijriDate(noonToday, latitude, longitude, elevation, criteria)
+            val result = calculateHijriDate(now, latitude, longitude, elevation, criteria)
 
             val today = java.time.LocalDate.now()
             val staticHijri = java.time.chrono.HijrahDate.from(today)
@@ -560,24 +552,7 @@ object IslamicAstronomy {
                 else lunarDay - staticDay - 30
             }
 
-            var finalOffset = delta.coerceIn(-2, 2)
-
-            // === FIX KRITIS: Koreksi hilal terlihat di akhir bulan ===
-            // Skenario: Baik kalkulasi astronomi maupun Java HijrahDate
-            // sama-sama menampilkan hari 29 atau 30 (delta=0), namun hilal
-            // sudah terlihat — artinya bulan baru seharusnya sudah dimulai.
-            // Ini terjadi karena calculateHijriDate mengevaluasi hilal
-            // hanya di sunset hari konjungsi, bukan di sunset hari ini.
-            // Solusi: Jika kita di hari 29/30 (berdasarkan kalkulasi saat ini)
-            // DAN hilal terlihat hari ini, paksa +1 agar tanggal loncat ke 1.
-            if (finalOffset == 0 && (staticDay == 29 || staticDay == 30)) {
-                val hilalReport = result.hilalReport
-                if (hilalReport.isVisible) {
-                    finalOffset = 1
-                }
-            }
-
-            finalOffset
+            delta.coerceIn(-2, 2)
         } catch (e: Exception) {
             0
         }
