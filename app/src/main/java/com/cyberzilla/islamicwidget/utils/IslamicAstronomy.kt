@@ -529,10 +529,11 @@ object IslamicAstronomy {
         criteria: HilalCriteria
     ): Int {
         return try {
-            // Gunakan waktu sekarang agar engine astronomi bisa mendeteksi
-            // pergantian bulan yang terjadi setelah Maghrib.
-            // Sebelumnya menggunakan jam 12 siang, tapi ini menyebabkan
-            // engine fallback ke bulan lama karena noon < sunset (month start).
+            // Gunakan waktu sekarang (bukan noon) agar engine astronomi
+            // bisa mendeteksi pergantian bulan yang terjadi setelah Maghrib.
+            // PENTING: Karena offset ini sudah memperhitungkan transisi Maghrib,
+            // caller TIDAK boleh menambahkan isDayStartAtMaghrib di atasnya
+            // (akan menyebabkan double-counting).
             val now = Date()
 
             val result = calculateHijriDate(now, latitude, longitude, elevation, criteria)

@@ -105,8 +105,9 @@ class HilalInfoActivity : AppCompatActivity() {
                 settings.hijriOffset.toLong()
             }
 
-            // isDayStartAtMaghrib: jika aktif dan sudah lewat Maghrib, hari Hijri sudah berganti
-            if (settings.isDayStartAtMaghrib) {
+            // isDayStartAtMaghrib: hanya berlaku saat auto offset TIDAK aktif
+            // (auto offset sudah memperhitungkan transisi Maghrib)
+            if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib) {
                 try {
                     val prayerTimes = IslamicAppUtils.calculatePrayerTimes(
                         lat, lon, settings.calculationMethod, today
@@ -150,7 +151,7 @@ class HilalInfoActivity : AppCompatActivity() {
                     IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria).toLong()
                 } catch (_: Exception) { settings.hijriOffset.toLong() }
             } else { settings.hijriOffset.toLong() }
-            if (settings.isDayStartAtMaghrib) {
+            if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib) {
                 try {
                     val pt = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
                     if (java.util.Date().after(pt.maghrib)) offset += 1L

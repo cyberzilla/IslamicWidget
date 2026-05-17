@@ -537,7 +537,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 cachedLat = latString.toDouble()
                 cachedLon = lonString.toDouble()
                 cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
-                if (settings.isDayStartAtMaghrib && Date().after(cachedPrayerTimes!!.maghrib)) {
+                if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib && Date().after(cachedPrayerTimes!!.maghrib)) {
                     totalHijriOffset += 1L
                 }
             } catch (e: Exception) {}
@@ -633,7 +633,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     }
 
                     var isAfterMaghrib = false
-                    if (settings.isDayStartAtMaghrib) {
+                    if (settings.isDayStartAtMaghrib || settings.isAutoHijriOffset) {
                         if (currentTime.after(maghribTime)) {
                             isAfterMaghrib = true
                         }

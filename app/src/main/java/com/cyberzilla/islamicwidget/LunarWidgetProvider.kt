@@ -140,8 +140,9 @@ class LunarWidgetProvider : AppWidgetProvider() {
                 totalHijriOffset = settings.hijriOffset.toLong()
             }
 
-            // isDayStartAtMaghrib: match IslamicWidgetProvider behavior
-            if (settings.isDayStartAtMaghrib) {
+            // isDayStartAtMaghrib: only apply when NOT using auto hijri offset
+            // (auto offset already accounts for Maghrib transition)
+            if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib) {
                 try {
                     val prayerTimes = IslamicAppUtils.calculatePrayerTimes(
                         lat, lon, settings.calculationMethod, today

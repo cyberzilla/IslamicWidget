@@ -433,6 +433,7 @@ class MainActivity : AppCompatActivity() {
             val previewRadiusDp = (findViewById<SeekBar>(R.id.sb_radius)?.progress?.toFloat() ?: 16f) * scaleMultiplier
             val isAutoHijri = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: settingsManager.isAutoHijriOffset
             findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !isAutoHijri
+            findViewById<CheckBox>(R.id.cb_day_start)?.isEnabled = !isAutoHijri
             var offsetHijri = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
 
             if (isAutoHijri && settingsManager.latitude != null && settingsManager.longitude != null) {
@@ -447,10 +448,9 @@ class MainActivity : AppCompatActivity() {
                     val criteria = HilalCriteria.fromName(criteriaStr)
                     offsetHijri = IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria ?: HilalCriteria.NEO_MABIMS)
 
-                    val seekBar = findViewById<SeekBar>(R.id.sb_hijri_offset)
-                    seekBar?.progress = offsetHijri + 2
-                    val displayValue = if (offsetHijri > 0) "+$offsetHijri" else "$offsetHijri"
-                    findViewById<TextView>(R.id.tv_label_hijri)?.text = "$displayValue ✦"
+                    // Jangan update posisi seekbar saat auto aktif (biarkan di nilai manual)
+                    // Tampilkan label "Auto ✦" agar tidak membingungkan user dengan delta internal
+                    findViewById<TextView>(R.id.tv_label_hijri)?.text = "Auto ✦"
                 } catch (e: Exception) {
                     android.util.Log.e("MainActivity", "Auto hijri offset error", e)
                 }
@@ -511,8 +511,14 @@ class MainActivity : AppCompatActivity() {
 
                     val currentTime = Date()
                     var isAfterMaghrib = false
-                    if (findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && currentTime.after(prayerTimes.maghrib)) {
+                    val isAutoHijriActive = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: settingsManager.isAutoHijriOffset
+                    if (!isAutoHijriActive && findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && currentTime.after(prayerTimes.maghrib)) {
                         totalHijriOffset += 1L
+                        isAfterMaghrib = true
+                    }
+                    // Untuk info puasa sunnah: deteksi setelah Maghrib secara independen dari auto offset
+                    // agar reminder "ingat puasa besok" muncul dengan benar di malam hari
+                    if (isAutoHijriActive && currentTime.after(prayerTimes.maghrib)) {
                         isAfterMaghrib = true
                     }
                     val isBeforeFajr = currentTime.before(prayerTimes.fajr)
@@ -859,8 +865,8 @@ class MainActivity : AppCompatActivity() {
             setOnCheckedChangeListener { view, isChecked ->
                 if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                 findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !isChecked
-                findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.visibility =
-                    if (isChecked) View.VISIBLE else View.GONE
+                // Disable isDayStartAtMaghrib saat auto hijri aktif (sudah di-handle oleh offset)
+                findViewById<CheckBox>(R.id.cb_day_start)?.isEnabled = !isChecked
                 updatePreview()
                 saveSettingsQuietly()
             }
@@ -878,8 +884,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.visibility =
-            if (settingsManager.isAutoHijriOffset) View.VISIBLE else View.GONE
 
         setupSlider(R.id.sb_hijri_offset, R.id.tv_label_hijri, -2, 2, settingsManager.hijriOffset, false, "")
 
@@ -889,7 +893,11 @@ class MainActivity : AppCompatActivity() {
         currentBgColor = settingsManager.widgetBgColor
         updateColorButtons()
 
-        findViewById<CheckBox>(R.id.cb_day_start)?.apply { isChecked = settingsManager.isDayStartAtMaghrib; setOnCheckedChangeListener { view, _ -> if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK); updatePreview(); saveSettingsQuietly() } }
+        findViewById<CheckBox>(R.id.cb_day_start)?.apply {
+            isChecked = settingsManager.isDayStartAtMaghrib
+            isEnabled = !settingsManager.isAutoHijriOffset  // Disable saat auto hijri aktif
+            setOnCheckedChangeListener { view, _ -> if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK); updatePreview(); saveSettingsQuietly() }
+        }
 
         val tw = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
