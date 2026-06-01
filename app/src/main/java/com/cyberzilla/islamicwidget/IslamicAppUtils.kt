@@ -167,13 +167,15 @@ object IslamicAppUtils {
 
         if (hMonth == 12) {
             when (hDay) {
-                in 1..7 -> sunnahList.add(context.getString(R.string.sunnah_dzulhijjah, hDay))
-                8 -> sunnahList.add(context.getString(R.string.sunnah_tarwiyah))
+                in 1..8 -> sunnahList.add(context.getString(R.string.sunnah_dzulhijjah, hDay))
                 9 -> sunnahList.add(context.getString(R.string.sunnah_arafah))
+                in 11..13 -> sunnahList.add(context.getString(R.string.info_tasyrik))
             }
         }
 
-        if (hDay in 13..15 && !(hMonth == 12 && hDay == 13)) {
+        // Ayyamul Bidh (13-15 setiap bulan Hijriah) — kecuali Dzulhijjah
+        // karena sudah diwakili puasa 1-9 Dzulhijjah, dan 13 termasuk hari tasyrik
+        if (hDay in 13..15 && hMonth != 12) {
             val hariKe = hDay - 12
             sunnahList.add(context.getString(R.string.sunnah_ayyamul_bidh, hariKe))
         }

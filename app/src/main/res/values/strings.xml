@@ -118,7 +118,7 @@
 
     <string name="sunnah_muharram">✨ Puasa Tasu\'a / Asyura</string>
     <string name="sunnah_dzulhijjah">✨ Puasa Dzulhijjah (Hari ke-%1$d)</string>
-    <string name="sunnah_tarwiyah">✨ Puasa Tarwiyah</string>
+    <string name="info_tasyrik">🚫 Hari Tasyrik (Dilarang Berpuasa)</string>
     <string name="sunnah_arafah">✨ Puasa Arafah</string>
     <string name="sunnah_ayyamul_bidh">✨ Puasa Ayyamul Bidh (Hari ke-%1$d)</string>
     <string name="sunnah_monday">🌙 Puasa Sunnah Senin</string>

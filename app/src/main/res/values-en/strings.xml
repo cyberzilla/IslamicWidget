@@ -118,7 +118,7 @@
 
     <string name="sunnah_muharram">✨ Tasu\'a / Ashura Fasting</string>
     <string name="sunnah_dzulhijjah">✨ Dzulhijjah Fasting (Day %1$d)</string>
-    <string name="sunnah_tarwiyah">✨ Tarwiyah Fasting</string>
+    <string name="info_tasyrik">🚫 Days of Tashreeq (Fasting Prohibited)</string>
     <string name="sunnah_arafah">✨ Arafah Fasting</string>
     <string name="sunnah_ayyamul_bidh">✨ Ayyamul Bidh Fasting (Day %1$d)</string>
     <string name="sunnah_monday">🌙 Monday Sunnah Fasting</string>

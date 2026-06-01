@@ -118,7 +118,7 @@
 
     <string name="sunnah_muharram">✨ صِيَامُ تَاسُوعَاءَ / عَاشُورَاءَ</string>
     <string name="sunnah_dzulhijjah">✨ صِيَامُ ذِي الْحِجَّةِ (الْيَوْمُ %1$d)</string>
-    <string name="sunnah_tarwiyah">✨ صِيَامُ يَوْمِ التَّرْوِيَةِ</string>
+    <string name="info_tasyrik">🚫 أَيَّامُ التَّشْرِيقِ (يُحْرَمُ الصِّيَامُ)</string>
     <string name="sunnah_arafah">✨ صِيَامُ يَوْمِ عَرَفَةَ</string>
     <string name="sunnah_ayyamul_bidh">✨ صِيَامُ أَيَّامِ الْبِيضِ (الْيَوْمُ %1$d)</string>
     <string name="sunnah_monday">🌙 صِيَامُ يَوْمِ الِاثْنَيْنِ</string>
