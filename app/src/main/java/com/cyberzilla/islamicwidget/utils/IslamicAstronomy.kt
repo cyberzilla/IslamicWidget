@@ -344,6 +344,8 @@ object IslamicAstronomy {
     /**
      * Menemukan awal hari ke-1 (Waktu Maghrib) untuk bulan Hijriah baru setelah terjadinya konjungsi,
      * dengan mengevaluasi kriteria hilal regional.
+     *
+     * @return Pair(tanggal awal bulan baru, apakah istikmal diterapkan)
      */
     fun findMonthStartAfterConjunction(
         conjunctionTime: Time,
@@ -351,7 +353,7 @@ object IslamicAstronomy {
         longitude: Double,
         elevation: Double = 0.0,
         criteria: HilalCriteria
-    ): Date {
+    ): Pair<Date, Boolean> {
         val observer = Observer(latitude, longitude, elevation)
         
         // Dapatkan sunset pada hari konjungsi tersebut
@@ -362,13 +364,13 @@ object IslamicAstronomy {
         val reportDay1 = calculateHilal(sunset.toDate(), latitude, longitude, elevation, criteria)
         
         return if (reportDay1.isVisible) {
-            // Hilal terlihat. 1 bulan baru dimulai SAAT sunset ini.
-            reportDay1.sunsetTime ?: sunset.toDate()
+            // Hilal terlihat. 1 bulan baru dimulai SAAT sunset ini. (Bulan sebelumnya = 29 hari)
+            Pair(reportDay1.sunsetTime ?: sunset.toDate(), false)
         } else {
             // Istikmal (digenapkan 30 hari). Bulan baru dimulai di Maghrib esok harinya.
             val nextSunset = searchAltitude(Body.Sun, observer, Direction.Set, sunset.addDays(1.0), 1.0, SUN_REFRACTION_ANGLE) 
                 ?: sunset.addDays(1.0)
-            nextSunset.toDate()
+            Pair(nextSunset.toDate(), true)
         }
     }
 
@@ -380,19 +382,6 @@ object IslamicAstronomy {
         val diffMillis = targetDate.time - monthStartDate.time
         if (diffMillis < 0) return 1 
         
-        // Hari Islam berjalan dari Maghrib ke Maghrib (sunset to sunset).
-        // monthStartDate adalah waktu SUNSET yang menandai awal bulan Hijriah.
-        // Kita hitung berapa "hari Islam" yang sudah berlalu.
-        //
-        // Contoh: monthStartDate = 17 Mei 18:15 (sunset), targetDate = 15 Juni 16:00
-        //   diffMillis = 28 hari 21 jam 45 menit
-        //   diffDays = floor(28.906) = 28
-        //   return 28 + 1 = 29 (hari ke-29 di bulan ini)
-        //
-        // Ini benar karena:
-        //   Hari 1 = Mei 17 sunset → Mei 18 sunset
-        //   Hari 29 = Jun 14 sunset → Jun 15 sunset
-        //   Pada Jun 15 16:00, kita masih di hari 29 (belum sunset)
         val diffDays = floor(diffMillis / (1000.0 * 60 * 60 * 24)).toInt()
         return diffDays + 1
     }
@@ -413,38 +402,72 @@ object IslamicAstronomy {
         
         val targetNoon = Time(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH), 12, 0, 0.0)
             .addDays(-longitude / 15.0 / 24.0)
-        val targetSunset = searchAltitude(Body.Sun, observer, Direction.Set, targetNoon, 1.0, SUN_REFRACTION_ANGLE)?.toDate() ?: date
-
+        
         var currentConjunction = findPreviousNewMoon(date)
         var (month, year) = getHijriMonthYear(currentConjunction)
-        var monthStartDate = findMonthStartAfterConjunction(currentConjunction, latitude, longitude, elevation, criteria)
+        var (monthStartDate, isIstikmal) = findMonthStartAfterConjunction(currentConjunction, latitude, longitude, elevation, criteria)
 
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", java.util.Locale.US)
         android.util.Log.d("IslamicAstronomy", "calculateHijriDate: input=${sdf.format(date)} criteria=${criteria.name}")
-        android.util.Log.d("IslamicAstronomy", "  conjunction=${sdf.format(currentConjunction.toDate())} → monthStart=${sdf.format(monthStartDate)}")
-        android.util.Log.d("IslamicAstronomy", "  initial month/year=$month/$year, date<monthStart=${date.time < monthStartDate.time}")
+        android.util.Log.d("IslamicAstronomy", "  conjunction=${sdf.format(currentConjunction.toDate())} → monthStart=${sdf.format(monthStartDate)} istikmal=$isIstikmal")
+
+        // =====================================================================
+        // FIX ISTIKMAL: Jika istikmal diterapkan pada bulan ini (hilal gagal
+        // kriteria), pastikan bulan SEBELUMNYA memiliki minimal 30 hari.
+        //
+        // Kaidah fiqh: "Jika hilal tidak terlihat pada malam ke-29,
+        //               genap-kan bulan menjadi 30 hari."
+        //
+        // Bug sebelumnya: ketika 2 bulan berurutan sama-sama kena istikmal,
+        // masing-masing +1 hari saling offset → bulan sebelumnya hanya 29 hari.
+        // Contoh: Dzulhijjah start 17 Mei (istikmal), Muharram start 15 Juni (istikmal)
+        //         gap = 29 hari, padahal harus 30.
+        //
+        // Fix: geser monthStartDate ke depan agar gap dari bulan sebelumnya = 30.
+        // Ini menyebabkan fallback check menempatkan tanggal di hari ke-30 yang benar.
+        // =====================================================================
+        if (isIstikmal) {
+            val prevConj = searchMoonPhase(0.0, currentConjunction.addDays(-32.0), 5.0) 
+                ?: currentConjunction.addDays(-29.5)
+            val (prevMonthStart, _) = findMonthStartAfterConjunction(prevConj, latitude, longitude, elevation, criteria)
+            
+            val gapDays = (monthStartDate.time - prevMonthStart.time) / (1000.0 * 60 * 60 * 24)
+            android.util.Log.d("IslamicAstronomy", "  ISTIKMAL CHECK: prevMonthStart=${sdf.format(prevMonthStart)} gap=${"%.2f".format(gapDays)} days")
+            
+            if (gapDays < 29.5) {
+                // Bulan sebelumnya kurang dari 30 hari. Geser monthStartDate ke depan
+                // agar bulan sebelumnya genap 30 hari (istikmal).
+                val day30Approx = Time.fromMillisecondsSince1970(
+                    prevMonthStart.time + (30L * 24 * 3600 * 1000)
+                )
+                val corrected = searchAltitude(
+                    Body.Sun, observer, Direction.Set, day30Approx, 1.0, SUN_REFRACTION_ANGLE
+                )?.toDate() ?: Date(prevMonthStart.time + (30L * 24 * 3600 * 1000))
+
+                android.util.Log.d("IslamicAstronomy", "  ISTIKMAL CORRECTED: monthStart ${sdf.format(monthStartDate)} → ${sdf.format(corrected)}")
+                monthStartDate = corrected
+            }
+        }
 
         // Jika waktu evaluasi ternyata masih sebelum bulan baru dimulai (Maghrib),
         // maka jatuhkan ke siklus bulan lunasi sebelumnya.
         if (date.time < monthStartDate.time) {
-            // FIX: Gunakan searchMoonPhase langsung dari konjungsi yang sudah ditemukan,
-            // mundur ~32 hari, bukan menggunakan Date arithmetic yang bisa inkonsisten.
             val prevConjunction = searchMoonPhase(0.0, currentConjunction.addDays(-32.0), 5.0) 
                 ?: currentConjunction.addDays(-29.5)
             currentConjunction = prevConjunction
             val prevMY = getHijriMonthYear(currentConjunction)
             month = prevMY.first
             year = prevMY.second
-            monthStartDate = findMonthStartAfterConjunction(currentConjunction, latitude, longitude, elevation, criteria)
+            val (prevMonthStart, _) = findMonthStartAfterConjunction(currentConjunction, latitude, longitude, elevation, criteria)
+            monthStartDate = prevMonthStart
+
             android.util.Log.d("IslamicAstronomy", "  FALLBACK: prevConj=${sdf.format(currentConjunction.toDate())} → monthStart=${sdf.format(monthStartDate)}")
             android.util.Log.d("IslamicAstronomy", "  FALLBACK: month/year=$month/$year")
         }
 
         val day = calculateAutoOffset(date, monthStartDate)
-        // FIX: Clamp ke range valid (1-30). Edge case di boundary new moon
-        // dimana fallback path bisa menghasilkan day > 30.
         val clampedDay = day.coerceIn(1, 30)
-        android.util.Log.d("IslamicAstronomy", "  day=$day clampedDay=$clampedDay (diffMs=${date.time - monthStartDate.time})")
+        android.util.Log.d("IslamicAstronomy", "  RESULT: day=$day clampedDay=$clampedDay month=$month/$year")
         val hijriDate = HijriDate(clampedDay, month, year, HIJRI_MONTH_NAMES[month - 1])
         val hilalReport = calculateHilal(date, latitude, longitude, elevation, criteria)
 

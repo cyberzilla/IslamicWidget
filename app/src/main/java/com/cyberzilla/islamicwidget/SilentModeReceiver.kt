@@ -27,11 +27,11 @@ class SilentModeReceiver : BroadcastReceiver() {
                 val prayerIdForLog = intent.getIntExtra("PRAYER_ID", 0)
 
                 // === FIX: Guard fitur adzan audio ===
-                // Jika adzan audio dimatikan (atau stale alarm dari sebelum reset),
-                // abaikan trigger ini sepenuhnya.
-                if (!settings.isAdzanAudioEnabled) {
+                // Cek master switch DAN per-prayer switch.
+                // Jika adzan dimatikan secara global atau untuk sholat ini, abaikan.
+                if (!settings.isAdzanEnabledForPrayer(prayerIdForLog)) {
                     AdzanLogger.log(context, AdzanLogger.Event.ADZAN_SKIPPED,
-                        "Adzan untuk prayer ID=$prayerIdForLog diabaikan: isAdzanAudioEnabled=false (kemungkinan stale alarm)")
+                        "Adzan untuk prayer ID=$prayerIdForLog diabaikan: adzan tidak aktif untuk sholat ini")
                     return
                 }
 

@@ -382,6 +382,20 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
                     context.sendBroadcast(muteIntent)
                 }
+                // FIX: Cross-check flag vs actual system DND (sama seperti di checkAndEnforceSilentWindow).
+                // OEM bisa menghapus DND saat foreground service berhenti (user stop adzan via notifikasi).
+                else if (currentlyMutedDnd && settings.isAutoSilentEnabled && !isTestMode) {
+                    try {
+                        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                        if (nm.isNotificationPolicyAccessGranted &&
+                            nm.currentInterruptionFilter == android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
+                            Log.d(TAG, "DND DESYNC (full path): flag=muted tapi system=FILTER_ALL. Re-applying DND.")
+                            prefs.edit().putBoolean("IS_MUTED_BY_APP_DND", false).commit()
+                            val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                            context.sendBroadcast(muteIntent)
+                        }
+                    } catch (_: Exception) {}
+                }
             } else {
                 // FIX: Jangan kirim corrective UNMUTE jika adzan sedang bermain.
                 // AdzanService.onDestroy() akan handle PENDING_UNMUTE sendiri.
@@ -453,6 +467,33 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 // Alarm MUTE seharusnya sudah fire tapi belum — Doze kemungkinan membunuh alarm.
                 // Return true agar caller tahu perlu reschedule (supaya UNMUTE juga diperbaiki).
                 return true
+            }
+
+            // FIX: Cross-check flag vs actual system DND state.
+            // Beberapa OEM (Xiaomi/HyperOS) otomatis menghapus DND saat foreground service
+            // berhenti (misal user tap notifikasi untuk stop adzan). Ketika ini terjadi:
+            //   - IS_MUTED_BY_APP_DND masih true (stale)
+            //   - Tapi system DND sudah INTERRUPTION_FILTER_ALL (off)
+            //   - Kode lama: "sudah muted" → skip → DND tetap OFF (bug!)
+            //   - Kode baru: deteksi desync → clear stale flag → re-apply MUTE
+            if ((currentlyMutedDnd) && settings.isAutoSilentEnabled && !isTestMode) {
+                try {
+                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                    if (nm.isNotificationPolicyAccessGranted &&
+                        nm.currentInterruptionFilter == android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
+                        // System DND sudah OFF tapi flag masih ON → desync!
+                        Log.d(TAG, "DND DESYNC terdeteksi: flag=muted tapi system=FILTER_ALL. Re-applying DND.")
+                        AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED,
+                            "DND desync: flag muted tapi system off, re-apply MUTE")
+                        // Clear stale flag agar executeMute menyimpan PREF_PREV_FILTER yang benar
+                        prefs.edit().putBoolean("IS_MUTED_BY_APP_DND", false).commit()
+                        val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                        context.sendBroadcast(muteIntent)
+                        return true
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error checking DND desync", e)
+                }
             }
         } else {
             // FIX: Jangan corrective-unmute jika adzan sedang bermain
@@ -965,7 +1006,7 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         // Tanpa ini, race condition bisa menyebabkan ADZAN tidak fire saat widget update
         // men-trigger cancelExistingAlarms + reschedule tepat di waktu sholat.
         val adzanGracePeriod = 120_000L // 2 menit
-        if (settings.isAdzanAudioEnabled && now <= prayerTime.time + adzanGracePeriod && !isJumat && !settings.isAdzanPlaying) {
+        if (settings.isAdzanEnabledForPrayer(requestCodeId) && now <= prayerTime.time + adzanGracePeriod && !isJumat && !settings.isAdzanPlaying) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)

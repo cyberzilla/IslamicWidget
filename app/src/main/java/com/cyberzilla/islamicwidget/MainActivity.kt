@@ -988,6 +988,39 @@ class MainActivity : AppCompatActivity() {
         setupSlider(R.id.sb_isha_bef, R.id.tv_isha_bef, 0, 60, settingsManager.ishaBefore, false, "m")
         setupSlider(R.id.sb_isha_aft, R.id.tv_isha_aft, 0, 120, settingsManager.ishaAfter, false, "m")
 
+        val perPrayerLayout = findViewById<View>(R.id.layout_per_prayer_adzan)
+        val swAdzanFajr = findViewById<SwitchCompat>(R.id.sw_adzan_fajr)
+        val swAdzanDhuhr = findViewById<SwitchCompat>(R.id.sw_adzan_dhuhr)
+        val swAdzanAsr = findViewById<SwitchCompat>(R.id.sw_adzan_asr)
+        val swAdzanMaghrib = findViewById<SwitchCompat>(R.id.sw_adzan_maghrib)
+        val swAdzanIsha = findViewById<SwitchCompat>(R.id.sw_adzan_isha)
+
+        // Load per-prayer states
+        swAdzanFajr?.isChecked = settingsManager.isAdzanFajrEnabled
+        swAdzanDhuhr?.isChecked = settingsManager.isAdzanDhuhrEnabled
+        swAdzanAsr?.isChecked = settingsManager.isAdzanAsrEnabled
+        swAdzanMaghrib?.isChecked = settingsManager.isAdzanMaghribEnabled
+        swAdzanIsha?.isChecked = settingsManager.isAdzanIshaEnabled
+
+        // Per-prayer switch listeners
+        val perPrayerListener = { view: android.widget.CompoundButton, _: Boolean ->
+            if (view.isPressed) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            settingsManager.isAdzanFajrEnabled = swAdzanFajr?.isChecked ?: true
+            settingsManager.isAdzanDhuhrEnabled = swAdzanDhuhr?.isChecked ?: true
+            settingsManager.isAdzanAsrEnabled = swAdzanAsr?.isChecked ?: true
+            settingsManager.isAdzanMaghribEnabled = swAdzanMaghrib?.isChecked ?: true
+            settingsManager.isAdzanIshaEnabled = swAdzanIsha?.isChecked ?: true
+            saveSettingsQuietly()
+        }
+        swAdzanFajr?.setOnCheckedChangeListener(perPrayerListener)
+        swAdzanDhuhr?.setOnCheckedChangeListener(perPrayerListener)
+        swAdzanAsr?.setOnCheckedChangeListener(perPrayerListener)
+        swAdzanMaghrib?.setOnCheckedChangeListener(perPrayerListener)
+        swAdzanIsha?.setOnCheckedChangeListener(perPrayerListener)
+
+        // Show per-prayer layout jika master switch ON
+        perPrayerLayout?.visibility = if (settingsManager.isAdzanAudioEnabled) View.VISIBLE else View.GONE
+
         findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.apply {
             isChecked = settingsManager.isAdzanAudioEnabled
             setOnCheckedChangeListener { view, isChecked ->
@@ -1007,6 +1040,15 @@ class MainActivity : AppCompatActivity() {
                     settingsManager.isAdzanAudioEnabled = false
                     saveSettingsQuietly()
                 }
+                // Animate per-prayer layout visibility
+                val parent = perPrayerLayout?.parent as? android.view.ViewGroup
+                if (parent != null) {
+                    androidx.transition.TransitionManager.beginDelayedTransition(
+                        parent,
+                        androidx.transition.AutoTransition().apply { duration = 250 }
+                    )
+                }
+                perPrayerLayout?.visibility = if (isChecked) View.VISIBLE else View.GONE
             }
         }
 
@@ -1153,6 +1195,11 @@ class MainActivity : AppCompatActivity() {
                 ishaAfter = findViewById<SeekBar>(R.id.sb_isha_aft)?.progress ?: 15,
                 isAdzanAudioEnabled = findViewById<SwitchCompat>(R.id.switch_audio_adzan)?.isChecked ?: false,
                 adzanVolume = findViewById<SeekBar>(R.id.sb_adzan_vol)?.progress ?: 80,
+                isAdzanFajrEnabled = findViewById<SwitchCompat>(R.id.sw_adzan_fajr)?.isChecked ?: true,
+                isAdzanDhuhrEnabled = findViewById<SwitchCompat>(R.id.sw_adzan_dhuhr)?.isChecked ?: true,
+                isAdzanAsrEnabled = findViewById<SwitchCompat>(R.id.sw_adzan_asr)?.isChecked ?: true,
+                isAdzanMaghribEnabled = findViewById<SwitchCompat>(R.id.sw_adzan_maghrib)?.isChecked ?: true,
+                isAdzanIshaEnabled = findViewById<SwitchCompat>(R.id.sw_adzan_isha)?.isChecked ?: true,
                 customAdzanRegularUri = tempRegularUri,
                 customAdzanSubuhUri = tempSubuhUri,
                 quoteUpdateInterval = newInterval,
