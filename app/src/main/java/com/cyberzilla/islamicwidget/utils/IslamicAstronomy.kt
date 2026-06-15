@@ -599,8 +599,35 @@ object IslamicAstronomy {
             val delta = if (lunarMonth == staticMonth) {
                 lunarDay - staticDay
             } else {
-                if (lunarDay < staticDay) lunarDay - staticDay + 30
-                else lunarDay - staticDay - 30
+                // FIX KRITIS: Cross-month — astronomy dan Java beda bulan.
+                //
+                // Case A: Astronomy di akhir bulan (day ≥ 29), Java di awal bulan baru (day ≤ 2).
+                //   Contoh: astronomy=30 Dzulhijjah, Java=1 Muharram.
+                //   Ini terjadi setelah tengah malam — Java sudah pindah Gregorian day baru
+                //   (dan otomatis pindah bulan Hijri), tapi astronomy belum (menunggu Maghrib).
+                //   Offset yang benar = 0 (percaya Java, karena transisi bulan sudah terjadi
+                //   di Maghrib sebelumnya dan HijrahDate.plus(0) = 1 Muharram = benar).
+                //   Bug lama: delta = 30 - 1 - 30 = -1 → HijrahDate(1 Muharram).plus(-1) 
+                //             = 29 Dzulhijjah (Java bilang 29 hari) padahal seharusnya 1 Muharram.
+                //
+                // Case B: Astronomy di awal bulan baru (day ≤ 2), Java masih bulan lama (day ≥ 28).
+                //   Contoh: astronomy=1 Muharram, Java=29 Dzulhijjah.
+                //   Ini terjadi setelah Maghrib tapi sebelum tengah malam — astronomy sudah
+                //   pindah bulan baru, tapi Java belum (menunggu Gregorian midnight).
+                //   Offset = +1 (agar Java maju ke bulan baru).
+                //
+                // Case C: Selisih lebih besar (seharusnya tidak terjadi, safety net).
+                if (lunarDay >= 28 && staticDay <= 2) {
+                    // Case A: astronomy tertinggal, percaya Java
+                    0
+                } else if (lunarDay <= 2 && staticDay >= 28) {
+                    // Case B: astronomy lebih maju, perlu offset positif
+                    lunarDay - staticDay + 30
+                } else {
+                    // Case C: fallback umum
+                    if (lunarDay < staticDay) lunarDay - staticDay + 30
+                    else lunarDay - staticDay - 30
+                }
             }
 
             android.util.Log.d("IslamicAstronomy", "calculateHijriOffset: criteria=${criteria.name} lunarDay=$lunarDay lunarMonth=$lunarMonth staticDay=$staticDay staticMonth=$staticMonth delta=$delta coerced=${delta.coerceIn(-2, 2)}")

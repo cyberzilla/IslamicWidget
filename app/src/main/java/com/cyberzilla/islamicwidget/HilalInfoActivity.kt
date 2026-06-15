@@ -90,56 +90,10 @@ class HilalInfoActivity : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", selectedLocale)
         val gregorianStr = dateFormat.format(now)
 
-        // Hijri date — same calculation as IslamicWidgetProvider for consistency
-        val hijriDateStr = try {
-            val today = java.time.LocalDate.now()
-            var hijriDate = HijrahDate.from(today)
-
-            var totalOffset: Long = if (settings.isAutoHijriOffset) {
-                try {
-                    IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria).toLong()
-                } catch (e: Exception) {
-                    settings.hijriOffset.toLong()
-                }
-            } else {
-                settings.hijriOffset.toLong()
-            }
-
-            // isDayStartAtMaghrib: hanya berlaku saat auto offset TIDAK aktif
-            // (auto offset sudah memperhitungkan transisi Maghrib)
-            if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib) {
-                try {
-                    val prayerTimes = IslamicAppUtils.calculatePrayerTimes(
-                        lat, lon, settings.calculationMethod, today
-                    )
-                    // FIX: Bandingkan jam:menit saja (prayer times punya komponen tanggal salah)
-                    val nCal = java.util.Calendar.getInstance()
-                    val mCal = java.util.Calendar.getInstance().apply { time = prayerTimes.maghrib }
-                    val nMin = nCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nCal.get(java.util.Calendar.MINUTE)
-                    val mMin = mCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + mCal.get(java.util.Calendar.MINUTE)
-                    if (nMin >= mMin) {
-                        totalOffset += 1L
-                    }
-                } catch (_: Exception) {}
-            }
-
-            if (totalOffset != 0L) {
-                hijriDate = hijriDate.plus(totalOffset, java.time.temporal.ChronoUnit.DAYS)
-            }
-
-            val day = hijriDate.get(ChronoField.DAY_OF_MONTH)
-            val month = hijriDate.get(ChronoField.MONTH_OF_YEAR)
-            val year = hijriDate.get(ChronoField.YEAR)
-            val monthName = IslamicAppUtils.getLocalizedHijriMonthName(month, settings.languageCode)
-            "$day $monthName $year H"
-        } catch (e: Exception) {
-            // Last resort fallback
-            val hd = HijrahDate.now()
-            val day = hd.get(ChronoField.DAY_OF_MONTH)
-            val month = hd.get(ChronoField.MONTH_OF_YEAR)
-            val year = hd.get(ChronoField.YEAR)
-            "$day / $month / $year H"
-        }
+        // SINGLE SOURCE OF TRUTH: satu panggilan untuk tanggal Hijri
+        val hijriDisplay = IslamicAppUtils.getCanonicalHijriDate(this)
+        val monthName = IslamicAppUtils.getLocalizedHijriMonthName(hijriDisplay.month, settings.languageCode)
+        val hijriDateStr = "${hijriDisplay.day} $monthName ${hijriDisplay.year} H"
 
         // Time formatters
         val timeFormat = SimpleDateFormat("HH:mm", selectedLocale)
@@ -147,30 +101,7 @@ class HilalInfoActivity : AppCompatActivity() {
 
         // === Determine Mode: Hilal (Early Month) vs Regular Moon ===
         // Hilal mode: moon age < 48 hours OR Hijri day is 29, 30, or 1
-        // Regular mode: everything else — hide visibility criteria section
-        val hijriDay = try {
-            val today = java.time.LocalDate.now()
-            var hijriDate2 = HijrahDate.from(today)
-            var offset: Long = if (settings.isAutoHijriOffset) {
-                try {
-                    IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria).toLong()
-                } catch (_: Exception) { settings.hijriOffset.toLong() }
-            } else { settings.hijriOffset.toLong() }
-            if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib) {
-                try {
-                    val pt = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
-                    val nC = java.util.Calendar.getInstance()
-                    val mC = java.util.Calendar.getInstance().apply { time = pt.maghrib }
-                    val nM = nC.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nC.get(java.util.Calendar.MINUTE)
-                    val mM = mC.get(java.util.Calendar.HOUR_OF_DAY) * 60 + mC.get(java.util.Calendar.MINUTE)
-                    if (nM >= mM) offset += 1L
-                } catch (_: Exception) {}
-            }
-            if (offset != 0L) hijriDate2 = hijriDate2.plus(offset, java.time.temporal.ChronoUnit.DAYS)
-            hijriDate2.get(ChronoField.DAY_OF_MONTH)
-        } catch (_: Exception) { 1 }
-
-        val isHilalMode = report.moonAgeHours < 48.0 || hijriDay in listOf(29, 30, 1)
+        val isHilalMode = report.moonAgeHours < 48.0 || hijriDisplay.day in listOf(29, 30, 1)
 
         // === Bind Views ===
 

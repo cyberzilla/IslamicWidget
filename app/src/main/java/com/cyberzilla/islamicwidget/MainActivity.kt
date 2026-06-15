@@ -435,26 +435,32 @@ class MainActivity : AppCompatActivity() {
             val isAutoHijri = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: settingsManager.isAutoHijriOffset
             findViewById<SeekBar>(R.id.sb_hijri_offset)?.isEnabled = !isAutoHijri
             findViewById<CheckBox>(R.id.cb_day_start)?.isEnabled = !isAutoHijri
-            var offsetHijri = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
+            val offsetHijri = (findViewById<SeekBar>(R.id.sb_hijri_offset)?.progress ?: 2) - 2
 
-            if (isAutoHijri && settingsManager.latitude != null && settingsManager.longitude != null) {
-                try {
-                    val lat = settingsManager.latitude!!.toDouble()
-                    val lon = settingsManager.longitude!!.toDouble()
-                    val criteriaStr = hilalCriteriaValues[
-                        hilalCriteriaEntries.indexOf(
-                            findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.text?.toString() ?: ""
-                        ).takeIf { it >= 0 } ?: 0
-                    ]
-                    val criteria = HilalCriteria.fromName(criteriaStr)
-                    offsetHijri = IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria ?: HilalCriteria.NEO_MABIMS)
+            // Baca hilal criteria dari UI (belum tentu tersimpan)
+            val previewCriteriaStr = hilalCriteriaValues[
+                hilalCriteriaEntries.indexOf(
+                    findViewById<MaterialButton>(R.id.btn_hilal_criteria)?.text?.toString() ?: ""
+                ).takeIf { it >= 0 } ?: 0
+            ]
+            val previewCalcStr = findViewById<MaterialButton>(R.id.btn_calc_method)?.text?.toString() ?: ""
+            val calcIdx = calcEntries.indexOf(previewCalcStr).takeIf { it >= 0 } ?: 0
+            val previewIsDayStart = findViewById<CheckBox>(R.id.cb_day_start)?.isChecked ?: settingsManager.isDayStartAtMaghrib
 
-                    // Jangan update posisi seekbar saat auto aktif (biarkan di nilai manual)
-                    // Tampilkan label "Auto ✦" agar tidak membingungkan user dengan delta internal
-                    findViewById<TextView>(R.id.tv_label_hijri)?.text = "Auto ✦"
-                } catch (e: Exception) {
-                    android.util.Log.e("MainActivity", "Auto hijri offset error", e)
-                }
+            // SINGLE SOURCE OF TRUTH — versi eksplisit untuk preview (baca dari UI)
+            val hijriDisplay = IslamicAppUtils.getCanonicalHijriDate(
+                isAutoHijri = isAutoHijri,
+                latitude = settingsManager.latitude?.toDoubleOrNull(),
+                longitude = settingsManager.longitude?.toDoubleOrNull(),
+                hilalCriteria = previewCriteriaStr,
+                manualOffset = offsetHijri,
+                isDayStartAtMaghrib = previewIsDayStart,
+                calculationMethod = if (calcIdx in calcValues.indices) calcValues[calcIdx] else "KEMENAG"
+            )
+            val hijriDate = hijriDisplay.hijrahDate
+
+            if (isAutoHijri) {
+                findViewById<TextView>(R.id.tv_label_hijri)?.text = "Auto ✦"
             } else if (findViewById<SeekBar>(R.id.sb_hijri_offset) != null) {
                 val displayValue = if (offsetHijri > 0) "+$offsetHijri" else "$offsetHijri"
                 findViewById<TextView>(R.id.tv_label_hijri)?.text = "$displayValue Hari"
@@ -471,9 +477,6 @@ class MainActivity : AppCompatActivity() {
             val txtSunrise = localizedContext.getString(R.string.sunrise)
             val txtLastThird = localizedContext.getString(R.string.last_third)
             val txtQibla = localizedContext.getString(R.string.qibla)
-
-            val selectedCalcStr = findViewById<MaterialButton>(R.id.btn_calc_method)?.text?.toString() ?: ""
-            val calcIdx = calcEntries.indexOf(selectedCalcStr).takeIf { it >= 0 } ?: 0
 
             val masehiPattern = findViewById<EditText>(R.id.et_date_format)?.text?.toString()?.ifEmpty { "en-US{EEEE, dd MMMM yyyy}" } ?: "en-US{EEEE, dd MMMM yyyy}"
             val hijriPattern = findViewById<EditText>(R.id.et_hijri_format)?.text?.toString()?.ifEmpty { "en-US{dd MMMM yyyy} AH" } ?: "en-US{dd MMMM yyyy} AH"
@@ -492,8 +495,6 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.label_isha)?.text = localizedContext.getString(R.string.isha)
 
             val today = LocalDate.now()
-            var hijriDate = HijrahDate.from(today)
-            var totalHijriOffset = offsetHijri.toLong()
 
             val is24Hour = DateFormat.is24HourFormat(this)
             val timePattern = if (is24Hour) "HH:mm" else "hh:mm a"
@@ -510,24 +511,13 @@ class MainActivity : AppCompatActivity() {
                     val sunnahTimes = IslamicAstronomy.getSunnahTimes(prayerTimes, tomorrowPrayer)
                     val qiblaDegree = IslamicAstronomy.calculateQibla(lat, lon)
 
-                    val currentTime = Date()
                     var isAfterMaghrib = false
-                    val isAutoHijriActive = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: settingsManager.isAutoHijriOffset
-                    // FIX: Bandingkan jam:menit saja, bukan epoch penuh,
-                    // karena prayer times bisa punya komponen tanggal yang salah (kemarin)
-                    // akibat konversi UTC di astronomy engine.
                     val nowCal = java.util.Calendar.getInstance()
                     val maghribCal = java.util.Calendar.getInstance().apply { time = prayerTimes.maghrib }
                     val nowMinutes = nowCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nowCal.get(java.util.Calendar.MINUTE)
                     val maghribMinutes = maghribCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + maghribCal.get(java.util.Calendar.MINUTE)
                     val isNowAfterMaghrib = nowMinutes >= maghribMinutes
-                    if (!isAutoHijriActive && findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && isNowAfterMaghrib) {
-                        totalHijriOffset += 1L
-                        isAfterMaghrib = true
-                    }
-                    // Untuk info puasa sunnah: deteksi setelah Maghrib secara independen dari auto offset
-                    // agar reminder "ingat puasa besok" muncul dengan benar di malam hari
-                    if (isAutoHijriActive && isNowAfterMaghrib) {
+                    if (isNowAfterMaghrib) {
                         isAfterMaghrib = true
                     }
                     val fajrCal = java.util.Calendar.getInstance().apply { time = prayerTimes.fajr }
@@ -561,8 +551,6 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     if (nextPrayerIndexForPreview == -1) nextPrayerIndexForPreview = 0
-
-                    if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
 
                     // === Holiday Detection ===
                     val holidays = try {
@@ -664,11 +652,10 @@ class MainActivity : AppCompatActivity() {
                 }
             } else {
                 setDummyPreviewTimes(activeLangCode)
-                if (totalHijriOffset != 0L) hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
             }
 
             findViewById<TextView>(R.id.tv_gregorian_date)?.text = IslamicAppUtils.formatCustomDate(masehiPattern, today, selectedLocale)
-            findViewById<TextView>(R.id.tv_hijri_date)?.text = IslamicAppUtils.formatCustomDate(hijriPattern, hijriDate, selectedLocale)
+            findViewById<TextView>(R.id.tv_hijri_date)?.text = IslamicAppUtils.formatHijriDisplay(hijriPattern, hijriDisplay, selectedLocale)
 
             val textColor = try { Color.parseColor(currentTextColor) } catch(e: Exception) { Color.WHITE }
             val bgColor = try { Color.parseColor(currentBgColor) } catch (e: Exception) { Color.TRANSPARENT }
@@ -682,7 +669,7 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.clock_widget)?.apply { setTextSize(TypedValue.COMPLEX_UNIT_SP, fsClock); setTextColor(textColor) }
             // Warna merah pada Gregorian saat hari libur (tanggal merah)
             val isHoliday = try {
-                val hols = HolidayCalendar.getHolidaysForDate(this, LocalDate.now(), HijrahDate.now(), activeLangCode)
+                val hols = HolidayCalendar.getHolidaysForDate(this, LocalDate.now(), hijriDisplay.hijrahDate, activeLangCode)
                 HolidayCalendar.isPublicHoliday(hols)
             } catch (_: Exception) { false }
             val gregorianColor = if (isHoliday) Color.parseColor("#EF5350") else textColor

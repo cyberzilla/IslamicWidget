@@ -250,6 +250,7 @@ class SilentModeReceiver : BroadcastReceiver() {
             val editor = prefs.edit()
                 .putInt("PREF_PREV_FILTER", currentFilter)
                 .putBoolean("IS_MUTED_BY_APP_DND", true)
+                .putLong("LAST_MUTE_TIMESTAMP", System.currentTimeMillis())
             try {
                 val currentPolicy = notificationManager.notificationPolicy
                 editor.putInt("PREF_PREV_POLICY_CATEGORIES", currentPolicy.priorityCategories)

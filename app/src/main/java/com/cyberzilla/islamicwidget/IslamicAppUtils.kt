@@ -2,6 +2,7 @@ package com.cyberzilla.islamicwidget
 
 import android.content.Context
 import com.cyberzilla.islamicwidget.utils.CalculationMethod
+import com.cyberzilla.islamicwidget.utils.HilalCriteria
 import com.cyberzilla.islamicwidget.utils.IslamicAstronomy
 import com.cyberzilla.islamicwidget.utils.PrayerTimes
 import io.github.cosinekitty.astronomy.EclipseKind
@@ -9,10 +10,33 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoField
+import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAccessor
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+
+/**
+ * Single source of truth untuk tanggal Hijriah.
+ * Semua komponen (widget, preview, lunar widget, hilal info)
+ * HARUS menggunakan data class ini — bukan menghitung sendiri.
+ *
+ * @param day      Hari (raw dari astronomy engine atau HijrahDate). Bisa 30 di bulan 29 hari.
+ * @param month    Bulan (1-12)
+ * @param year     Tahun Hijriah
+ * @param hijrahDate  Java HijrahDate terdekat (untuk holiday detection, fasting info, dll).
+ *                    Mungkin berbeda dari day jika day=30 tapi Java bilang bulan itu 29 hari.
+ * @param isFromAstronomy  True jika nilai berasal dari astronomy engine (auto mode).
+ */
+data class HijriDisplayDate(
+    val day: Int,
+    val month: Int,
+    val year: Int,
+    val hijrahDate: HijrahDate,
+    val isFromAstronomy: Boolean
+)
 
 object IslamicAppUtils {
 
@@ -123,6 +147,192 @@ object IslamicAppUtils {
                 fallbackText = fallbackText.replace("Minggu", "Ahad", ignoreCase = true)
             }
             fallbackText
+        }
+    }
+
+    /**
+     * Format tanggal Hijriah dari raw day/month/year TANPA bergantung pada HijrahDate.
+     *
+     * Dibutuhkan karena Java HijrahDate (Umm Al-Qura) tidak bisa merepresentasikan
+     * hari ke-30 di bulan yang Java bilang hanya 29 hari. Tapi astronomy engine
+     * dengan istikmal rule bisa menghasilkan day=30 untuk bulan tersebut.
+     *
+     * Mendukung format pattern yang sama seperti formatCustomDate:
+     * - locale{pattern} wrapper (misal "id{dd MMMM yyyy G}")
+     * - Token: dd/d (hari), MMMM/MMM (nama bulan), yyyy (tahun), G (era=AH)
+     * - Arabic digit conversion untuk locale ar
+     */
+    fun formatHijriManual(inputStr: String, day: Int, month: Int, year: Int, defaultLocale: Locale): String {
+        val regex = Regex("([a-zA-Z0-9-]+)\\{([^}]+)\\}")
+        return try {
+            if (regex.containsMatchIn(inputStr)) {
+                regex.replace(inputStr) { matchResult ->
+                    val localeTag = matchResult.groupValues[1]
+                    val pattern = matchResult.groupValues[2]
+                    formatHijriPatternManual(pattern, day, month, year, localeTag)
+                }
+            } else {
+                formatHijriPatternManual(inputStr, day, month, year, defaultLocale.language)
+            }
+        } catch (e: Exception) {
+            formatHijriPatternManual("dd MMMM yyyy", day, month, year, defaultLocale.language)
+        }
+    }
+
+    /**
+     * Format satu pattern Hijri dari raw values. Urutan replacement penting:
+     * MMMM sebelum MMM, dd sebelum d, yyyy sebelum yy.
+     */
+    private fun formatHijriPatternManual(pattern: String, day: Int, month: Int, year: Int, langCode: String): String {
+        val monthName = getLocalizedHijriMonthName(month, langCode)
+
+        var result = pattern
+        // 1. Buang single-quote escape pairs ('' → placeholder, 'literal' → literal)
+        //    Simpan literal yang di-quote agar tidak terkena token replacement
+        val literals = mutableListOf<String>()
+        result = Regex("'([^']*)'").replace(result) { match ->
+            literals.add(match.groupValues[1])
+            "\u0000LITERAL${literals.size - 1}\u0000"
+        }
+
+        // 2. Replace month tokens (terpanjang dulu)
+        result = result.replace("MMMM", monthName)
+        result = result.replace("MMM", monthName)
+        // MM dan M numerik — jarang dipakai untuk Hijri tapi support saja
+        result = result.replace("MM", String.format("%02d", month))
+
+        // 3. Replace day tokens (dd sebelum d)
+        result = result.replace("dd", String.format("%02d", day))
+        // standalone 'd' — hanya jika bukan bagian dari kata lain
+        result = Regex("(?<![a-zA-Z])d(?![a-zA-Z])").replace(result, day.toString())
+
+        // 4. Replace year tokens
+        result = result.replace("yyyy", year.toString())
+        result = result.replace("yy", (year % 100).toString().padStart(2, '0'))
+
+        // 5. Replace era
+        result = result.replace("GGGG", "Anno Hegirae")
+        result = result.replace("G", "AH")
+
+        // 6. Restore quoted literals
+        for ((i, literal) in literals.withIndex()) {
+            result = result.replace("\u0000LITERAL$i\u0000", literal)
+        }
+
+        // 7. Locale-specific post-processing
+        if (langCode.lowercase().startsWith("ar")) {
+            val arabicDigits = arrayOf('٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩')
+            val builder = StringBuilder()
+            for (char in result) {
+                if (char in '0'..'9') builder.append(arabicDigits[char - '0']) else builder.append(char)
+            }
+            result = builder.toString()
+        }
+
+        return result
+    }
+
+    // =========================================================================
+    // SINGLE SOURCE OF TRUTH: Tanggal Hijriah
+    // =========================================================================
+
+    /**
+     * Versi convenience — baca semua parameter dari SettingsManager.
+     * Gunakan ini dari widget, service, receiver, dll.
+     */
+    fun getCanonicalHijriDate(context: Context): HijriDisplayDate {
+        val s = SettingsManager(context)
+        return getCanonicalHijriDate(
+            isAutoHijri = s.isAutoHijriOffset,
+            latitude = s.latitude?.toDoubleOrNull(),
+            longitude = s.longitude?.toDoubleOrNull(),
+            hilalCriteria = s.hilalCriteria,
+            manualOffset = s.hijriOffset,
+            isDayStartAtMaghrib = s.isDayStartAtMaghrib,
+            calculationMethod = s.calculationMethod
+        )
+    }
+
+    /**
+     * Versi lengkap dengan parameter eksplisit — untuk preview di MainActivity
+     * yang membaca nilai dari UI (belum tentu tersimpan ke SettingsManager).
+     *
+     * Logika:
+     * - Auto mode ON → panggil calculateHijriDate langsung, simpan raw day/month/year.
+     * - Auto mode OFF → gunakan HijrahDate + manual offset + isDayStartAtMaghrib.
+     */
+    fun getCanonicalHijriDate(
+        isAutoHijri: Boolean,
+        latitude: Double?,
+        longitude: Double?,
+        hilalCriteria: String,
+        manualOffset: Int = 0,
+        isDayStartAtMaghrib: Boolean = false,
+        calculationMethod: String = "KEMENAG"
+    ): HijriDisplayDate {
+        val today = LocalDate.now()
+        var hijriDate = HijrahDate.from(today)
+
+        // === AUTO MODE: Direct astronomy ===
+        if (isAutoHijri && latitude != null && longitude != null) {
+            try {
+                val criteria = HilalCriteria.fromName(hilalCriteria) ?: HilalCriteria.NEO_MABIMS
+                val result = IslamicAstronomy.calculateHijriDate(Date(), latitude, longitude, criteria = criteria)
+                val aDay = result.hijriDate.day
+                val aMonth = result.hijriDate.month
+                val aYear = result.hijriDate.year
+
+                val closestHijrahDate = try {
+                    HijrahDate.of(aYear, aMonth, aDay)
+                } catch (e: java.time.DateTimeException) {
+                    // Day 30 tapi Java bilang bulan itu cuma 29 hari → clamp
+                    val temp = HijrahDate.of(aYear, aMonth, 1)
+                    HijrahDate.of(aYear, aMonth, aDay.coerceAtMost(temp.lengthOfMonth()))
+                }
+
+                return HijriDisplayDate(aDay, aMonth, aYear, closestHijrahDate, true)
+            } catch (e: Exception) {
+                // Fallback ke manual mode
+                android.util.Log.e("IslamicAppUtils", "Auto hijri error, fallback to manual", e)
+            }
+        }
+
+        // === MANUAL MODE: HijrahDate + offset ===
+        var totalOffset = manualOffset.toLong()
+
+        if (isDayStartAtMaghrib && latitude != null && longitude != null) {
+            try {
+                val prayerTimes = calculatePrayerTimes(latitude, longitude, calculationMethod, today)
+                val nowCal = Calendar.getInstance()
+                val maghribCal = Calendar.getInstance().apply { time = prayerTimes.maghrib }
+                val nowMin = nowCal.get(Calendar.HOUR_OF_DAY) * 60 + nowCal.get(Calendar.MINUTE)
+                val magMin = maghribCal.get(Calendar.HOUR_OF_DAY) * 60 + maghribCal.get(Calendar.MINUTE)
+                if (nowMin >= magMin) totalOffset += 1L
+            } catch (_: Exception) {}
+        }
+
+        if (totalOffset != 0L) {
+            try {
+                hijriDate = hijriDate.plus(totalOffset, ChronoUnit.DAYS)
+            } catch (_: Exception) {}
+        }
+
+        val day = hijriDate.get(ChronoField.DAY_OF_MONTH)
+        val month = hijriDate.get(ChronoField.MONTH_OF_YEAR)
+        val year = hijriDate.get(ChronoField.YEAR)
+        return HijriDisplayDate(day, month, year, hijriDate, false)
+    }
+
+    /**
+     * Format tanggal Hijri untuk display — otomatis pilih formatter yang tepat.
+     * Jika dari astronomy engine (day bisa 30 di bulan 29), pakai formatHijriManual.
+     * Jika dari manual mode, pakai formatCustomDate biasa.
+     */
+    fun formatHijriDisplay(pattern: String, hijri: HijriDisplayDate, locale: Locale): String {
+        return if (hijri.isFromAstronomy) {
+            formatHijriManual(pattern, hijri.day, hijri.month, hijri.year, locale)
+        } else {
+            formatCustomDate(pattern, hijri.hijrahDate, locale)
         }
     }
 

@@ -123,49 +123,14 @@ class LunarWidgetProvider : AppWidgetProvider() {
             val lon = lonString?.toDoubleOrNull() ?: 106.8
 
             val today = LocalDate.now()
-            var hijriDate = HijrahDate.from(today)
 
-            var totalHijriOffset: Long
-            if (settings.isAutoHijriOffset && latString != null && lonString != null) {
-                try {
-                    val criteria = HilalCriteria.fromName(settings.hilalCriteria)
-                    totalHijriOffset = IslamicAstronomy.calculateHijriOffset(
-                        lat, lon, criteria = criteria ?: HilalCriteria.NEO_MABIMS
-                    ).toLong()
-                } catch (e: Exception) {
-                    totalHijriOffset = settings.hijriOffset.toLong()
-                    Log.e(TAG, "Auto hijri offset error", e)
-                }
-            } else {
-                totalHijriOffset = settings.hijriOffset.toLong()
-            }
-
-            // isDayStartAtMaghrib: only apply when NOT using auto hijri offset
-            // (auto offset already accounts for Maghrib transition)
-            if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib) {
-                try {
-                    val prayerTimes = IslamicAppUtils.calculatePrayerTimes(
-                        lat, lon, settings.calculationMethod, today
-                    )
-                    // FIX: Bandingkan jam:menit saja (prayer times punya komponen tanggal salah)
-                    val nCal = java.util.Calendar.getInstance()
-                    val mCal = java.util.Calendar.getInstance().apply { time = prayerTimes.maghrib }
-                    val nMin = nCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nCal.get(java.util.Calendar.MINUTE)
-                    val mMin = mCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + mCal.get(java.util.Calendar.MINUTE)
-                    if (nMin >= mMin) {
-                        totalHijriOffset += 1L
-                    }
-                } catch (_: Exception) {}
-            }
-
-            if (totalHijriOffset != 0L) {
-                hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
-            }
+            // SINGLE SOURCE OF TRUTH: sama seperti IslamicWidgetProvider
+            val hijriDisplay = IslamicAppUtils.getCanonicalHijriDate(context)
 
             val masehiPattern = settings.dateFormat.ifEmpty { "en-US{EEEE, dd MMMM yyyy}" }
             val hijriPattern = settings.hijriFormat.ifEmpty { "en-US{dd MMMM yyyy} H" }
             val gregorianStr = IslamicAppUtils.formatCustomDate(masehiPattern, today, locale)
-            val hijriStr = IslamicAppUtils.formatCustomDate(hijriPattern, hijriDate, locale)
+            val hijriStr = IslamicAppUtils.formatHijriDisplay(hijriPattern, hijriDisplay, locale)
 
             val textColor = try { Color.parseColor(settings.widgetTextColor) } catch (_: Exception) { Color.WHITE }
             val phaseNameLocalized = getLocalizedPhaseName(localizedContext, phaseName, illuminationPct)

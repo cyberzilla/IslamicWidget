@@ -399,9 +399,17 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             } else {
                 // FIX: Jangan kirim corrective UNMUTE jika adzan sedang bermain.
                 // AdzanService.onDestroy() akan handle PENDING_UNMUTE sendiri.
-                if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying) {
+                // FIX #2: Jangan kirim corrective UNMUTE jika DND baru saja diaktifkan (< 5 menit).
+                // Ini mencegah premature unmute saat widget update dipicu oleh AdzanService.onDestroy
+                // tepat setelah adzan selesai — scheduled UNMUTE alarm akan handle di waktu yang benar.
+                val lastMuteTs = prefs.getLong("LAST_MUTE_TIMESTAMP", 0L)
+                val muteCooldownMs = 5 * 60 * 1000L // 5 menit
+                val isMuteCooldownActive = (System.currentTimeMillis() - lastMuteTs) < muteCooldownMs
+                if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying && !isMuteCooldownActive) {
                     val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
                     context.sendBroadcast(unmuteIntent)
+                } else if (isMuteCooldownActive && (currentlyMutedDnd || currentlyMutedRinger)) {
+                    Log.d(TAG, "Corrective UNMUTE ditahan: mute cooldown aktif (${(System.currentTimeMillis() - lastMuteTs)/1000}s sejak mute)")
                 }
             }
         } catch (e: Exception) {
@@ -497,9 +505,15 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             }
         } else {
             // FIX: Jangan corrective-unmute jika adzan sedang bermain
-            if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying) {
+            // FIX #2: Jangan corrective-unmute jika DND baru saja diaktifkan (< 5 menit)
+            val lastMuteTs = prefs.getLong("LAST_MUTE_TIMESTAMP", 0L)
+            val muteCooldownMs = 5 * 60 * 1000L
+            val isMuteCooldownActive = (System.currentTimeMillis() - lastMuteTs) < muteCooldownMs
+            if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying && !isMuteCooldownActive) {
                 val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
                 context.sendBroadcast(unmuteIntent)
+            } else if (isMuteCooldownActive && (currentlyMutedDnd || currentlyMutedRinger)) {
+                Log.d(TAG, "Corrective UNMUTE (enforce) ditahan: mute cooldown aktif (${(System.currentTimeMillis() - lastMuteTs)/1000}s)")
             }
         }
 
@@ -553,26 +567,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         views.setImageViewBitmap(R.id.widget_bg, bgBitmap)
 
         val today = LocalDate.now()
-        var hijriDate = HijrahDate.from(today)
-
         val latString = settings.latitude
         val lonString = settings.longitude
 
-        var totalHijriOffset: Long
-
-        if (settings.isAutoHijriOffset && latString != null && lonString != null) {
-            try {
-                val lat = latString.toDouble()
-                val lon = lonString.toDouble()
-                val criteria = HilalCriteria.fromName(settings.hilalCriteria)
-                totalHijriOffset = IslamicAstronomy.calculateHijriOffset(lat, lon, criteria = criteria ?: HilalCriteria.NEO_MABIMS).toLong()
-            } catch (e: Exception) {
-                totalHijriOffset = settings.hijriOffset.toLong()
-                Log.e(TAG, "Auto hijri offset error in widget, falling back to manual", e)
-            }
-        } else {
-            totalHijriOffset = settings.hijriOffset.toLong()
-        }
+        // SINGLE SOURCE OF TRUTH: satu panggilan untuk semua kebutuhan tanggal Hijri
+        val hijriDisplay = IslamicAppUtils.getCanonicalHijriDate(context)
+        val hijriDate = hijriDisplay.hijrahDate
 
         var cachedPrayerTimes: IAstroPrayerTimes? = null
         var cachedLat = 0.0
@@ -583,40 +583,18 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 cachedLat = latString.toDouble()
                 cachedLon = lonString.toDouble()
                 cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
-                // FIX: Jangan bandingkan epoch Date().after(maghrib) karena
-                // prayer times dari astronomy engine kadang mengembalikan Date
-                // dengan komponen TANGGAL kemarin (akibat konversi UTC).
-                // Bandingkan hanya JAM:MENIT (time-of-day) saja.
                 val nowCal = java.util.Calendar.getInstance()
                 val maghribCal = java.util.Calendar.getInstance().apply { time = cachedPrayerTimes!!.maghrib }
                 val nowMinutes = nowCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nowCal.get(java.util.Calendar.MINUTE)
                 val maghribMinutes = maghribCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + maghribCal.get(java.util.Calendar.MINUTE)
                 val isAfterMaghrib = nowMinutes >= maghribMinutes
-                if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib && isAfterMaghrib) {
-                    totalHijriOffset += 1L
-                }
-                // DIAGNOSTIC: Log ke AdzanLogger agar bisa dibaca di device
-                val sdf = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
+                // DIAGNOSTIC: Log ke AdzanLogger
                 AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE,
-                    "HIJRI: java=${hijriDate} manualOffset=${settings.hijriOffset} " +
+                    "HIJRI: display=${hijriDisplay.day}/${hijriDisplay.month}/${hijriDisplay.year} " +
+                    "isAstro=${hijriDisplay.isFromAstronomy} " +
                     "isAuto=${settings.isAutoHijriOffset} isDayStart=${settings.isDayStartAtMaghrib} " +
-                    "nowMin=$nowMinutes maghribMin=$maghribMinutes " +
-                    "afterMaghrib=$isAfterMaghrib totalOffset=$totalHijriOffset")
+                    "nowMin=$nowMinutes maghribMin=$maghribMinutes afterMaghrib=$isAfterMaghrib")
             } catch (e: Exception) {}
-        }
-
-        // FIX KRITIS: Wrap dalam try-catch karena HijrahDate.plus() bisa throw
-        // DateTimeException jika offset menghasilkan tanggal invalid di boundary bulan.
-        // Tanpa ini, crash di sini menghentikan updateAppWidget → scheduleDateChangeUpdate
-        // tidak terjadwal → widget berhenti self-update → scheduleAllPrayers tidak dipanggil
-        // untuk hari berikutnya → DND alarm jadi stale → DND kacau.
-        // INI adalah koneksi antara bug Hijri mundur dan DND tidak berfungsi.
-        if (totalHijriOffset != 0L) {
-            try {
-                hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
-            } catch (e: Exception) {
-                Log.e(TAG, "HijrahDate.plus($totalHijriOffset) gagal, menggunakan tanggal tanpa offset", e)
-            }
         }
 
         // === Holiday Detection ===
@@ -890,17 +868,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         }
 
         try {
-            val hDayOfMonth = hijriDate.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
             val lastUpdatedIconDay = prefs.getInt("lastIconHijriDay", -1)
 
-            if (hDayOfMonth != lastUpdatedIconDay) {
-                IconHelper.updateLauncherIcon(context, hDayOfMonth)
+            if (hijriDisplay.day != lastUpdatedIconDay) {
+                IconHelper.updateLauncherIcon(context, hijriDisplay.day)
             }
         } catch (e: Exception) {}
 
         val masehiFormatted = IslamicAppUtils.formatCustomDate(settings.dateFormat, today, selectedLocale)
-        val hijriFormatted = IslamicAppUtils.formatCustomDate(settings.hijriFormat, hijriDate, selectedLocale)
+        val hijriFormatted = IslamicAppUtils.formatHijriDisplay(settings.hijriFormat, hijriDisplay, selectedLocale)
 
         views.setTextViewText(R.id.tv_gregorian_date, masehiFormatted)
         views.setTextViewText(R.id.tv_hijri_date, hijriFormatted)
