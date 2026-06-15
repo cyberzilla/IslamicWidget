@@ -613,8 +613,18 @@ class AdzanService : Service() {
                 AdzanLogger.log(this, AdzanLogger.Event.UNMUTE_EXECUTED,
                     "PENDING_UNMUTE diabaikan: masih dalam silent window, UNMUTE terjadwal akan handle")
                 prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
+            } else if (isFadingOut) {
+                // FIX: User interrupt adzan (tap/swipe notifikasi) → isFadingOut = true.
+                // Jangan langsung unmute karena scheduled UNMUTE alarm mungkin sudah fire
+                // saat adzan bermain, tapi bisa jadi belum (terutama jika afterMinutes > durasi adzan).
+                // Biarkan scheduled UNMUTE alarm atau corrective check di widget update yang
+                // akan menangani ini. Ini mencegah DND langsung OFF saat user stop adzan.
+                Log.d(TAG, "PENDING_UNMUTE diabaikan: adzan di-interrupt user, biarkan scheduled alarm handle")
+                AdzanLogger.log(this, AdzanLogger.Event.UNMUTE_EXECUTED,
+                    "PENDING_UNMUTE diabaikan: user interrupt, scheduled UNMUTE alarm akan handle")
+                prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
             } else {
-                Log.d(TAG, "Mengeksekusi PENDING UNMUTE karena Adzan sudah selesai/dihentikan.")
+                Log.d(TAG, "Mengeksekusi PENDING UNMUTE karena Adzan selesai secara natural.")
                 sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
                     action = "ACTION_UNMUTE"
                 })

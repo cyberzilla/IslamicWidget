@@ -513,16 +513,26 @@ class MainActivity : AppCompatActivity() {
                     val currentTime = Date()
                     var isAfterMaghrib = false
                     val isAutoHijriActive = findViewById<SwitchCompat>(R.id.sw_auto_hijri)?.isChecked ?: settingsManager.isAutoHijriOffset
-                    if (!isAutoHijriActive && findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && currentTime.after(prayerTimes.maghrib)) {
+                    // FIX: Bandingkan jam:menit saja, bukan epoch penuh,
+                    // karena prayer times bisa punya komponen tanggal yang salah (kemarin)
+                    // akibat konversi UTC di astronomy engine.
+                    val nowCal = java.util.Calendar.getInstance()
+                    val maghribCal = java.util.Calendar.getInstance().apply { time = prayerTimes.maghrib }
+                    val nowMinutes = nowCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nowCal.get(java.util.Calendar.MINUTE)
+                    val maghribMinutes = maghribCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + maghribCal.get(java.util.Calendar.MINUTE)
+                    val isNowAfterMaghrib = nowMinutes >= maghribMinutes
+                    if (!isAutoHijriActive && findViewById<CheckBox>(R.id.cb_day_start)?.isChecked == true && isNowAfterMaghrib) {
                         totalHijriOffset += 1L
                         isAfterMaghrib = true
                     }
                     // Untuk info puasa sunnah: deteksi setelah Maghrib secara independen dari auto offset
                     // agar reminder "ingat puasa besok" muncul dengan benar di malam hari
-                    if (isAutoHijriActive && currentTime.after(prayerTimes.maghrib)) {
+                    if (isAutoHijriActive && isNowAfterMaghrib) {
                         isAfterMaghrib = true
                     }
-                    val isBeforeFajr = currentTime.before(prayerTimes.fajr)
+                    val fajrCal = java.util.Calendar.getInstance().apply { time = prayerTimes.fajr }
+                    val fajrMinutes = fajrCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + fajrCal.get(java.util.Calendar.MINUTE)
+                    val isBeforeFajr = nowMinutes < fajrMinutes
 
                     val timeFormatter = SimpleDateFormat(timePattern, selectedLocale)
                     timeFormatter.timeZone = TimeZone.getDefault()

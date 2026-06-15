@@ -178,7 +178,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         scheduleAllPrayers(context, forceReschedule = false)
 
         for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+            try {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            } catch (e: Exception) {
+                Log.e(TAG, "updateAppWidget gagal untuk widget $appWidgetId, lanjut ke widget berikutnya", e)
+            }
         }
 
         // Ikut refresh Lunar Widget agar fase bulan selalu up-to-date
@@ -538,14 +542,40 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 cachedLat = latString.toDouble()
                 cachedLon = lonString.toDouble()
                 cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
-                if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib && Date().after(cachedPrayerTimes!!.maghrib)) {
+                // FIX: Jangan bandingkan epoch Date().after(maghrib) karena
+                // prayer times dari astronomy engine kadang mengembalikan Date
+                // dengan komponen TANGGAL kemarin (akibat konversi UTC).
+                // Bandingkan hanya JAM:MENIT (time-of-day) saja.
+                val nowCal = java.util.Calendar.getInstance()
+                val maghribCal = java.util.Calendar.getInstance().apply { time = cachedPrayerTimes!!.maghrib }
+                val nowMinutes = nowCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nowCal.get(java.util.Calendar.MINUTE)
+                val maghribMinutes = maghribCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + maghribCal.get(java.util.Calendar.MINUTE)
+                val isAfterMaghrib = nowMinutes >= maghribMinutes
+                if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib && isAfterMaghrib) {
                     totalHijriOffset += 1L
                 }
+                // DIAGNOSTIC: Log ke AdzanLogger agar bisa dibaca di device
+                val sdf = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
+                AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE,
+                    "HIJRI: java=${hijriDate} manualOffset=${settings.hijriOffset} " +
+                    "isAuto=${settings.isAutoHijriOffset} isDayStart=${settings.isDayStartAtMaghrib} " +
+                    "nowMin=$nowMinutes maghribMin=$maghribMinutes " +
+                    "afterMaghrib=$isAfterMaghrib totalOffset=$totalHijriOffset")
             } catch (e: Exception) {}
         }
 
+        // FIX KRITIS: Wrap dalam try-catch karena HijrahDate.plus() bisa throw
+        // DateTimeException jika offset menghasilkan tanggal invalid di boundary bulan.
+        // Tanpa ini, crash di sini menghentikan updateAppWidget → scheduleDateChangeUpdate
+        // tidak terjadwal → widget berhenti self-update → scheduleAllPrayers tidak dipanggil
+        // untuk hari berikutnya → DND alarm jadi stale → DND kacau.
+        // INI adalah koneksi antara bug Hijri mundur dan DND tidak berfungsi.
         if (totalHijriOffset != 0L) {
-            hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
+            try {
+                hijriDate = hijriDate.plus(totalHijriOffset, ChronoUnit.DAYS)
+            } catch (e: Exception) {
+                Log.e(TAG, "HijrahDate.plus($totalHijriOffset) gagal, menggunakan tanggal tanpa offset", e)
+            }
         }
 
         // === Holiday Detection ===
@@ -694,7 +724,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                         views.setTextColor(times[i], colorToUse)
                     }
 
-                    scheduleDateChangeUpdate(context, prayerTimes.maghrib, prayerTimes.fajr, appWidgetId, settings.isDayStartAtMaghrib)
+                    // FIX: Juga update widget saat Maghrib ketika auto hijri offset aktif,
+                    // karena auto koreksi menghitung hari sunset-to-sunset.
+                    scheduleDateChangeUpdate(context, prayerTimes.maghrib, prayerTimes.fajr, appWidgetId, settings.isDayStartAtMaghrib || settings.isAutoHijriOffset)
 
                     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
                     val currentVersionName = packageInfo.versionName ?: "1.0"
@@ -912,6 +944,20 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
         if (prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false) && audioMgr.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
             prefs.edit().putBoolean("IS_MUTED_BY_APP_RINGER", false).apply()
+        }
+
+        // FIX: Reconcile DND flag dengan state aktual sistem.
+        // Jika app mengklaim sudah mute via DND tapi DND sebenarnya tidak aktif
+        // (user unmute manual dari Settings, atau OS restore setelah reboot/crash),
+        // clear stale flag agar MUTE berikutnya tidak di-skip oleh idempotency guard.
+        if (prefs.getBoolean("IS_MUTED_BY_APP_DND", false)) {
+            try {
+                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                if (nm.currentInterruptionFilter == android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
+                    prefs.edit().putBoolean("IS_MUTED_BY_APP_DND", false).apply()
+                    Log.d(TAG, "Reconciled stale IS_MUTED_BY_APP_DND flag (DND sudah tidak aktif)")
+                }
+            } catch (_: Exception) {}
         }
 
         // Grace period 2 menit: jika reschedule terjadi tepat saat/sesaat setelah waktu sholat,

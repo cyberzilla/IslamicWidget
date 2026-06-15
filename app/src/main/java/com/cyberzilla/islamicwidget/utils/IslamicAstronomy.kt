@@ -380,6 +380,19 @@ object IslamicAstronomy {
         val diffMillis = targetDate.time - monthStartDate.time
         if (diffMillis < 0) return 1 
         
+        // Hari Islam berjalan dari Maghrib ke Maghrib (sunset to sunset).
+        // monthStartDate adalah waktu SUNSET yang menandai awal bulan Hijriah.
+        // Kita hitung berapa "hari Islam" yang sudah berlalu.
+        //
+        // Contoh: monthStartDate = 17 Mei 18:15 (sunset), targetDate = 15 Juni 16:00
+        //   diffMillis = 28 hari 21 jam 45 menit
+        //   diffDays = floor(28.906) = 28
+        //   return 28 + 1 = 29 (hari ke-29 di bulan ini)
+        //
+        // Ini benar karena:
+        //   Hari 1 = Mei 17 sunset → Mei 18 sunset
+        //   Hari 29 = Jun 14 sunset → Jun 15 sunset
+        //   Pada Jun 15 16:00, kita masih di hari 29 (belum sunset)
         val diffDays = floor(diffMillis / (1000.0 * 60 * 60 * 24)).toInt()
         return diffDays + 1
     }
@@ -406,19 +419,33 @@ object IslamicAstronomy {
         var (month, year) = getHijriMonthYear(currentConjunction)
         var monthStartDate = findMonthStartAfterConjunction(currentConjunction, latitude, longitude, elevation, criteria)
 
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", java.util.Locale.US)
+        android.util.Log.d("IslamicAstronomy", "calculateHijriDate: input=${sdf.format(date)} criteria=${criteria.name}")
+        android.util.Log.d("IslamicAstronomy", "  conjunction=${sdf.format(currentConjunction.toDate())} → monthStart=${sdf.format(monthStartDate)}")
+        android.util.Log.d("IslamicAstronomy", "  initial month/year=$month/$year, date<monthStart=${date.time < monthStartDate.time}")
+
         // Jika waktu evaluasi ternyata masih sebelum bulan baru dimulai (Maghrib),
         // maka jatuhkan ke siklus bulan lunasi sebelumnya.
         if (date.time < monthStartDate.time) {
-            val prevDate = Date(currentConjunction.toDate().time - (29.5 * 86400000L).toLong())
-            currentConjunction = findPreviousNewMoon(prevDate)
+            // FIX: Gunakan searchMoonPhase langsung dari konjungsi yang sudah ditemukan,
+            // mundur ~32 hari, bukan menggunakan Date arithmetic yang bisa inkonsisten.
+            val prevConjunction = searchMoonPhase(0.0, currentConjunction.addDays(-32.0), 5.0) 
+                ?: currentConjunction.addDays(-29.5)
+            currentConjunction = prevConjunction
             val prevMY = getHijriMonthYear(currentConjunction)
             month = prevMY.first
             year = prevMY.second
             monthStartDate = findMonthStartAfterConjunction(currentConjunction, latitude, longitude, elevation, criteria)
+            android.util.Log.d("IslamicAstronomy", "  FALLBACK: prevConj=${sdf.format(currentConjunction.toDate())} → monthStart=${sdf.format(monthStartDate)}")
+            android.util.Log.d("IslamicAstronomy", "  FALLBACK: month/year=$month/$year")
         }
 
         val day = calculateAutoOffset(date, monthStartDate)
-        val hijriDate = HijriDate(day, month, year, HIJRI_MONTH_NAMES[month - 1])
+        // FIX: Clamp ke range valid (1-30). Edge case di boundary new moon
+        // dimana fallback path bisa menghasilkan day > 30.
+        val clampedDay = day.coerceIn(1, 30)
+        android.util.Log.d("IslamicAstronomy", "  day=$day clampedDay=$clampedDay (diffMs=${date.time - monthStartDate.time})")
+        val hijriDate = HijriDate(clampedDay, month, year, HIJRI_MONTH_NAMES[month - 1])
         val hilalReport = calculateHilal(date, latitude, longitude, elevation, criteria)
 
         return HilalResult(hijriDate, hilalReport)
@@ -553,8 +580,11 @@ object IslamicAstronomy {
                 else lunarDay - staticDay - 30
             }
 
+            android.util.Log.d("IslamicAstronomy", "calculateHijriOffset: criteria=${criteria.name} lunarDay=$lunarDay lunarMonth=$lunarMonth staticDay=$staticDay staticMonth=$staticMonth delta=$delta coerced=${delta.coerceIn(-2, 2)}")
+
             delta.coerceIn(-2, 2)
         } catch (e: Exception) {
+            android.util.Log.e("IslamicAstronomy", "calculateHijriOffset ERROR", e)
             0
         }
     }

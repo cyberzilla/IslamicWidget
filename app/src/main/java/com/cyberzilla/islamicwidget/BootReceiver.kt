@@ -23,6 +23,11 @@ class BootReceiver : BroadcastReceiver() {
             .putLong("adzanPlayStartTime", 0L)
             .putBoolean("PENDING_UNMUTE", false)
             .putBoolean("IS_TEST_MODE_ACTIVE", false)
+            // FIX: Clear mute flags saat boot. Sebelumnya flags ini persist across reboot,
+            // menyebabkan idempotency guard di SilentModeReceiver men-skip MUTE yang legitimate
+            // karena mengira device masih di-mute (padahal OS sudah reset DND saat boot).
+            .putBoolean("IS_MUTED_BY_APP_DND", false)
+            .putBoolean("IS_MUTED_BY_APP_RINGER", false)
             .remove("LAST_SCHEDULE_FINGERPRINT")
             .apply()
 

@@ -147,7 +147,12 @@ class LunarWidgetProvider : AppWidgetProvider() {
                     val prayerTimes = IslamicAppUtils.calculatePrayerTimes(
                         lat, lon, settings.calculationMethod, today
                     )
-                    if (java.util.Date().after(prayerTimes.maghrib)) {
+                    // FIX: Bandingkan jam:menit saja (prayer times punya komponen tanggal salah)
+                    val nCal = java.util.Calendar.getInstance()
+                    val mCal = java.util.Calendar.getInstance().apply { time = prayerTimes.maghrib }
+                    val nMin = nCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nCal.get(java.util.Calendar.MINUTE)
+                    val mMin = mCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + mCal.get(java.util.Calendar.MINUTE)
+                    if (nMin >= mMin) {
                         totalHijriOffset += 1L
                     }
                 } catch (_: Exception) {}

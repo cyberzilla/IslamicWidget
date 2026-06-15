@@ -112,7 +112,12 @@ class HilalInfoActivity : AppCompatActivity() {
                     val prayerTimes = IslamicAppUtils.calculatePrayerTimes(
                         lat, lon, settings.calculationMethod, today
                     )
-                    if (java.util.Date().after(prayerTimes.maghrib)) {
+                    // FIX: Bandingkan jam:menit saja (prayer times punya komponen tanggal salah)
+                    val nCal = java.util.Calendar.getInstance()
+                    val mCal = java.util.Calendar.getInstance().apply { time = prayerTimes.maghrib }
+                    val nMin = nCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nCal.get(java.util.Calendar.MINUTE)
+                    val mMin = mCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + mCal.get(java.util.Calendar.MINUTE)
+                    if (nMin >= mMin) {
                         totalOffset += 1L
                     }
                 } catch (_: Exception) {}
@@ -154,7 +159,11 @@ class HilalInfoActivity : AppCompatActivity() {
             if (!settings.isAutoHijriOffset && settings.isDayStartAtMaghrib) {
                 try {
                     val pt = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
-                    if (java.util.Date().after(pt.maghrib)) offset += 1L
+                    val nC = java.util.Calendar.getInstance()
+                    val mC = java.util.Calendar.getInstance().apply { time = pt.maghrib }
+                    val nM = nC.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nC.get(java.util.Calendar.MINUTE)
+                    val mM = mC.get(java.util.Calendar.HOUR_OF_DAY) * 60 + mC.get(java.util.Calendar.MINUTE)
+                    if (nM >= mM) offset += 1L
                 } catch (_: Exception) {}
             }
             if (offset != 0L) hijriDate2 = hijriDate2.plus(offset, java.time.temporal.ChronoUnit.DAYS)
