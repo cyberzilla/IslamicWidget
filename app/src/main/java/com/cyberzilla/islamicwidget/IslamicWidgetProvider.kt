@@ -390,14 +390,25 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 .putLong("LAST_SCHEDULE_TIME", System.currentTimeMillis())
                 .apply()
 
-            // FIX: TIDAK ada corrective MUTE/UNMUTE di sini.
-            // Biarkan scheduled alarm (MUTE/UNMUTE) yang fire pada waktunya.
-            // Corrective logic sebelumnya menyebabkan DND premature karena:
-            // 1. OEM (Xiaomi/HyperOS) otomatis hapus DND saat foreground service berhenti
-            // 2. Flag reconcile salah clear IS_MUTED_BY_APP_DND
-            // 3. Widget update storm memicu corrective UNMUTE di waktu yang salah
-            if (isInsideAnySilentWindow) {
-                Log.d(TAG, "scheduleAllPrayers: saat ini di dalam silent window, alarm sudah terjadwal")
+            // FIX: Jika reschedule terjadi di TENGAH silent window (misal boot di 18:01,
+            // tapi MUTE Maghrib seharusnya di 17:54), MUTE alarm sudah lewat dan di-cancel.
+            // Kita HARUS apply MUTE sekarang agar DND aktif selama sisa window.
+            // Ini AMAN karena hanya berjalan saat NEEDS_RESCHEDULE=true (boot/settings/ganti hari),
+            // BUKAN saat widget update rutin (yang menyebabkan corrective bug sebelumnya).
+            if (isInsideAnySilentWindow && settings.isAutoSilentEnabled) {
+                val alreadyMuted = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
+                                   prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
+                if (!alreadyMuted) {
+                    Log.d(TAG, "scheduleAllPrayers: di dalam silent window tapi DND belum aktif → apply MUTE")
+                    AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED,
+                        "Reschedule di tengah silent window: MUTE alarm sudah lewat, apply MUTE sekarang")
+                    val muteIntent = Intent(context, SilentModeReceiver::class.java).apply {
+                        action = "ACTION_MUTE"
+                    }
+                    context.sendBroadcast(muteIntent)
+                } else {
+                    Log.d(TAG, "scheduleAllPrayers: di dalam silent window, DND sudah aktif")
+                }
             }
 
             // FIX: Safety net — jika Auto Silent dimatikan tapi DND masih aktif dari app,

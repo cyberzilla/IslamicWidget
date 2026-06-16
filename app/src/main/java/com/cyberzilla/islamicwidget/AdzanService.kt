@@ -647,6 +647,8 @@ class AdzanService : Service() {
      */
     private fun isStillInsideSilentWindow(): Boolean {
         val settings = SettingsManager(this)
+        // Jika Auto Silent dimatikan, tidak ada silent window yang relevan
+        if (!settings.isAutoSilentEnabled) return false
         val latString = settings.latitude ?: return false
         val lonString = settings.longitude ?: return false
 

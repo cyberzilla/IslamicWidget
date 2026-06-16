@@ -350,8 +350,8 @@ class SilentModeReceiver : BroadcastReceiver() {
                     } catch (_: Exception) {}
                 }
 
-                Log.d(TAG, "Perangkat sukses dikembalikan dari DND ke state Normal.")
-                AdzanLogger.logUnmuteExecuted(context, "DND -> Normal")
+                Log.d(TAG, "Perangkat sukses dikembalikan dari DND ke state sebelumnya (filter=$prevFilter).")
+                AdzanLogger.logUnmuteExecuted(context, "DND -> restore filter=$prevFilter")
             }
 
             if (wasMutedByAppRinger) {
