@@ -131,6 +131,8 @@ class SilentModeReceiver : BroadcastReceiver() {
             }
 
             "ACTION_UPDATE_WIDGETS_BROADCAST" -> {
+                // Ganti hari (midnight/maghrib/fajr) → perlu jadwalkan ulang alarm sholat
+                IslamicWidgetProvider.requestReschedule(context)
                 forceUpdateAllWidgets(context)
             }
 
@@ -143,16 +145,40 @@ class SilentModeReceiver : BroadcastReceiver() {
                         "ACTION_MUTE diabaikan karena Auto Silent dimatikan (stale alarm?)")
                     return
                 }
-                // === FIX: Idempotency guard — cegah double/triple MUTE dari stale alarm overlap ===
-                // Jika device sudah di-mute oleh app, skip untuk menghindari log noise
-                // dan panggilan DND system yang redundan.
-                val alreadyMuted = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
-                                   prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
-                if (alreadyMuted) {
-                    Log.d(TAG, "ACTION_MUTE diabaikan: perangkat sudah di-mute oleh app (duplikat alarm?)")
-                    AdzanLogger.log(context, AdzanLogger.Event.MUTE_SKIPPED,
-                        "ACTION_MUTE diabaikan: sudah dalam state muted (stale/duplikat alarm)")
-                    return
+                // === FIX: Smart idempotency guard ===
+                // Cegah double MUTE, TAPI jika flag=true dan system DND sudah OFF
+                // (OEM hapus DND setelah adzan selesai), clear stale flag lalu re-apply.
+                // Tanpa ini, overlapping prayer window (misal Maghrib+Isya) kehilangan DND.
+                val alreadyMutedDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
+                val alreadyMutedRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
+                if (alreadyMutedDnd || alreadyMutedRinger) {
+                    // Cek apakah system DND masih benar-benar aktif
+                    try {
+                        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                        if (alreadyMutedDnd && nm.isNotificationPolicyAccessGranted &&
+                            nm.currentInterruptionFilter == android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
+                            // Flag bilang muted, tapi system DND sudah OFF → OEM desync!
+                            // Clear stale flag agar executeMute bisa re-apply DND
+                            Log.d(TAG, "ACTION_MUTE: DND desync terdeteksi (flag=muted, system=OFF). Re-applying DND.")
+                            AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED,
+                                "DND desync: flag muted tapi system off, clear flag lalu re-apply MUTE")
+                            prefs.edit()
+                                .putBoolean("IS_MUTED_BY_APP_DND", false)
+                                .putBoolean("IS_MUTED_BY_APP_RINGER", false)
+                                .commit()
+                            // Jatuh ke executeMute di bawah (tidak return)
+                        } else {
+                            // System DND masih aktif → benar-benar sudah muted, skip
+                            Log.d(TAG, "ACTION_MUTE diabaikan: perangkat sudah di-mute oleh app (duplikat alarm?)")
+                            AdzanLogger.log(context, AdzanLogger.Event.MUTE_SKIPPED,
+                                "ACTION_MUTE diabaikan: sudah dalam state muted (stale/duplikat alarm)")
+                            return
+                        }
+                    } catch (e: Exception) {
+                        // Gagal cek system DND → skip untuk safety
+                        Log.d(TAG, "ACTION_MUTE diabaikan: gagal cek system DND state")
+                        return
+                    }
                 }
                 Log.d(TAG, "ACTION_MUTE: Mengeksekusi Silent Mode")
                 AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED, "ACTION_MUTE diterima")
@@ -368,6 +394,8 @@ class SilentModeReceiver : BroadcastReceiver() {
      * ketika silent windows mereka overlap.
      */
     private fun isInsideAnySilentWindow(context: Context, settings: SettingsManager): Boolean {
+        // Jika Auto Silent dimatikan, tidak ada silent window yang relevan
+        if (!settings.isAutoSilentEnabled) return false
         val latString = settings.latitude ?: return false
         val lonString = settings.longitude ?: return false
 

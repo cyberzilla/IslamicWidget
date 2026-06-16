@@ -230,6 +230,9 @@ class SettingsManager(private val context: Context) {
             .putBoolean("IS_TEST_MODE_ACTIVE", false)
             .putBoolean("isAdzanPlaying", false)
             .remove("LAST_SCHEDULE_FINGERPRINT")
+            // FIX: Tandai bahwa alarm perlu dijadwalkan ulang setelah restore defaults.
+            // cancelAllSilentAlarms() menghapus semua alarm, jadi HARUS dijadwalkan ulang.
+            .putBoolean("NEEDS_RESCHEDULE", true)
             .apply()
 
         latitude = currentLat
@@ -356,6 +359,8 @@ class SettingsManager(private val context: Context) {
             .putInt("quoteFontSize", quoteFontSize)
             .putInt("quoteBgAlpha", quoteBgAlpha)
             .remove("LAST_SCHEDULE_FINGERPRINT")
+            // FIX: Tandai bahwa alarm perlu dijadwalkan ulang setelah settings berubah.
+            .putBoolean("NEEDS_RESCHEDULE", true)
             .apply()
     }
 }

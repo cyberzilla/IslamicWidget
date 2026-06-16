@@ -29,6 +29,9 @@ class BootReceiver : BroadcastReceiver() {
             .putBoolean("IS_MUTED_BY_APP_DND", false)
             .putBoolean("IS_MUTED_BY_APP_RINGER", false)
             .remove("LAST_SCHEDULE_FINGERPRINT")
+            // FIX: Tandai bahwa alarm perlu dijadwalkan ulang setelah boot.
+            // onUpdate hanya akan menjalankan scheduleAllPrayers jika flag ini true.
+            .putBoolean("NEEDS_RESCHEDULE", true)
             .apply()
 
         val appWidgetManager = AppWidgetManager.getInstance(context)
