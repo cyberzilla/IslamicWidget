@@ -721,22 +721,30 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.tv_qibla, String.format(selectedLocale, "%s: %.1f°", txtQibla, qiblaDegree))
 
                     val now = Date()
+                    val nowMillis = now.time
                     val highlightColor = Color.parseColor("#FFC107")
                     val defaultColor = textColor
 
                     val prayerDates = arrayOf(prayerTimes.fajr, prayerTimes.dhuhr, prayerTimes.asr, prayerTimes.maghrib, prayerTimes.isha)
+                    val prayerNames = arrayOf("Fajr", "Dhuhr", "Asr", "Maghrib", "Isha")
                     val labels = arrayOf(R.id.label_fajr, R.id.label_dhuhr, R.id.label_asr, R.id.label_maghrib, R.id.label_isha)
                     val times = arrayOf(R.id.tv_fajr_time, R.id.tv_dhuhr_time, R.id.tv_asr_time, R.id.tv_maghrib_time, R.id.tv_isha_time)
 
                     var nextPrayerIndex = -1
+                    val diagParts = mutableListOf<String>()
                     for (i in prayerDates.indices) {
-                        if (now.before(prayerDates[i])) {
+                        val pMillis = prayerDates[i].time
+                        val diff = pMillis - nowMillis
+                        diagParts.add("${prayerNames[i]}=${diff/1000}s")
+                        if (nowMillis < pMillis && nextPrayerIndex == -1) {
                             nextPrayerIndex = i
-                            break
                         }
                     }
-                    // Jika semua sholat sudah lewat (setelah Isya), nextPrayerIndex tetap -1
-                    // → tidak ada yang di-highlight (semua defaultColor)
+                    // Fallback: setelah Isya lewat, highlight Subuh (sholat berikutnya besok)
+                    if (nextPrayerIndex == -1) nextPrayerIndex = 0
+
+                    AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE,
+                        "HIGHLIGHT: idx=$nextPrayerIndex now=${nowMillis} ${diagParts.joinToString(" ")}")
 
                     for (i in labels.indices) {
                         val colorToUse = if (i == nextPrayerIndex) highlightColor else defaultColor

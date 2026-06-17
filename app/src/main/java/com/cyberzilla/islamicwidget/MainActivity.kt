@@ -544,14 +544,19 @@ class MainActivity : AppCompatActivity() {
                         prayerTimes.maghrib,
                         prayerTimes.isha
                     )
+                    val nowMillisPreview = System.currentTimeMillis()
                     for (i in prayerDatesForPreview.indices) {
-                        if (Date().before(prayerDatesForPreview[i])) {
+                        if (nowMillisPreview < prayerDatesForPreview[i].time) {
                             nextPrayerIndexForPreview = i
                             break
                         }
                     }
-                    // Jika semua sholat sudah lewat (setelah Isya), nextPrayerIndexForPreview tetap -1
-                    // → tidak ada yang di-highlight (semua defaultColor)
+                    // Fallback: setelah Isya lewat, highlight Subuh (sholat berikutnya besok)
+                    if (nextPrayerIndexForPreview == -1) nextPrayerIndexForPreview = 0
+
+                    Log.d("MainActivity", "HIGHLIGHT: idx=$nextPrayerIndexForPreview now=$nowMillisPreview " +
+                        "fajr=${prayerTimes.fajr.time} dhuhr=${prayerTimes.dhuhr.time} " +
+                        "asr=${prayerTimes.asr.time} maghrib=${prayerTimes.maghrib.time} isha=${prayerTimes.isha.time}")
 
                     // === Holiday Detection ===
                     val holidays = try {
