@@ -544,19 +544,38 @@ class MainActivity : AppCompatActivity() {
                         prayerTimes.maghrib,
                         prayerTimes.isha
                     )
+                    val prayerNamesForPreview = arrayOf("Fajr", "Dhuhr", "Asr", "Maghrib", "Isha")
                     val nowMillisPreview = System.currentTimeMillis()
+                    val nowDatePreview = Date(nowMillisPreview)
+
+                    // === DIAGNOSTIC HIGHLIGHT LOG (PREVIEW) ===
+                    val diagTimeFmtP = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS z", java.util.Locale.US)
+                    diagTimeFmtP.timeZone = TimeZone.getDefault()
+                    val diagUtcFmtP = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", java.util.Locale.US)
+                    diagUtcFmtP.timeZone = TimeZone.getTimeZone("UTC")
+
+                    val sbP = StringBuilder()
+                    sbP.append("=== PREVIEW HIGHLIGHT DEBUG ===\n")
+                    sbP.append("  TZ=${TimeZone.getDefault().id} offset=${TimeZone.getDefault().rawOffset/3600000}h\n")
+                    sbP.append("  now: millis=$nowMillisPreview local=${diagTimeFmtP.format(nowDatePreview)} utc=${diagUtcFmtP.format(nowDatePreview)}\n")
+                    sbP.append("  prayerTimes.date: millis=${prayerTimes.date.time} local=${diagTimeFmtP.format(prayerTimes.date)}\n")
+
                     for (i in prayerDatesForPreview.indices) {
-                        if (nowMillisPreview < prayerDatesForPreview[i].time) {
+                        val pMillis = prayerDatesForPreview[i].time
+                        val diff = pMillis - nowMillisPreview
+                        val diffSec = diff / 1000
+                        val beforeResult = nowDatePreview.before(prayerDatesForPreview[i])
+                        val millisCmp = nowMillisPreview < pMillis
+                        sbP.append("  ${prayerNamesForPreview[i]}: millis=$pMillis local=${diagTimeFmtP.format(prayerDatesForPreview[i])} diff=${diffSec}s before=$beforeResult millisCmp=$millisCmp\n")
+                        if (nowMillisPreview < pMillis && nextPrayerIndexForPreview == -1) {
                             nextPrayerIndexForPreview = i
-                            break
                         }
                     }
                     // Fallback: setelah Isya lewat, highlight Subuh (sholat berikutnya besok)
                     if (nextPrayerIndexForPreview == -1) nextPrayerIndexForPreview = 0
+                    sbP.append("  RESULT: nextPrayerIndexForPreview=$nextPrayerIndexForPreview (${prayerNamesForPreview[nextPrayerIndexForPreview]})")
 
-                    Log.d("MainActivity", "HIGHLIGHT: idx=$nextPrayerIndexForPreview now=$nowMillisPreview " +
-                        "fajr=${prayerTimes.fajr.time} dhuhr=${prayerTimes.dhuhr.time} " +
-                        "asr=${prayerTimes.asr.time} maghrib=${prayerTimes.maghrib.time} isha=${prayerTimes.isha.time}")
+                    AdzanLogger.log(this, AdzanLogger.Event.WIDGET_UPDATE, sbP.toString())
 
                     // === Holiday Detection ===
                     val holidays = try {
