@@ -127,6 +127,36 @@ class SettingsManager(private val context: Context) {
         get() = prefs.getBoolean("isAdzanAudioEnabled", false)
         set(value) = prefs.edit().putBoolean("isAdzanAudioEnabled", value).apply()
 
+    // Per-prayer adzan enable/disable (default: semua aktif)
+    var isAdzanFajrEnabled: Boolean
+        get() = prefs.getBoolean("isAdzanFajrEnabled", true)
+        set(value) = prefs.edit().putBoolean("isAdzanFajrEnabled", value).apply()
+    var isAdzanDhuhrEnabled: Boolean
+        get() = prefs.getBoolean("isAdzanDhuhrEnabled", true)
+        set(value) = prefs.edit().putBoolean("isAdzanDhuhrEnabled", value).apply()
+    var isAdzanAsrEnabled: Boolean
+        get() = prefs.getBoolean("isAdzanAsrEnabled", true)
+        set(value) = prefs.edit().putBoolean("isAdzanAsrEnabled", value).apply()
+    var isAdzanMaghribEnabled: Boolean
+        get() = prefs.getBoolean("isAdzanMaghribEnabled", true)
+        set(value) = prefs.edit().putBoolean("isAdzanMaghribEnabled", value).apply()
+    var isAdzanIshaEnabled: Boolean
+        get() = prefs.getBoolean("isAdzanIshaEnabled", true)
+        set(value) = prefs.edit().putBoolean("isAdzanIshaEnabled", value).apply()
+
+    /** Cek apakah adzan aktif untuk prayer ID tertentu (1=Fajr, 2=Dhuhr, ..., 5=Isha) */
+    fun isAdzanEnabledForPrayer(prayerId: Int): Boolean {
+        if (!isAdzanAudioEnabled) return false
+        return when (prayerId) {
+            1 -> isAdzanFajrEnabled
+            2 -> isAdzanDhuhrEnabled
+            3 -> isAdzanAsrEnabled
+            4 -> isAdzanMaghribEnabled
+            5 -> isAdzanIshaEnabled
+            else -> false
+        }
+    }
+
     var adzanVolume: Int
         get() = prefs.getInt("adzanVolume", 80)
         set(value) = prefs.edit().putInt("adzanVolume", value).apply()
@@ -274,6 +304,9 @@ class SettingsManager(private val context: Context) {
         fridayBefore: Int, fridayAfter: Int, asrBefore: Int, asrAfter: Int,
         maghribBefore: Int, maghribAfter: Int, ishaBefore: Int, ishaAfter: Int,
         isAdzanAudioEnabled: Boolean, adzanVolume: Int,
+        isAdzanFajrEnabled: Boolean = true, isAdzanDhuhrEnabled: Boolean = true,
+        isAdzanAsrEnabled: Boolean = true, isAdzanMaghribEnabled: Boolean = true,
+        isAdzanIshaEnabled: Boolean = true,
         customAdzanRegularUri: String?, customAdzanSubuhUri: String?,
         quoteUpdateInterval: Int, quoteFontSize: Int, quoteBgAlpha: Int
     ) {
@@ -311,6 +344,11 @@ class SettingsManager(private val context: Context) {
             .putInt("ishaBefore", ishaBefore)
             .putInt("ishaAfter", ishaAfter)
             .putBoolean("isAdzanAudioEnabled", isAdzanAudioEnabled)
+            .putBoolean("isAdzanFajrEnabled", isAdzanFajrEnabled)
+            .putBoolean("isAdzanDhuhrEnabled", isAdzanDhuhrEnabled)
+            .putBoolean("isAdzanAsrEnabled", isAdzanAsrEnabled)
+            .putBoolean("isAdzanMaghribEnabled", isAdzanMaghribEnabled)
+            .putBoolean("isAdzanIshaEnabled", isAdzanIshaEnabled)
             .putInt("adzanVolume", adzanVolume)
             .putString("customAdzanRegularUri", customAdzanRegularUri)
             .putString("customAdzanSubuhUri", customAdzanSubuhUri)

@@ -178,7 +178,11 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         scheduleAllPrayers(context, forceReschedule = false)
 
         for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+            try {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            } catch (e: Exception) {
+                Log.e(TAG, "updateAppWidget gagal untuk widget $appWidgetId, lanjut ke widget berikutnya", e)
+            }
         }
 
         // Ikut refresh Lunar Widget agar fase bulan selalu up-to-date
@@ -378,12 +382,34 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                     val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
                     context.sendBroadcast(muteIntent)
                 }
+                // FIX: Cross-check flag vs actual system DND (sama seperti di checkAndEnforceSilentWindow).
+                // OEM bisa menghapus DND saat foreground service berhenti (user stop adzan via notifikasi).
+                else if (currentlyMutedDnd && settings.isAutoSilentEnabled && !isTestMode) {
+                    try {
+                        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                        if (nm.isNotificationPolicyAccessGranted &&
+                            nm.currentInterruptionFilter == android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
+                            Log.d(TAG, "DND DESYNC (full path): flag=muted tapi system=FILTER_ALL. Re-applying DND.")
+                            prefs.edit().putBoolean("IS_MUTED_BY_APP_DND", false).commit()
+                            val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                            context.sendBroadcast(muteIntent)
+                        }
+                    } catch (_: Exception) {}
+                }
             } else {
                 // FIX: Jangan kirim corrective UNMUTE jika adzan sedang bermain.
                 // AdzanService.onDestroy() akan handle PENDING_UNMUTE sendiri.
-                if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying) {
+                // FIX #2: Jangan kirim corrective UNMUTE jika DND baru saja diaktifkan (< 5 menit).
+                // Ini mencegah premature unmute saat widget update dipicu oleh AdzanService.onDestroy
+                // tepat setelah adzan selesai — scheduled UNMUTE alarm akan handle di waktu yang benar.
+                val lastMuteTs = prefs.getLong("LAST_MUTE_TIMESTAMP", 0L)
+                val muteCooldownMs = 5 * 60 * 1000L // 5 menit
+                val isMuteCooldownActive = (System.currentTimeMillis() - lastMuteTs) < muteCooldownMs
+                if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying && !isMuteCooldownActive) {
                     val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
                     context.sendBroadcast(unmuteIntent)
+                } else if (isMuteCooldownActive && (currentlyMutedDnd || currentlyMutedRinger)) {
+                    Log.d(TAG, "Corrective UNMUTE ditahan: mute cooldown aktif (${(System.currentTimeMillis() - lastMuteTs)/1000}s sejak mute)")
                 }
             }
         } catch (e: Exception) {
@@ -450,11 +476,44 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 // Return true agar caller tahu perlu reschedule (supaya UNMUTE juga diperbaiki).
                 return true
             }
+
+            // FIX: Cross-check flag vs actual system DND state.
+            // Beberapa OEM (Xiaomi/HyperOS) otomatis menghapus DND saat foreground service
+            // berhenti (misal user tap notifikasi untuk stop adzan). Ketika ini terjadi:
+            //   - IS_MUTED_BY_APP_DND masih true (stale)
+            //   - Tapi system DND sudah INTERRUPTION_FILTER_ALL (off)
+            //   - Kode lama: "sudah muted" → skip → DND tetap OFF (bug!)
+            //   - Kode baru: deteksi desync → clear stale flag → re-apply MUTE
+            if ((currentlyMutedDnd) && settings.isAutoSilentEnabled && !isTestMode) {
+                try {
+                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                    if (nm.isNotificationPolicyAccessGranted &&
+                        nm.currentInterruptionFilter == android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
+                        // System DND sudah OFF tapi flag masih ON → desync!
+                        Log.d(TAG, "DND DESYNC terdeteksi: flag=muted tapi system=FILTER_ALL. Re-applying DND.")
+                        AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED,
+                            "DND desync: flag muted tapi system off, re-apply MUTE")
+                        // Clear stale flag agar executeMute menyimpan PREF_PREV_FILTER yang benar
+                        prefs.edit().putBoolean("IS_MUTED_BY_APP_DND", false).commit()
+                        val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                        context.sendBroadcast(muteIntent)
+                        return true
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error checking DND desync", e)
+                }
+            }
         } else {
             // FIX: Jangan corrective-unmute jika adzan sedang bermain
-            if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying) {
+            // FIX #2: Jangan corrective-unmute jika DND baru saja diaktifkan (< 5 menit)
+            val lastMuteTs = prefs.getLong("LAST_MUTE_TIMESTAMP", 0L)
+            val muteCooldownMs = 5 * 60 * 1000L
+            val isMuteCooldownActive = (System.currentTimeMillis() - lastMuteTs) < muteCooldownMs
+            if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying && !isMuteCooldownActive) {
                 val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
                 context.sendBroadcast(unmuteIntent)
+            } else if (isMuteCooldownActive && (currentlyMutedDnd || currentlyMutedRinger)) {
+                Log.d(TAG, "Corrective UNMUTE (enforce) ditahan: mute cooldown aktif (${(System.currentTimeMillis() - lastMuteTs)/1000}s)")
             }
         }
 
@@ -524,9 +583,19 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 cachedLat = latString.toDouble()
                 cachedLon = lonString.toDouble()
                 cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
+                val nowCal = java.util.Calendar.getInstance()
+                val maghribCal = java.util.Calendar.getInstance().apply { time = cachedPrayerTimes!!.maghrib }
+                val nowMinutes = nowCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nowCal.get(java.util.Calendar.MINUTE)
+                val maghribMinutes = maghribCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + maghribCal.get(java.util.Calendar.MINUTE)
+                val isAfterMaghrib = nowMinutes >= maghribMinutes
+                // DIAGNOSTIC: Log ke AdzanLogger
+                AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE,
+                    "HIJRI: display=${hijriDisplay.day}/${hijriDisplay.month}/${hijriDisplay.year} " +
+                    "isAstro=${hijriDisplay.isFromAstronomy} " +
+                    "isAuto=${settings.isAutoHijriOffset} isDayStart=${settings.isDayStartAtMaghrib} " +
+                    "nowMin=$nowMinutes maghribMin=$maghribMinutes afterMaghrib=$isAfterMaghrib")
             } catch (e: Exception) {}
         }
-
 
         // === Holiday Detection ===
         val holidays = try {
@@ -666,7 +735,8 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                             break
                         }
                     }
-                    if (nextPrayerIndex == -1) nextPrayerIndex = 0
+                    // Jika semua sholat sudah lewat (setelah Isya), nextPrayerIndex tetap -1
+                    // → tidak ada yang di-highlight (semua defaultColor)
 
                     for (i in labels.indices) {
                         val colorToUse = if (i == nextPrayerIndex) highlightColor else defaultColor
@@ -895,12 +965,26 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             prefs.edit().putBoolean("IS_MUTED_BY_APP_RINGER", false).apply()
         }
 
+        // FIX: Reconcile DND flag dengan state aktual sistem.
+        // Jika app mengklaim sudah mute via DND tapi DND sebenarnya tidak aktif
+        // (user unmute manual dari Settings, atau OS restore setelah reboot/crash),
+        // clear stale flag agar MUTE berikutnya tidak di-skip oleh idempotency guard.
+        if (prefs.getBoolean("IS_MUTED_BY_APP_DND", false)) {
+            try {
+                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                if (nm.currentInterruptionFilter == android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
+                    prefs.edit().putBoolean("IS_MUTED_BY_APP_DND", false).apply()
+                    Log.d(TAG, "Reconciled stale IS_MUTED_BY_APP_DND flag (DND sudah tidak aktif)")
+                }
+            } catch (_: Exception) {}
+        }
+
         // Grace period 2 menit: jika reschedule terjadi tepat saat/sesaat setelah waktu sholat,
         // ADZAN tetap dijadwalkan (AlarmManager akan fire segera untuk waktu yang sudah lewat).
         // Tanpa ini, race condition bisa menyebabkan ADZAN tidak fire saat widget update
         // men-trigger cancelExistingAlarms + reschedule tepat di waktu sholat.
         val adzanGracePeriod = 120_000L // 2 menit
-        if (settings.isAdzanAudioEnabled && now <= prayerTime.time + adzanGracePeriod && !isJumat && !settings.isAdzanPlaying) {
+        if (settings.isAdzanEnabledForPrayer(requestCodeId) && now <= prayerTime.time + adzanGracePeriod && !isJumat && !settings.isAdzanPlaying) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)
