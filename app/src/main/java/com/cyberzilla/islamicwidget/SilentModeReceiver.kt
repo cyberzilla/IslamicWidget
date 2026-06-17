@@ -1,7 +1,6 @@
 package com.cyberzilla.islamicwidget
 
 import android.app.NotificationManager
-import android.app.AlarmManager
 import android.appwidget.AppWidgetManager
 import android.content.BroadcastReceiver
 import android.content.ComponentName
@@ -27,11 +26,11 @@ class SilentModeReceiver : BroadcastReceiver() {
                 val prayerIdForLog = intent.getIntExtra("PRAYER_ID", 0)
 
                 // === FIX: Guard fitur adzan audio ===
-                // Cek master switch DAN per-prayer switch.
-                // Jika adzan dimatikan secara global atau untuk sholat ini, abaikan.
-                if (!settings.isAdzanEnabledForPrayer(prayerIdForLog)) {
+                // Jika adzan audio dimatikan (atau stale alarm dari sebelum reset),
+                // abaikan trigger ini sepenuhnya.
+                if (!settings.isAdzanAudioEnabled) {
                     AdzanLogger.log(context, AdzanLogger.Event.ADZAN_SKIPPED,
-                        "Adzan untuk prayer ID=$prayerIdForLog diabaikan: adzan tidak aktif untuk sholat ini")
+                        "Adzan untuk prayer ID=$prayerIdForLog diabaikan: isAdzanAudioEnabled=false (kemungkinan stale alarm)")
                     return
                 }
 
@@ -131,8 +130,6 @@ class SilentModeReceiver : BroadcastReceiver() {
             }
 
             "ACTION_UPDATE_WIDGETS_BROADCAST" -> {
-                // Ganti hari (midnight/maghrib/fajr) → perlu jadwalkan ulang alarm sholat
-                IslamicWidgetProvider.requestReschedule(context)
                 forceUpdateAllWidgets(context)
             }
 
@@ -145,40 +142,16 @@ class SilentModeReceiver : BroadcastReceiver() {
                         "ACTION_MUTE diabaikan karena Auto Silent dimatikan (stale alarm?)")
                     return
                 }
-                // === FIX: Smart idempotency guard ===
-                // Cegah double MUTE, TAPI jika flag=true dan system DND sudah OFF
-                // (OEM hapus DND setelah adzan selesai), clear stale flag lalu re-apply.
-                // Tanpa ini, overlapping prayer window (misal Maghrib+Isya) kehilangan DND.
-                val alreadyMutedDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
-                val alreadyMutedRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
-                if (alreadyMutedDnd || alreadyMutedRinger) {
-                    // Cek apakah system DND masih benar-benar aktif
-                    try {
-                        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-                        if (alreadyMutedDnd && nm.isNotificationPolicyAccessGranted &&
-                            nm.currentInterruptionFilter == android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
-                            // Flag bilang muted, tapi system DND sudah OFF → OEM desync!
-                            // Clear stale flag agar executeMute bisa re-apply DND
-                            Log.d(TAG, "ACTION_MUTE: DND desync terdeteksi (flag=muted, system=OFF). Re-applying DND.")
-                            AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED,
-                                "DND desync: flag muted tapi system off, clear flag lalu re-apply MUTE")
-                            prefs.edit()
-                                .putBoolean("IS_MUTED_BY_APP_DND", false)
-                                .putBoolean("IS_MUTED_BY_APP_RINGER", false)
-                                .commit()
-                            // Jatuh ke executeMute di bawah (tidak return)
-                        } else {
-                            // System DND masih aktif → benar-benar sudah muted, skip
-                            Log.d(TAG, "ACTION_MUTE diabaikan: perangkat sudah di-mute oleh app (duplikat alarm?)")
-                            AdzanLogger.log(context, AdzanLogger.Event.MUTE_SKIPPED,
-                                "ACTION_MUTE diabaikan: sudah dalam state muted (stale/duplikat alarm)")
-                            return
-                        }
-                    } catch (e: Exception) {
-                        // Gagal cek system DND → skip untuk safety
-                        Log.d(TAG, "ACTION_MUTE diabaikan: gagal cek system DND state")
-                        return
-                    }
+                // === FIX: Idempotency guard — cegah double/triple MUTE dari stale alarm overlap ===
+                // Jika device sudah di-mute oleh app, skip untuk menghindari log noise
+                // dan panggilan DND system yang redundan.
+                val alreadyMuted = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
+                                   prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
+                if (alreadyMuted) {
+                    Log.d(TAG, "ACTION_MUTE diabaikan: perangkat sudah di-mute oleh app (duplikat alarm?)")
+                    AdzanLogger.log(context, AdzanLogger.Event.MUTE_SKIPPED,
+                        "ACTION_MUTE diabaikan: sudah dalam state muted (stale/duplikat alarm)")
+                    return
                 }
                 Log.d(TAG, "ACTION_MUTE: Mengeksekusi Silent Mode")
                 AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED, "ACTION_MUTE diterima")
@@ -206,16 +179,6 @@ class SilentModeReceiver : BroadcastReceiver() {
                     Log.w(TAG, "Adzan masih bermain! Menahan perintah unmute sampai Adzan selesai.")
                     AdzanLogger.log(context, AdzanLogger.Event.UNMUTE_DEFERRED, "Unmute ditahan karena adzan masih bermain")
                     prefs.edit().putBoolean("PENDING_UNMUTE", true).apply()
-                    return
-                }
-
-                // FIX: Cek apakah masih di dalam silent window sholat LAIN.
-                // Tanpa ini, jika window Maghrib (after=35min) overlap dengan window Isya (before=30min),
-                // UNMUTE Maghrib akan mencabut DND padahal window Isya sudah aktif.
-                if (isInsideAnySilentWindow(context, settings)) {
-                    Log.d(TAG, "ACTION_UNMUTE ditahan: masih di dalam silent window sholat lain")
-                    AdzanLogger.log(context, AdzanLogger.Event.UNMUTE_DEFERRED,
-                        "Unmute ditahan: masih di dalam silent window sholat lain")
                     return
                 }
 
@@ -276,7 +239,6 @@ class SilentModeReceiver : BroadcastReceiver() {
             val editor = prefs.edit()
                 .putInt("PREF_PREV_FILTER", currentFilter)
                 .putBoolean("IS_MUTED_BY_APP_DND", true)
-                .putLong("LAST_MUTE_TIMESTAMP", System.currentTimeMillis())
             try {
                 val currentPolicy = notificationManager.notificationPolicy
                 editor.putInt("PREF_PREV_POLICY_CATEGORIES", currentPolicy.priorityCategories)
@@ -325,16 +287,16 @@ class SilentModeReceiver : BroadcastReceiver() {
         val wasMutedByAppDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
         val wasMutedByAppRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
 
-        // === FIX: Gunakan commit() (synchronous), bukan apply() (async) ===
-        // Jika proses crash antara clear flags dan restore DND state,
-        // apply() bisa menyebabkan flags sudah clear tapi DND belum di-restore
-        // → ponsel terjebak di DND permanen. commit() menjamin persistence.
+        // === FIX: Clear flags ATOMICALLY di awal sebelum restore state ===
+        // Ini mencegah double unmute: jika UNMUTE kedua masuk sementara
+        // UNMUTE pertama sedang memproses, UNMUTE kedua akan melihat
+        // flags sudah false dan di-skip oleh guard di ACTION_UNMUTE handler.
         prefs.edit()
             .putBoolean("IS_MUTED_BY_APP_DND", false)
             .putBoolean("IS_MUTED_BY_APP_RINGER", false)
             .putBoolean("PENDING_UNMUTE", false)
             .putBoolean("IS_TEST_MODE_ACTIVE", false)
-            .commit()
+            .apply()
 
         try {
             if (wasMutedByAppDnd && notificationManager.isNotificationPolicyAccessGranted) {
@@ -350,8 +312,8 @@ class SilentModeReceiver : BroadcastReceiver() {
                     } catch (_: Exception) {}
                 }
 
-                Log.d(TAG, "Perangkat sukses dikembalikan dari DND ke state sebelumnya (filter=$prevFilter).")
-                AdzanLogger.logUnmuteExecuted(context, "DND -> restore filter=$prevFilter")
+                Log.d(TAG, "Perangkat sukses dikembalikan dari DND ke state Normal.")
+                AdzanLogger.logUnmuteExecuted(context, "DND -> Normal")
             }
 
             if (wasMutedByAppRinger) {
@@ -385,71 +347,6 @@ class SilentModeReceiver : BroadcastReceiver() {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, quotesIds)
             }
             context.sendBroadcast(updateQuotes)
-        }
-    }
-
-    /**
-     * Cek apakah waktu sekarang masih berada di dalam silent window salah satu sholat.
-     * Digunakan untuk mencegah UNMUTE sholat A membatalkan DND sholat B
-     * ketika silent windows mereka overlap.
-     */
-    private fun isInsideAnySilentWindow(context: Context, settings: SettingsManager): Boolean {
-        // Jika Auto Silent dimatikan, tidak ada silent window yang relevan
-        if (!settings.isAutoSilentEnabled) return false
-        val latString = settings.latitude ?: return false
-        val lonString = settings.longitude ?: return false
-
-        return try {
-            val lat = latString.toDouble()
-            val lon = lonString.toDouble()
-            val today = java.time.LocalDate.now()
-            val prayerTimes = IslamicAppUtils.calculatePrayerTimes(lat, lon, settings.calculationMethod, today)
-            val now = System.currentTimeMillis()
-
-            val prayerDates = listOf(
-                Pair(prayerTimes.fajr, 1),
-                Pair(prayerTimes.dhuhr, 2),
-                Pair(prayerTimes.asr, 3),
-                Pair(prayerTimes.maghrib, 4),
-                Pair(prayerTimes.isha, 5),
-            )
-
-            for ((prayerTime, id) in prayerDates) {
-                val cal = java.util.Calendar.getInstance(java.util.TimeZone.getDefault())
-                cal.time = prayerTime
-                val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
-
-                val beforeMillis = when (id) {
-                    1 -> settings.fajrBefore
-                    2 -> if (isFriday) settings.fridayBefore else settings.dhuhrBefore
-                    3 -> settings.asrBefore
-                    4 -> settings.maghribBefore
-                    5 -> settings.ishaBefore
-                    else -> 0
-                } * 60 * 1000L
-
-                val afterMillis = when (id) {
-                    1 -> settings.fajrAfter
-                    2 -> if (isFriday) settings.fridayAfter else settings.dhuhrAfter
-                    3 -> settings.asrAfter
-                    4 -> settings.maghribAfter
-                    5 -> settings.ishaAfter
-                    else -> 0
-                } * 60 * 1000L
-
-                val muteTime = prayerTime.time - beforeMillis
-                val unmuteTime = prayerTime.time + afterMillis
-                // Grace period sama dengan di IslamicWidgetProvider
-                val muteGraceMs = 60_000L
-                if (now >= (muteTime - muteGraceMs) && now < unmuteTime) {
-                    return true
-                }
-            }
-            false
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking silent window in SilentModeReceiver", e)
-            // Jika gagal hitung, amankan: anggap masih di window agar tidak premature unmute
-            true
         }
     }
 }

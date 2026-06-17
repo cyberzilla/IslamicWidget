@@ -162,9 +162,6 @@ class CompassActivity : AppCompatActivity(), SensorEventListener {
                             }
                         } catch (e: Exception) {}
 
-                        // FIX: Lokasi berubah → jadwal sholat mungkin berubah, perlu reschedule
-                        IslamicWidgetProvider.requestReschedule(this@CompassActivity)
-
                         val updateIntent = Intent(this, IslamicWidgetProvider::class.java).apply {
                             action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
                             val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))

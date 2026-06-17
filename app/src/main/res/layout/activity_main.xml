@@ -460,43 +460,9 @@
                     app:strokeColor="@color/glass_card_stroke"
                     app:contentPadding="20dp">
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
                             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/sec_audio" android:textColor="?attr/colorPrimary" android:textSize="16sp" android:textStyle="bold" />
                             <androidx.appcompat.widget.SwitchCompat android:id="@+id/switch_audio_adzan" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
-                        </LinearLayout>
-
-                        <!-- Per-prayer adzan switches -->
-                        <LinearLayout
-                            android:id="@+id/layout_per_prayer_adzan"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:paddingStart="4dp"
-                            android:layout_marginBottom="12dp"
-                            android:visibility="gone">
-
-                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="6dp">
-                                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/fajr" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
-                                <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_adzan_fajr" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="6dp">
-                                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/dhuhr" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
-                                <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_adzan_dhuhr" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="6dp">
-                                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/asr" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
-                                <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_adzan_asr" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="6dp">
-                                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/maghrib" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
-                                <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_adzan_maghrib" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
-                            </LinearLayout>
-                            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="6dp">
-                                <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/isha" android:textColor="?android:attr/textColorPrimary" android:textSize="13sp"/>
-                                <androidx.appcompat.widget.SwitchCompat android:id="@+id/sw_adzan_isha" android:layout_width="wrap_content" android:layout_height="wrap_content" app:thumbTint="?attr/colorPrimary"/>
-                            </LinearLayout>
-
-                            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/textColorSecondary" android:alpha="0.15" android:layout_marginTop="4dp"/>
                         </LinearLayout>
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">

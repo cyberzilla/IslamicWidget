@@ -583,21 +583,9 @@ class AdzanService : Service() {
 
         val settings = SettingsManager(this)
         settings.isAdzanPlaying = false
-        // FIX: Gunakan ACTION_APPWIDGET_UPDATE langsung, BUKAN ACTION_UPDATE_WIDGETS_BROADCAST.
-        // ACTION_UPDATE_WIDGETS_BROADCAST men-set NEEDS_RESCHEDULE=true yang memicu
-        // scheduleAllPrayers pada widget update berikutnya — tidak perlu karena
-        // adzan selesai bukan berarti jadwal sholat berubah.
-        // Kita hanya perlu refresh tampilan widget (kembali ke mode normal dari mode adzan).
-        val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(this)
-        val islamicIds = appWidgetManager.getAppWidgetIds(
-            android.content.ComponentName(this, IslamicWidgetProvider::class.java)
-        )
-        if (islamicIds.isNotEmpty()) {
-            sendBroadcast(Intent(this, IslamicWidgetProvider::class.java).apply {
-                action = android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE
-                putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, islamicIds)
-            })
-        }
+        sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
+            action = "ACTION_UPDATE_WIDGETS_BROADCAST"
+        })
 
         serviceWakeLock?.let { if (it.isHeld) it.release() }
 
@@ -617,26 +605,20 @@ class AdzanService : Service() {
 
         val prefs = getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
         if (prefs.getBoolean("PENDING_UNMUTE", false)) {
-            // PENDING_UNMUTE=true berarti scheduled UNMUTE alarm SUDAH FIRE saat adzan
-            // masih bermain (SilentModeReceiver men-defer-nya ke sini).
-            // Keputusan: execute UNMUTE atau tidak, ditentukan HANYA oleh posisi waktu:
-            //   - Di dalam window → masih ada scheduled UNMUTE alarm lain → biarkan alarm handle
-            //   - Di luar window → alarm sudah fire, tidak ada alarm lagi → HARUS execute
-            // isFadingOut TIDAK relevan — yang penting hanya posisi waktu.
+            // FIX: Cek apakah masih dalam silent window sebelum unmute.
+            // Jika user interrupt adzan lebih awal (misal 5 detik setelah mulai),
+            // DND harus tetap aktif sampai scheduled UNMUTE alarm fire di waktu yang benar.
             if (isStillInsideSilentWindow()) {
                 Log.d(TAG, "PENDING_UNMUTE diabaikan: masih dalam silent window. Scheduled UNMUTE alarm akan handle.")
                 AdzanLogger.log(this, AdzanLogger.Event.UNMUTE_EXECUTED,
                     "PENDING_UNMUTE diabaikan: masih dalam silent window, UNMUTE terjadwal akan handle")
+                prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
             } else {
-                // Di luar window → execute UNMUTE sekarang
-                Log.d(TAG, "PENDING_UNMUTE dieksekusi: adzan selesai & di luar silent window")
-                AdzanLogger.log(this, AdzanLogger.Event.UNMUTE_EXECUTED,
-                    "PENDING_UNMUTE dieksekusi: adzan selesai, di luar silent window, alarm sudah fire")
+                Log.d(TAG, "Mengeksekusi PENDING UNMUTE karena Adzan sudah selesai/dihentikan.")
                 sendBroadcast(Intent(this, SilentModeReceiver::class.java).apply {
                     action = "ACTION_UNMUTE"
                 })
             }
-            prefs.edit().putBoolean("PENDING_UNMUTE", false).apply()
         }
     }
 
@@ -647,8 +629,6 @@ class AdzanService : Service() {
      */
     private fun isStillInsideSilentWindow(): Boolean {
         val settings = SettingsManager(this)
-        // Jika Auto Silent dimatikan, tidak ada silent window yang relevan
-        if (!settings.isAutoSilentEnabled) return false
         val latString = settings.latitude ?: return false
         val lonString = settings.longitude ?: return false
 

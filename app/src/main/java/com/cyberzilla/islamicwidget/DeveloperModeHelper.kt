@@ -246,18 +246,6 @@ class DeveloperModeHelper(private val activity: Activity) {
         alarmManager.cancel(wakeUpPi)
 
         AdzanLogger.log(activity, AdzanLogger.Event.ALARM_CANCELLED, "DEV TEST dibatalkan")
-
-        // FIX: Jika test MUTE sudah fire (DND aktif), cancel test juga harus unmute.
-        // Tanpa ini, cancel test saat DND aktif → UNMUTE alarm hilang → DND stuck selamanya.
-        val isMuted = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
-                      prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
-        if (isMuted) {
-            activity.sendBroadcast(Intent(activity, SilentModeReceiver::class.java).apply {
-                action = "ACTION_UNMUTE"
-            })
-            AdzanLogger.log(activity, AdzanLogger.Event.UNMUTE_EXECUTED, "Force unmute karena DEV TEST dibatalkan saat DND aktif")
-        }
-
         refreshLogContent()
 
         Toast.makeText(activity, "❌ Tes Adzan Dibatalkan", Toast.LENGTH_SHORT).show()

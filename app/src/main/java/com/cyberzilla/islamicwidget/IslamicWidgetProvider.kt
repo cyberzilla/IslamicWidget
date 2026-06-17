@@ -56,25 +56,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 .remove("LAST_SCHEDULE_FINGERPRINT")
                 .apply()
         }
-
-        /**
-         * Menandai bahwa alarm perlu dijadwalkan ulang.
-         * Dipanggil saat ada perubahan yang mempengaruhi jadwal sholat:
-         * - Boot completed (alarm hilang)
-         * - Settings berubah (lokasi, metode, before/after)
-         * - Ganti hari (midnight/maghrib/fajr)
-         * - User tap force refresh
-         *
-         * onUpdate() hanya akan menjalankan scheduleAllPrayers() jika flag ini true.
-         * Ini mencegah widget update rutin (setiap 30 menit, adzan selesai, dll)
-         * memicu corrective logic yang menyebabkan DND premature.
-         */
-        fun requestReschedule(context: Context) {
-            context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean("NEEDS_RESCHEDULE", true)
-                .apply()
-        }
     }
 
     private fun dpToPx(context: Context, dp: Float): Float {
@@ -122,7 +103,6 @@ class IslamicWidgetProvider : AppWidgetProvider() {
 
             // Hapus cache jadwal agar force refresh benar-benar menjadwalkan ulang
             clearScheduleCache(context)
-            requestReschedule(context)
 
             // Force check update dengan cooldown pendek (2 menit) agar tidak spam
             UpdateHelper.checkForUpdates(context, force = true)
@@ -195,22 +175,10 @@ class IslamicWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         UpdateHelper.checkForUpdates(context)
         AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE, "onUpdate dipanggil untuk ${appWidgetIds.size} widget")
-
-        // FIX: Hanya jadwalkan alarm jika ada permintaan eksplisit (boot, settings, ganti hari).
-        // Widget update rutin (30 menit, adzan selesai, dll) TIDAK perlu reschedule.
-        // Ini mencegah corrective logic memicu DND premature.
-        val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
-        if (prefs.getBoolean("NEEDS_RESCHEDULE", true)) {
-            prefs.edit().putBoolean("NEEDS_RESCHEDULE", false).apply()
-            scheduleAllPrayers(context, forceReschedule = false)
-        }
+        scheduleAllPrayers(context, forceReschedule = false)
 
         for (appWidgetId in appWidgetIds) {
-            try {
-                updateAppWidget(context, appWidgetManager, appWidgetId)
-            } catch (e: Exception) {
-                Log.e(TAG, "updateAppWidget gagal untuk widget $appWidgetId, lanjut ke widget berikutnya", e)
-            }
+            updateAppWidget(context, appWidgetManager, appWidgetId)
         }
 
         // Ikut refresh Lunar Widget agar fase bulan selalu up-to-date
@@ -318,13 +286,21 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val timeSinceLastSchedule = System.currentTimeMillis() - lastScheduleTime
 
             if (!forceReschedule && fingerprint == lastFingerprint) {
-                // Jadwal sudah identik — skip reschedule.
-                return
+                // Jadwal sudah identik, cukup cek silent window tanpa re-schedule alarm.
+                // Jika return true → alarm missed (Doze), perlu reschedule penuh.
+                if (!checkAndEnforceSilentWindow(context, todayPT, settings, now)) {
+                    return
+                }
+                Log.d(TAG, "Missed alarm terdeteksi via enforce, force reschedule")
             }
 
             if (!forceReschedule && timeSinceLastSchedule < 60_000L && lastFingerprint != null) {
-                // Terlalu cepat — skip reschedule untuk hemat alarm quota.
-                return
+                // Terlalu cepat — skip reschedule untuk hemat alarm quota,
+                // KECUALI jika ada alarm yang missed oleh Doze.
+                if (!checkAndEnforceSilentWindow(context, todayPT, settings, now)) {
+                    return
+                }
+                Log.d(TAG, "Missed alarm terdeteksi (rate-limited), force reschedule")
             }
 
             fun getAfterMillis(id: Int, prayerTime: Date): Long {
@@ -390,41 +366,23 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 .putLong("LAST_SCHEDULE_TIME", System.currentTimeMillis())
                 .apply()
 
-            // FIX: Jika reschedule terjadi di TENGAH silent window (misal boot di 18:01,
-            // tapi MUTE Maghrib seharusnya di 17:54), MUTE alarm sudah lewat dan di-cancel.
-            // Kita HARUS apply MUTE sekarang agar DND aktif selama sisa window.
-            // Ini AMAN karena hanya berjalan saat NEEDS_RESCHEDULE=true (boot/settings/ganti hari),
-            // BUKAN saat widget update rutin (yang menyebabkan corrective bug sebelumnya).
-            if (isInsideAnySilentWindow && settings.isAutoSilentEnabled) {
-                val alreadyMuted = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
-                                   prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
-                if (!alreadyMuted) {
-                    Log.d(TAG, "scheduleAllPrayers: di dalam silent window tapi DND belum aktif → apply MUTE")
-                    AdzanLogger.log(context, AdzanLogger.Event.MUTE_EXECUTED,
-                        "Reschedule di tengah silent window: MUTE alarm sudah lewat, apply MUTE sekarang")
-                    val muteIntent = Intent(context, SilentModeReceiver::class.java).apply {
-                        action = "ACTION_MUTE"
-                    }
-                    context.sendBroadcast(muteIntent)
-                } else {
-                    Log.d(TAG, "scheduleAllPrayers: di dalam silent window, DND sudah aktif")
-                }
-            }
+            val currentlyMutedDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
+            val currentlyMutedRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
+            val isTestMode = prefs.getBoolean("IS_TEST_MODE_ACTIVE", false)
 
-            // FIX: Safety net — jika Auto Silent dimatikan tapi DND masih aktif dari app,
-            // langsung unmute. Ini terjadi jika user matikan toggle saat DND aktif:
-            // cancelExistingAlarms menghapus UNMUTE alarm, tapi DND + flag tetap aktif.
-            // Tanpa ini, device terjebak di DND selamanya.
-            if (!settings.isAutoSilentEnabled) {
-                val stillMuted = prefs.getBoolean("IS_MUTED_BY_APP_DND", false) ||
-                                 prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
-                if (stillMuted) {
-                    Log.d(TAG, "scheduleAllPrayers: Auto Silent OFF tapi masih muted → force unmute")
-                    AdzanLogger.log(context, AdzanLogger.Event.UNMUTE_EXECUTED,
-                        "Auto Silent dimatikan saat DND aktif → force unmute")
-                    val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply {
-                        action = "ACTION_UNMUTE"
-                    }
+            if (isInsideAnySilentWindow) {
+                // FIX: Hanya kirim corrective MUTE jika device BELUM di-mute.
+                // Sebelumnya, broadcast MUTE selalu dikirim meskipun sudah muted,
+                // menyebabkan log "ACTION_MUTE diterima" duplikat.
+                if (!(currentlyMutedDnd || currentlyMutedRinger) && settings.isAutoSilentEnabled && !isTestMode) {
+                    val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                    context.sendBroadcast(muteIntent)
+                }
+            } else {
+                // FIX: Jangan kirim corrective UNMUTE jika adzan sedang bermain.
+                // AdzanService.onDestroy() akan handle PENDING_UNMUTE sendiri.
+                if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying) {
+                    val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
                     context.sendBroadcast(unmuteIntent)
                 }
             }
@@ -433,9 +391,75 @@ class IslamicWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    // NOTE: checkAndEnforceSilentWindow() DIHAPUS.
-    // Fungsi ini sebelumnya melakukan corrective MUTE/UNMUTE saat widget update,
-    // yang menyebabkan DND premature. Sekarang, hanya scheduled alarm yang mengelola DND state.
+    /**
+     * Lightweight check: hanya cek apakah saat ini berada di dalam silent window
+     * dan enforce mute/unmute state, TANPA re-schedule alarm (karena sudah di-set).
+     *
+     * @return true jika alarm missed terdeteksi (di dalam window tapi belum di-mute),
+     *         artinya perlu reschedule penuh agar UNMUTE alarm juga diperbaiki.
+     */
+    private fun checkAndEnforceSilentWindow(
+        context: Context,
+        prayerTimes: IAstroPrayerTimes,
+        settings: SettingsManager,
+        now: Long
+    ): Boolean {
+        val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
+        val isTestMode = prefs.getBoolean("IS_TEST_MODE_ACTIVE", false)
+        val currentlyMutedDnd = prefs.getBoolean("IS_MUTED_BY_APP_DND", false)
+        val currentlyMutedRinger = prefs.getBoolean("IS_MUTED_BY_APP_RINGER", false)
+
+        val prayerDates = listOf(
+            Pair(prayerTimes.fajr, 1),
+            Pair(prayerTimes.dhuhr, 2),
+            Pair(prayerTimes.asr, 3),
+            Pair(prayerTimes.maghrib, 4),
+            Pair(prayerTimes.isha, 5),
+        )
+
+        var isInsideAnySilentWindow = false
+        for ((prayerTime, id) in prayerDates) {
+            val beforeMillis = getBeforeMillis(settings, id, prayerTime)
+            val cal = java.util.Calendar.getInstance(TimeZone.getDefault())
+            cal.time = prayerTime
+            val isFriday = cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.FRIDAY
+            val afterMillis = when (id) {
+                1 -> settings.fajrAfter
+                2 -> if (isFriday) settings.fridayAfter else settings.dhuhrAfter
+                3 -> settings.asrAfter
+                4 -> settings.maghribAfter
+                5 -> settings.ishaAfter
+                else -> 0
+            } * 60 * 1000L
+
+            val muteTime = prayerTime.time - beforeMillis
+            val unmuteTime = prayerTime.time + afterMillis
+            // FIX: Grace period sama seperti di scheduleAllPrayers
+            val muteGraceMs = 60_000L
+            if (now >= (muteTime - muteGraceMs) && now < unmuteTime) {
+                isInsideAnySilentWindow = true
+                break
+            }
+        }
+
+        if (isInsideAnySilentWindow) {
+            if (!(currentlyMutedDnd || currentlyMutedRinger) && settings.isAutoSilentEnabled && !isTestMode) {
+                val muteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_MUTE" }
+                context.sendBroadcast(muteIntent)
+                // Alarm MUTE seharusnya sudah fire tapi belum — Doze kemungkinan membunuh alarm.
+                // Return true agar caller tahu perlu reschedule (supaya UNMUTE juga diperbaiki).
+                return true
+            }
+        } else {
+            // FIX: Jangan corrective-unmute jika adzan sedang bermain
+            if ((currentlyMutedDnd || currentlyMutedRinger) && !isTestMode && !settings.isAdzanPlaying) {
+                val unmuteIntent = Intent(context, SilentModeReceiver::class.java).apply { action = "ACTION_UNMUTE" }
+                context.sendBroadcast(unmuteIntent)
+            }
+        }
+
+        return false
+    }
 
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
         val settings = SettingsManager(context)
@@ -500,19 +524,9 @@ class IslamicWidgetProvider : AppWidgetProvider() {
                 cachedLat = latString.toDouble()
                 cachedLon = lonString.toDouble()
                 cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
-                val nowCal = java.util.Calendar.getInstance()
-                val maghribCal = java.util.Calendar.getInstance().apply { time = cachedPrayerTimes!!.maghrib }
-                val nowMinutes = nowCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nowCal.get(java.util.Calendar.MINUTE)
-                val maghribMinutes = maghribCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + maghribCal.get(java.util.Calendar.MINUTE)
-                val isAfterMaghrib = nowMinutes >= maghribMinutes
-                // DIAGNOSTIC: Log ke AdzanLogger
-                AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE,
-                    "HIJRI: display=${hijriDisplay.day}/${hijriDisplay.month}/${hijriDisplay.year} " +
-                    "isAstro=${hijriDisplay.isFromAstronomy} " +
-                    "isAuto=${settings.isAutoHijriOffset} isDayStart=${settings.isDayStartAtMaghrib} " +
-                    "nowMin=$nowMinutes maghribMin=$maghribMinutes afterMaghrib=$isAfterMaghrib")
             } catch (e: Exception) {}
         }
+
 
         // === Holiday Detection ===
         val holidays = try {
@@ -881,19 +895,12 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             prefs.edit().putBoolean("IS_MUTED_BY_APP_RINGER", false).apply()
         }
 
-        // NOTE: DND flag reconcile DIHAPUS.
-        // Sebelumnya, kode ini clear IS_MUTED_BY_APP_DND jika system DND = OFF.
-        // Tapi pada OEM (Xiaomi/HyperOS), DND otomatis dihapus saat foreground service
-        // (AdzanService) berhenti, menyebabkan flag di-clear padahal DND seharusnya
-        // masih aktif sampai scheduled UNMUTE alarm fire.
-        // Sekarang, hanya scheduled UNMUTE alarm yang boleh clear flag via SilentModeReceiver.
-
         // Grace period 2 menit: jika reschedule terjadi tepat saat/sesaat setelah waktu sholat,
         // ADZAN tetap dijadwalkan (AlarmManager akan fire segera untuk waktu yang sudah lewat).
         // Tanpa ini, race condition bisa menyebabkan ADZAN tidak fire saat widget update
         // men-trigger cancelExistingAlarms + reschedule tepat di waktu sholat.
         val adzanGracePeriod = 120_000L // 2 menit
-        if (settings.isAdzanEnabledForPrayer(requestCodeId) && now <= prayerTime.time + adzanGracePeriod && !isJumat && !settings.isAdzanPlaying) {
+        if (settings.isAdzanAudioEnabled && now <= prayerTime.time + adzanGracePeriod && !isJumat && !settings.isAdzanPlaying) {
             val adzanIntent = Intent(context, SilentModeReceiver::class.java).apply {
                 action = "ACTION_PLAY_ADZAN"
                 putExtra("IS_SUBUH", requestCodeId == 1)
