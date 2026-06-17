@@ -237,14 +237,20 @@ object IslamicAstronomy {
         val day = cal.get(Calendar.DAY_OF_MONTH)
 
         val noonOffsetHours = -longitude / 15.0
-        val approxNoon = Time(year, month, day, 12, 0, 0.0).addDays(noonOffsetHours / 24.0)
+        // FIX: Mulai pencarian dari AWAL HARI (midnight UT) dengan direction=+1 (forward).
+        // Sebelumnya, direction=-1 (backward) dari approxNoon lokal (~04:02 UT untuk WITA)
+        // menyebabkan searchHourAngle menemukan transit KEMARIN (~04:05 UT kemarin),
+        // sehingga SEMUA waktu sholat dihitung untuk hari sebelumnya.
+        // Dengan direction=+1 dari midnight UT, transit pertama yang ditemukan
+        // pasti transit HARI INI.
+        val startOfDay = Time(year, month, day, 0, 0, 0.0)
 
         val activeFajrAngle = if (method == CalculationMethod.OTHER) customFajrAngle else method.fajrAngle
         val activeIshaAngle = if (method == CalculationMethod.OTHER) customIshaAngle else method.ishaAngle
 
         val activeIshaInterval = if (method == CalculationMethod.UMM_AL_QURA && isRamadan) 120 else method.ishaIntervalMinutes
 
-        val transit = searchHourAngle(Body.Sun, observer, 0.0, approxNoon, -1)
+        val transit = searchHourAngle(Body.Sun, observer, 0.0, startOfDay, +1)
         val dhuhrTime = transit.time
         val sunriseTime = searchAltitude(Body.Sun, observer, Direction.Rise, dhuhrTime.addDays(-0.5), 1.0, SUN_REFRACTION_ANGLE)
         val sunsetTime = searchAltitude(Body.Sun, observer, Direction.Set, dhuhrTime, 1.0, SUN_REFRACTION_ANGLE)
