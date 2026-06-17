@@ -236,7 +236,6 @@ object IslamicAstronomy {
         val month = cal.get(Calendar.MONTH) + 1
         val day = cal.get(Calendar.DAY_OF_MONTH)
 
-        val noonOffsetHours = -longitude / 15.0
         // FIX: Mulai pencarian dari AWAL HARI (midnight UT) dengan direction=+1 (forward).
         // Sebelumnya, direction=-1 (backward) dari approxNoon lokal (~04:02 UT untuk WITA)
         // menyebabkan searchHourAngle menemukan transit KEMARIN (~04:05 UT kemarin),
