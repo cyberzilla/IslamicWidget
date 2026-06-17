@@ -9,5 +9,5 @@
     android:targetCellHeight="2"
     android:previewImage="@drawable/ic_icon_islamic"
     android:resizeMode="horizontal|vertical"
-    android:updatePeriodMillis="1800000"
+    android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />

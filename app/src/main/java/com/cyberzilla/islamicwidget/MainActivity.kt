@@ -83,6 +83,7 @@ class MainActivity : AppCompatActivity() {
     private var tempRegularUri: String? = null
     private var tempSubuhUri: String? = null
     private var doubleBackToExitPressedOnce = false
+    private var settingsChanged = false
 
     private var activeTextWatcher: android.text.TextWatcher? = null
 
@@ -1223,6 +1224,7 @@ class MainActivity : AppCompatActivity() {
 
             saveDebounceHandler.removeCallbacks(saveDebounceRunnable)
             saveDebounceHandler.postDelayed(saveDebounceRunnable, 500)
+            settingsChanged = true
 
             Log.d("MainActivity", "Settings saved to SharedPrefs, broadcast scheduled (debounced)")
         } catch (e: Exception) {
@@ -1231,6 +1233,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun performActualSave() {
+        if (!settingsChanged) return
+        settingsChanged = false
         try {
             val ids = AppWidgetManager.getInstance(application).getAppWidgetIds(ComponentName(application, IslamicWidgetProvider::class.java))
             if (ids.isNotEmpty()) {

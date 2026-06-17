@@ -94,15 +94,16 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             val appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS) ?: return
             val appWidgetManager = AppWidgetManager.getInstance(context)
 
-            // Cooldown: abaikan tap berulang dalam 3 detik untuk hemat alarm quota
+            // Cooldown: abaikan tap berulang dalam 3 detik untuk hemat resource
             val prefs = context.getSharedPreferences("IslamicWidgetPrefs", Context.MODE_PRIVATE)
             val lastRefresh = prefs.getLong("LAST_FORCE_REFRESH", 0L)
             val now = System.currentTimeMillis()
             if (now - lastRefresh < 3_000L) return
             prefs.edit().putLong("LAST_FORCE_REFRESH", now).apply()
 
-            // Hapus cache jadwal agar force refresh benar-benar menjadwalkan ulang
-            clearScheduleCache(context)
+            // OPTIMASI: Tidak lagi clearScheduleCache() saat tap widget.
+            // Tap hanya refresh tampilan, bukan reschedule alarm.
+            // Reschedule hanya terjadi jika fingerprint berubah (lokasi/hari/setting).
 
             // Force check update dengan cooldown pendek (2 menit) agar tidak spam
             UpdateHelper.checkForUpdates(context, force = true)
@@ -582,18 +583,44 @@ class IslamicWidgetProvider : AppWidgetProvider() {
             try {
                 cachedLat = latString.toDouble()
                 cachedLon = lonString.toDouble()
-                cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
-                val nowCal = java.util.Calendar.getInstance()
-                val maghribCal = java.util.Calendar.getInstance().apply { time = cachedPrayerTimes!!.maghrib }
-                val nowMinutes = nowCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + nowCal.get(java.util.Calendar.MINUTE)
-                val maghribMinutes = maghribCal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + maghribCal.get(java.util.Calendar.MINUTE)
-                val isAfterMaghrib = nowMinutes >= maghribMinutes
-                // DIAGNOSTIC: Log ke AdzanLogger
-                AdzanLogger.log(context, AdzanLogger.Event.WIDGET_UPDATE,
-                    "HIJRI: display=${hijriDisplay.day}/${hijriDisplay.month}/${hijriDisplay.year} " +
-                    "isAstro=${hijriDisplay.isFromAstronomy} " +
-                    "isAuto=${settings.isAutoHijriOffset} isDayStart=${settings.isDayStartAtMaghrib} " +
-                    "nowMin=$nowMinutes maghribMin=$maghribMinutes afterMaghrib=$isAfterMaghrib")
+
+                // OPTIMASI: Cache prayer times di SharedPreferences.
+                // Hanya hitung ulang jika tanggal/lokasi/method berubah.
+                val ptPrefs = context.getSharedPreferences("PrayerTimesCache", Context.MODE_PRIVATE)
+                val roundedLat = String.format(java.util.Locale.US, "%.3f", cachedLat)
+                val roundedLon = String.format(java.util.Locale.US, "%.3f", cachedLon)
+                val ptCacheKey = "$today|$roundedLat|$roundedLon|${settings.calculationMethod}"
+                val lastPTCacheKey = ptPrefs.getString("PT_CACHE_KEY", null)
+
+                if (lastPTCacheKey == ptCacheKey && ptPrefs.contains("PT_FAJR")) {
+                    // Baca dari cache — hemat kalkulasi astronomi
+                    cachedPrayerTimes = IAstroPrayerTimes(
+                        date = Date(ptPrefs.getLong("PT_DATE", 0)),
+                        imsak = Date(ptPrefs.getLong("PT_IMSAK", 0)),
+                        fajr = Date(ptPrefs.getLong("PT_FAJR", 0)),
+                        sunrise = Date(ptPrefs.getLong("PT_SUNRISE", 0)),
+                        dhuha = Date(ptPrefs.getLong("PT_DHUHA", 0)),
+                        dhuhr = Date(ptPrefs.getLong("PT_DHUHR", 0)),
+                        asr = Date(ptPrefs.getLong("PT_ASR", 0)),
+                        maghrib = Date(ptPrefs.getLong("PT_MAGHRIB", 0)),
+                        isha = Date(ptPrefs.getLong("PT_ISHA", 0))
+                    )
+                } else {
+                    // Hitung baru dan simpan ke cache
+                    cachedPrayerTimes = IslamicAppUtils.calculatePrayerTimes(cachedLat, cachedLon, settings.calculationMethod, today)
+                    ptPrefs.edit()
+                        .putString("PT_CACHE_KEY", ptCacheKey)
+                        .putLong("PT_DATE", cachedPrayerTimes!!.date.time)
+                        .putLong("PT_IMSAK", cachedPrayerTimes!!.imsak.time)
+                        .putLong("PT_FAJR", cachedPrayerTimes!!.fajr.time)
+                        .putLong("PT_SUNRISE", cachedPrayerTimes!!.sunrise.time)
+                        .putLong("PT_DHUHA", cachedPrayerTimes!!.dhuha.time)
+                        .putLong("PT_DHUHR", cachedPrayerTimes!!.dhuhr.time)
+                        .putLong("PT_ASR", cachedPrayerTimes!!.asr.time)
+                        .putLong("PT_MAGHRIB", cachedPrayerTimes!!.maghrib.time)
+                        .putLong("PT_ISHA", cachedPrayerTimes!!.isha.time)
+                        .apply()
+                }
             } catch (e: Exception) {}
         }
 

@@ -1,0 +1,170 @@
+[2026-06-17 14:36:49.998] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 14:36:50.103] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=876 maghribMin=1079 afterMaghrib=false
+[2026-06-17 14:36:50.173] WIDGET_UPDATE: Display: Subuh=04:46 AM(04:46:48.234) Dzuhur=12:05 PM(12:05:09.686) Ashar=03:27 PM(15:27:52.278) loc=(-5.1649884,119.426212)
+[2026-06-17 14:36:50.183] WIDGET_UPDATE: === HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781678210175 local=2026-06-17 14:36:50.175 GMT+08:00 utc=2026-06-17 06:36:50.175
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  calcMethod=KEMENAG loc=(-5.1649884,119.426212)
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-35401s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-9100s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=3062s before=true millisCmp=true
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=12183s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=16677s before=true millisCmp=true
+  RESULT: nextPrayerIndex=2 (Asr)
+[2026-06-17 14:37:56.040] WIDGET_UPDATE: === PREVIEW HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781678276038 local=2026-06-17 14:37:56.038 GMT+08:00 utc=2026-06-17 06:37:56.038
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-35467s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-9166s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=2996s before=true millisCmp=true
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=12117s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=16611s before=true millisCmp=true
+  RESULT: nextPrayerIndexForPreview=2 (Asr)
+[2026-06-17 14:37:56.075] WIDGET_UPDATE: === PREVIEW HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781678276074 local=2026-06-17 14:37:56.074 GMT+08:00 utc=2026-06-17 06:37:56.074
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-35467s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-9166s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=2996s before=true millisCmp=true
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=12117s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=16611s before=true millisCmp=true
+  RESULT: nextPrayerIndexForPreview=2 (Asr)
+[2026-06-17 14:38:09.273] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 14:38:09.300] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=878 maghribMin=1079 afterMaghrib=false
+[2026-06-17 14:38:09.313] WIDGET_UPDATE: Display: Subuh=04:46 AM(04:46:48.234) Dzuhur=12:05 PM(12:05:09.686) Ashar=03:27 PM(15:27:52.278) loc=(-5.1649884,119.426212)
+[2026-06-17 14:38:09.320] WIDGET_UPDATE: === HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781678289314 local=2026-06-17 14:38:09.314 GMT+08:00 utc=2026-06-17 06:38:09.314
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  calcMethod=KEMENAG loc=(-5.1649884,119.426212)
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-35481s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-9179s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=2982s before=true millisCmp=true
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=12104s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=16598s before=true millisCmp=true
+  RESULT: nextPrayerIndex=2 (Asr)
+[2026-06-17 15:08:25.852] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 15:08:26.008] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=908 maghribMin=1079 afterMaghrib=false
+[2026-06-17 15:08:26.051] WIDGET_UPDATE: Display: Subuh=04:46 AM(04:46:48.234) Dzuhur=12:05 PM(12:05:09.686) Ashar=03:27 PM(15:27:52.278) loc=(-5.1649884,119.426212)
+[2026-06-17 15:08:26.058] WIDGET_UPDATE: === HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781680106052 local=2026-06-17 15:08:26.052 GMT+08:00 utc=2026-06-17 07:08:26.052
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  calcMethod=KEMENAG loc=(-5.1649884,119.426212)
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-37297s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-10996s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=1166s before=true millisCmp=true
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=10287s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=14781s before=true millisCmp=true
+  RESULT: nextPrayerIndex=2 (Asr)
+[2026-06-17 15:22:52.292] MUTE_EXECUTED: ACTION_MUTE diterima
+[2026-06-17 15:22:52.327] MUTE_EXECUTED: Perangkat di-mute via DND Priority (alarm-safe policy)
+[2026-06-17 15:27:47.303] DEVICE_WAKEUP: Pre-adzan wake-up untuk Ashar, isInteractive=false
+[2026-06-17 15:27:52.303] ADZAN_FIRED: Receiver menerima ACTION_PLAY_ADZAN untuk Ashar
+[2026-06-17 15:27:52.331] SCREEN_WAKE: Screen wake lock acquired untuk adzan (timeout=900s)
+[2026-06-17 15:27:52.397] ADZAN_PLAY_START: MediaPlayer mulai memutar adzan Regular untuk Ashar
+[2026-06-17 15:27:52.498] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 15:27:52.517] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=927 maghribMin=1079 afterMaghrib=false
+[2026-06-17 15:31:45.070] ADZAN_COMPLETED: Adzan Ashar selesai diputar sampai akhir (natural completion)
+[2026-06-17 15:31:45.602] SCREEN_WAKE: Screen wake lock released (adzan selesai/dihentikan)
+[2026-06-17 15:31:45.613] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 15:31:45.644] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=931 maghribMin=1079 afterMaghrib=false
+[2026-06-17 15:31:45.668] WIDGET_UPDATE: Display: Subuh=04:46 AM(04:46:48.234) Dzuhur=12:05 PM(12:05:09.686) Ashar=03:27 PM(15:27:52.278) loc=(-5.1649884,119.426212)
+[2026-06-17 15:31:45.674] WIDGET_UPDATE: === HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781681505669 local=2026-06-17 15:31:45.669 GMT+08:00 utc=2026-06-17 07:31:45.669
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  calcMethod=KEMENAG loc=(-5.1649884,119.426212)
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-38697s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-12395s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=-233s before=false millisCmp=false
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=8887s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=13382s before=true millisCmp=true
+  RESULT: nextPrayerIndex=3 (Maghrib)
+[2026-06-17 15:40:13.660] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 15:40:13.699] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=940 maghribMin=1079 afterMaghrib=false
+[2026-06-17 15:40:13.718] WIDGET_UPDATE: Display: Subuh=04:46 AM(04:46:48.234) Dzuhur=12:05 PM(12:05:09.686) Ashar=03:27 PM(15:27:52.278) loc=(-5.1649884,119.426212)
+[2026-06-17 15:40:13.730] WIDGET_UPDATE: === HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781682013720 local=2026-06-17 15:40:13.720 GMT+08:00 utc=2026-06-17 07:40:13.720
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  calcMethod=KEMENAG loc=(-5.1649884,119.426212)
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-39205s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-12904s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=-741s before=false millisCmp=false
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=8379s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=12874s before=true millisCmp=true
+  RESULT: nextPrayerIndex=3 (Maghrib)
+[2026-06-17 16:02:52.321] UNMUTE_EXECUTED: ACTION_UNMUTE dieksekusi
+[2026-06-17 16:02:52.355] UNMUTE_EXECUTED: Perangkat di-unmute via DND -> Normal
+[2026-06-17 16:08:03.351] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 16:08:03.386] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=968 maghribMin=1079 afterMaghrib=false
+[2026-06-17 16:08:03.405] WIDGET_UPDATE: Display: Subuh=04:46 AM(04:46:48.234) Dzuhur=12:05 PM(12:05:09.686) Ashar=03:27 PM(15:27:52.278) loc=(-5.1649884,119.426212)
+[2026-06-17 16:08:03.415] WIDGET_UPDATE: === HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781683683406 local=2026-06-17 16:08:03.406 GMT+08:00 utc=2026-06-17 08:08:03.406
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  calcMethod=KEMENAG loc=(-5.1649884,119.426212)
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-40875s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-14573s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=-2411s before=false millisCmp=false
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=6710s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=11204s before=true millisCmp=true
+  RESULT: nextPrayerIndex=3 (Maghrib)
+[2026-06-17 16:59:21.385] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 16:59:21.424] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=1019 maghribMin=1079 afterMaghrib=false
+[2026-06-17 16:59:21.448] WIDGET_UPDATE: Display: Subuh=04:46 AM(04:46:48.234) Dzuhur=12:05 PM(12:05:09.686) Ashar=03:27 PM(15:27:52.278) loc=(-5.1649884,119.426212)
+[2026-06-17 16:59:21.455] WIDGET_UPDATE: === HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781686761449 local=2026-06-17 16:59:21.449 GMT+08:00 utc=2026-06-17 08:59:21.449
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  calcMethod=KEMENAG loc=(-5.1649884,119.426212)
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-43953s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-17651s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=-5489s before=false millisCmp=false
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=3632s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=8126s before=true millisCmp=true
+  RESULT: nextPrayerIndex=3 (Maghrib)
+[2026-06-17 17:02:46.374] WIDGET_UPDATE: onUpdate dipanggil untuk 1 widget
+[2026-06-17 17:02:46.377] ALARM_SCHEDULED: scheduleAllPrayers [2026-06-17] loc=(-5.1649884,119.426212) method=KEMENAG
+  Subuh: 04:46:48.234 (epoch=1781642808234)
+  Dzuhur: 12:05:09.686 (epoch=1781669109686)
+  Ashar: 15:27:52.278 (epoch=1781681272278)
+  Maghrib: 17:59:53.538 (epoch=1781690393538)
+  Isya: 19:14:47.768 (epoch=1781694887768)
+[2026-06-17 17:02:46.382] ALARM_SCHEDULED: ADZAN untuk Subuh dijadwalkan pada 04:47:00
+[2026-06-17 17:02:46.383] ALARM_SCHEDULED: WAKE_UP untuk Subuh dijadwalkan pada 04:46:55
+[2026-06-17 17:02:46.385] ALARM_SCHEDULED: MUTE untuk Subuh dijadwalkan pada 04:47:00
+[2026-06-17 17:02:46.385] ALARM_SCHEDULED: UNMUTE untuk Subuh dijadwalkan pada 05:32:00
+[2026-06-17 17:02:46.388] ALARM_SCHEDULED: ADZAN untuk Dzuhur/Jumat dijadwalkan pada 12:05:22
+[2026-06-17 17:02:46.390] ALARM_SCHEDULED: WAKE_UP untuk Dzuhur/Jumat dijadwalkan pada 12:05:17
+[2026-06-17 17:02:46.391] ALARM_SCHEDULED: MUTE untuk Dzuhur/Jumat dijadwalkan pada 12:05:22
+[2026-06-17 17:02:46.392] ALARM_SCHEDULED: UNMUTE untuk Dzuhur/Jumat dijadwalkan pada 12:40:22
+[2026-06-17 17:02:46.394] ALARM_SCHEDULED: ADZAN untuk Ashar dijadwalkan pada 15:28:05
+[2026-06-17 17:02:46.395] ALARM_SCHEDULED: WAKE_UP untuk Ashar dijadwalkan pada 15:28:00
+[2026-06-17 17:02:46.397] ALARM_SCHEDULED: MUTE untuk Ashar dijadwalkan pada 15:23:05
+[2026-06-17 17:02:46.398] ALARM_SCHEDULED: UNMUTE untuk Ashar dijadwalkan pada 16:03:05
+[2026-06-17 17:02:46.402] ALARM_SCHEDULED: ADZAN untuk Maghrib dijadwalkan pada 17:59:53
+[2026-06-17 17:02:46.404] ALARM_SCHEDULED: WAKE_UP untuk Maghrib dijadwalkan pada 17:59:48
+[2026-06-17 17:02:46.408] ALARM_SCHEDULED: MUTE untuk Maghrib dijadwalkan pada 17:54:53
+[2026-06-17 17:02:46.409] ALARM_SCHEDULED: UNMUTE untuk Maghrib dijadwalkan pada 18:34:53
+[2026-06-17 17:02:46.417] ALARM_SCHEDULED: ADZAN untuk Isya dijadwalkan pada 19:14:47
+[2026-06-17 17:02:46.419] ALARM_SCHEDULED: WAKE_UP untuk Isya dijadwalkan pada 19:14:42
+[2026-06-17 17:02:46.421] ALARM_SCHEDULED: MUTE untuk Isya dijadwalkan pada 19:14:47
+[2026-06-17 17:02:46.422] ALARM_SCHEDULED: UNMUTE untuk Isya dijadwalkan pada 20:09:47
+[2026-06-17 17:02:46.427] WIDGET_UPDATE: HIJRI: display=1/1/1448 isAstro=true isAuto=true isDayStart=true nowMin=1022 maghribMin=1079 afterMaghrib=false
+[2026-06-17 17:02:46.432] WIDGET_UPDATE: Display: Subuh=04:46 AM(04:46:48.234) Dzuhur=12:05 PM(12:05:09.686) Ashar=03:27 PM(15:27:52.278) loc=(-5.1649884,119.426212)
+[2026-06-17 17:02:46.435] WIDGET_UPDATE: === HIGHLIGHT DEBUG ===
+  TZ=Asia/Makassar offset=8h
+  now: millis=1781686966432 local=2026-06-17 17:02:46.432 GMT+08:00 utc=2026-06-17 09:02:46.432
+  prayerTimes.date: millis=1781697600000 local=2026-06-17 20:00:00.000 GMT+08:00
+  calcMethod=KEMENAG loc=(-5.1649884,119.426212)
+  Fajr: millis=1781642808234 local=2026-06-17 04:46:48.234 GMT+08:00 diff=-44158s before=false millisCmp=false
+  Dhuhr: millis=1781669109686 local=2026-06-17 12:05:09.686 GMT+08:00 diff=-17856s before=false millisCmp=false
+  Asr: millis=1781681272278 local=2026-06-17 15:27:52.278 GMT+08:00 diff=-5694s before=false millisCmp=false
+  Maghrib: millis=1781690393538 local=2026-06-17 17:59:53.538 GMT+08:00 diff=3427s before=true millisCmp=true
+  Isha: millis=1781694887768 local=2026-06-17 19:14:47.768 GMT+08:00 diff=7921s before=true millisCmp=true
+  RESULT: nextPrayerIndex=3 (Maghrib)
