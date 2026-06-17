@@ -346,7 +346,19 @@ object IslamicAppUtils {
 
     fun calculatePrayerTimes(lat: Double, lon: Double, methodStr: String, today: LocalDate): PrayerTimes {
         val method = getCalculationMethod(methodStr)
-        val cal = Calendar.getInstance().apply {
+        // FIX: Gunakan UTC Calendar agar epoch millis menunjuk ke 12:00 UTC (noon UT)
+        // pada tanggal yang diminta. Sebelumnya pakai local TZ (GMT+8), sehingga
+        // "12:00 local" = "04:00 UTC" → IslamicAstronomy meng-extract day=17 (benar),
+        // tapi Time(y,m,d,12,0,0) selalu 12:00 UT. noonOffset = -lon/15 menggeser ke
+        // noon lokal. dhuhrTime.addDays(-0.5) lalu mencari Fajr dari 12 jam sebelum noon.
+        // Untuk longitude +119° (WITA), noon UT≈04:00 UTC, sehingga -0.5d = ~16:00 UTC
+        // kemarin → searchAltitude menemukan FAJR KEMARIN.
+        // Dengan UTC Calendar, 12:00 UTC → day extract tetap benar, dan karena
+        // noonOffset = -7.96h, approxNoon = 12:00 UT + (-7.96/24)d ≈ 04:02 UT = 12:02 WITA.
+        // Ini identik dengan sebelumnya, karena IslamicAstronomy SELALU extract date
+        // dengan UTC Calendar lalu buat Time(y,m,d,12,0,0) UT. Yang penting hanyalah
+        // year/month/day yang di-extract dari epoch millis via UTC Calendar.
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
             set(Calendar.YEAR, today.year)
             set(Calendar.MONTH, today.monthValue - 1)
             set(Calendar.DAY_OF_MONTH, today.dayOfMonth)
