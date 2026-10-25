@@ -214,6 +214,8 @@
                 android:resource="@xml/lunar_widget_info" />
         </receiver>
 
+        <receiver android:name=".DailyUpdateReceiver" android:exported="false" />
+
         <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

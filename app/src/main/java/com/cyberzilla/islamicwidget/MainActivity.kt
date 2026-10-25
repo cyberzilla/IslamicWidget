@@ -165,6 +165,11 @@ class MainActivity : AppCompatActivity() {
         checkBatteryOptimizations()
         UpdateHelper.checkForUpdates(this)
 
+        // Pastikan scheduling tetap aktif walau tidak ada widget terpasang.
+        // Ini menjamin adzan, auto-silent, icon update, dan daily alarm
+        // selalu terjadwal bahkan jika user belum pasang widget apapun.
+        PrayerScheduler.ensureScheduled(this)
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

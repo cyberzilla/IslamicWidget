@@ -31,6 +31,12 @@ class BootReceiver : BroadcastReceiver() {
             .remove("LAST_SCHEDULE_FINGERPRINT")
             .apply()
 
+        // === FIX: SELALU jadwalkan alarm sholat, icon update, dan daily update ===
+        // Sebelumnya hanya berjalan jika widget terpasang, sehingga tanpa widget
+        // = tidak ada adzan, tidak ada icon update, tidak ada silent mode.
+        PrayerScheduler.ensureScheduled(context)
+
+        // Refresh widget jika ada (untuk UI update)
         val appWidgetManager = AppWidgetManager.getInstance(context)
 
         val islamicIds = appWidgetManager.getAppWidgetIds(
